@@ -1,0 +1,1232 @@
+// ──────────────────────────────────────────────────────────────
+// Tenant Schema DDL
+//
+// Programmatic equivalent of `prisma db push` for the tenant schema.
+// Executed via pg.Pool.query() — no Prisma CLI binary required.
+// All statements are idempotent: safe to re-run on an existing schema.
+//
+// IMPORTANT: Keep in sync with prisma/tenant/schema.prisma.
+// ──────────────────────────────────────────────────────────────
+
+import { Pool } from "pg";
+import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
+
+export const CURRENT_TENANT_SCHEMA_VERSION = 13;
+
+export const TENANT_SCHEMA_STATEMENTS: string[] = [
+  // ── Enum types ─────────────────────────────────────────────
+  `DO $$ BEGIN
+    CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN','ADMIN','MANAGER','STAFF');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "Department" AS ENUM ('GENERAL','CONSTRUCTION','REAL_ESTATE');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "StaffStatus" AS ENUM ('ACTIVE','INACTIVE','ON_LEAVE','TERMINATED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "TransactionType" AS ENUM ('INCOME','EXPENSE');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "TransactionStatus" AS ENUM ('CLEARED','PROCESSING','PENDING','CANCELLED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "ProjectStatus" AS ENUM ('PLANNING','ONGOING','ON_HOLD','COMPLETED','CANCELLED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "TaskStatus" AS ENUM ('NOT_STARTED','IN_PROGRESS','COMPLETED','BLOCKED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "TaskPriority" AS ENUM ('LOW','MEDIUM','HIGH','URGENT');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "PropertyType" AS ENUM ('HOUSE','APARTMENT','LAND','COMMERCIAL');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "PropertyStatus" AS ENUM ('AVAILABLE','SOLD','RENTED','UNDER_CONTRACT');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "DealType" AS ENUM ('SALE','RENTAL');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "DealPaymentStatus" AS ENUM ('PAID','PARTIAL','PENDING','OVERDUE','REFUNDED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "UnitType" AS ENUM ('KG','BAG','PIECE','METER','LITER','TON');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "InventoryTransactionType" AS ENUM ('RESTOCK','USAGE');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'COMPANY_OWNER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'GENERAL_MANAGER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'CONSTRUCTION_MANAGER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'SITE_ENGINEER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'PROJECT_SUPERVISOR'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'PROCUREMENT_OFFICER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'STOREKEEPER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'MANPOWER_SUPERVISOR'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'REAL_ESTATE_MANAGER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'SALES_AGENT'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'RENTAL_OFFICER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'PROPERTY_SUPERVISOR'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'MATERIAL_MANAGER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'SALES_STAFF'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'INVENTORY_OFFICER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'SUPPLIER_OFFICER'`,
+  `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'DELIVERY_OFFICER'`,
+  `ALTER TYPE "Department" ADD VALUE IF NOT EXISTS 'MATERIAL_MANAGEMENT'`,
+  `ALTER TYPE "InventoryTransactionType" ADD VALUE IF NOT EXISTS 'ADJUSTMENT'`,
+  `ALTER TYPE "InventoryTransactionType" ADD VALUE IF NOT EXISTS 'TRANSFER'`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "RentalPaymentStatus" AS ENUM ('PAID','UNPAID','LATE','PARTIAL');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "ContractStatus" AS ENUM ('ACTIVE','EXPIRED','RENEWAL_DUE','TERMINATED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "MaterialProductStatus" AS ENUM ('ACTIVE','INACTIVE','DISCONTINUED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "PurchaseOrderStatus" AS ENUM ('DRAFT','ORDERED','RECEIVED','CANCELLED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "DeliveryStatus" AS ENUM ('PENDING','IN_TRANSIT','DELIVERED','CANCELLED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "ReportScheduleFrequency" AS ENUM ('WEEKLY','MONTHLY','YEARLY');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "PayrollStatus" AS ENUM ('DRAFT','PENDING_APPROVAL','APPROVED','REJECTED','PAID');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  // ── Tables ──────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS "system_config" (
+    "id"         TEXT        NOT NULL PRIMARY KEY,
+    "key"        TEXT        NOT NULL UNIQUE,
+    "value"      TEXT        NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "report_schedules" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "report_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "frequency" "ReportScheduleFrequency" NOT NULL,
+    "recipients" TEXT,
+    "filters" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "next_run_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "users" (
+    "id"                     TEXT         NOT NULL PRIMARY KEY,
+    "email"                  TEXT         NOT NULL UNIQUE,
+    "password_hash"          TEXT         NOT NULL,
+    "name"                   TEXT         NOT NULL,
+    "role"                   "UserRole"   NOT NULL DEFAULT 'STAFF',
+    "avatar_url"             TEXT,
+    "is_active"              BOOLEAN      NOT NULL DEFAULT true,
+    "construction_access"    BOOLEAN      NOT NULL DEFAULT true,
+    "real_estate_access"     BOOLEAN      NOT NULL DEFAULT true,
+    "material_management_access" BOOLEAN   NOT NULL DEFAULT true,
+    "last_login_at"          TIMESTAMP(3),
+    "reset_token_hash"       TEXT,
+    "reset_token_expires_at" TIMESTAMP(3),
+    "reset_requested_at"     TIMESTAMP(3),
+    "password_reset_at"      TIMESTAMP(3),
+    "created_at"             TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"             TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"             TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "staff" (
+    "id"         TEXT          NOT NULL PRIMARY KEY,
+    "user_id"    TEXT          UNIQUE,
+    "first_name" TEXT          NOT NULL,
+    "last_name"  TEXT          NOT NULL,
+    "phone"      TEXT,
+    "department" "Department"  NOT NULL DEFAULT 'GENERAL',
+    "position"   TEXT,
+    "salary"     DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "hire_date"  TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status"     "StaffStatus" NOT NULL DEFAULT 'ACTIVE',
+    "notes"      TEXT,
+    "photo_url"  TEXT,
+    "created_at" TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "categories" (
+    "id"          TEXT         NOT NULL PRIMARY KEY,
+    "name"        TEXT         NOT NULL UNIQUE,
+    "code"        TEXT         UNIQUE,
+    "description" TEXT,
+    "color"       TEXT         DEFAULT '#6366f1',
+    "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"  TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "projects" (
+    "id"          TEXT            NOT NULL PRIMARY KEY,
+    "name"        TEXT            NOT NULL,
+    "location"    TEXT,
+    "description" TEXT,
+    "status"      "ProjectStatus" NOT NULL DEFAULT 'PLANNING',
+    "budget"      DECIMAL(12,2)   NOT NULL DEFAULT 0,
+    "start_date"  TIMESTAMP(3),
+    "end_date"    TIMESTAMP(3),
+    "progress"    INTEGER         NOT NULL DEFAULT 0,
+    "image_url"   TEXT,
+    "created_at"  TIMESTAMP(3)    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"  TIMESTAMP(3)    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"  TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "properties" (
+    "id"          TEXT              NOT NULL PRIMARY KEY,
+    "title"       TEXT              NOT NULL,
+    "type"        "PropertyType"    NOT NULL,
+    "status"      "PropertyStatus"  NOT NULL DEFAULT 'AVAILABLE',
+    "address"     TEXT,
+    "description" TEXT,
+    "price"       DECIMAL(12,2)     NOT NULL DEFAULT 0,
+    "area"        DECIMAL(10,2),
+    "bedrooms"    INTEGER,
+    "bathrooms"   INTEGER,
+    "image_url"   TEXT,
+    "created_at"  TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"  TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"  TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "clients" (
+    "id"         TEXT         NOT NULL PRIMARY KEY,
+    "name"       TEXT         NOT NULL,
+    "email"      TEXT,
+    "phone"      TEXT,
+    "notes"      TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "transactions" (
+    "id"           TEXT                NOT NULL PRIMARY KEY,
+    "reference_id" TEXT                NOT NULL UNIQUE,
+    "type"         "TransactionType"   NOT NULL,
+    "status"       "TransactionStatus" NOT NULL DEFAULT 'PENDING',
+    "description"  TEXT                NOT NULL,
+    "amount"       DECIMAL(12,2)       NOT NULL,
+    "date"         TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "category_id"  TEXT,
+    "user_id"      TEXT,
+    "project_id"   TEXT,
+    "property_id"  TEXT,
+    "deal_id"      TEXT,
+    "notes"        TEXT,
+    "created_at"   TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"   TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"   TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "activity_logs" (
+    "id"         TEXT         NOT NULL PRIMARY KEY,
+    "user_id"    TEXT         NOT NULL,
+    "action"     TEXT         NOT NULL,
+    "entity"     TEXT         NOT NULL,
+    "entity_id"  TEXT,
+    "resource"   TEXT,
+    "details"    TEXT,
+    "ip_address" TEXT,
+    "device_info" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "project_tasks" (
+    "id"          TEXT           NOT NULL PRIMARY KEY,
+    "project_id"  TEXT           NOT NULL,
+    "title"       TEXT           NOT NULL,
+    "description" TEXT,
+    "status"      "TaskStatus"   NOT NULL DEFAULT 'NOT_STARTED',
+    "priority"    "TaskPriority" NOT NULL DEFAULT 'MEDIUM',
+    "progress"    INTEGER        NOT NULL DEFAULT 0,
+    "due_date"    TIMESTAMP(3),
+    "assignee_id" TEXT,
+    "staff_id"    TEXT,
+    "created_at"  TIMESTAMP(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"  TIMESTAMP(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"  TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "deals" (
+    "id"             TEXT                NOT NULL PRIMARY KEY,
+    "property_id"    TEXT                NOT NULL,
+    "client_id"      TEXT                NOT NULL,
+    "created_by_id"  TEXT,
+    "type"           "DealType"          NOT NULL,
+    "payment_status" "DealPaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "total_amount"   DECIMAL(12,2)       NOT NULL DEFAULT 0,
+    "paid_amount"    DECIMAL(12,2)       NOT NULL DEFAULT 0,
+    "notes"          TEXT,
+    "closed_at"      TIMESTAMP(3),
+    "created_at"     TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"     TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"     TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "materials" (
+    "id"         TEXT         NOT NULL PRIMARY KEY,
+    "name"       TEXT         NOT NULL,
+    "category"   TEXT,
+    "material_type" TEXT,
+    "photo_url"  TEXT,
+    "quantity"   DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "unit"       "UnitType"    NOT NULL,
+    "unit_cost"  DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "sale_price" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "warehouse"  TEXT,
+    "low_stock_threshold" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "status"     "MaterialProductStatus" NOT NULL DEFAULT 'ACTIVE',
+    "created_at" TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "inventory_transactions" (
+    "id"          TEXT                       NOT NULL PRIMARY KEY,
+    "material_id" TEXT                       NOT NULL,
+    "project_id"  TEXT,
+    "type"        "InventoryTransactionType" NOT NULL,
+    "quantity"    DECIMAL(12,2)              NOT NULL,
+    "date"        TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "user_id"     TEXT                       NOT NULL,
+    "notes"       TEXT,
+    "warehouse"   TEXT,
+    "created_at"  TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"  TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"  TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "tenants" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "email" TEXT,
+    "phone" TEXT,
+    "national_id_passport" TEXT,
+    "property_id" TEXT,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "rental_contracts" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "tenant_id" TEXT NOT NULL,
+    "property_id" TEXT NOT NULL,
+    "monthly_rent" DECIMAL(12,2) NOT NULL,
+    "start_date" TIMESTAMP(3) NOT NULL,
+    "end_date" TIMESTAMP(3) NOT NULL,
+    "renewal_date" TIMESTAMP(3),
+    "status" "ContractStatus" NOT NULL DEFAULT 'ACTIVE',
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "rent_payments" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "tenant_id" TEXT NOT NULL,
+    "contract_id" TEXT,
+    "due_date" TIMESTAMP(3) NOT NULL,
+    "paid_date" TIMESTAMP(3),
+    "amount_due" DECIMAL(12,2) NOT NULL,
+    "amount_paid" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "status" "RentalPaymentStatus" NOT NULL DEFAULT 'UNPAID',
+    "receipt_no" TEXT,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "suppliers" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "email" TEXT,
+    "phone" TEXT,
+    "address" TEXT,
+    "balance" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "supplier_transactions" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "supplier_id" TEXT NOT NULL,
+    "amount" DECIMAL(12,2) NOT NULL,
+    "description" TEXT NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "purchase_orders" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "supplier_id" TEXT,
+    "order_no" TEXT NOT NULL UNIQUE,
+    "status" "PurchaseOrderStatus" NOT NULL DEFAULT 'DRAFT',
+    "total_cost" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "ordered_at" TIMESTAMP(3),
+    "received_at" TIMESTAMP(3),
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "purchase_order_items" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "purchase_order_id" TEXT NOT NULL,
+    "material_id" TEXT NOT NULL,
+    "quantity" DECIMAL(12,2) NOT NULL,
+    "unit_cost" DECIMAL(12,2) NOT NULL
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "material_customers" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "email" TEXT,
+    "phone" TEXT,
+    "address" TEXT,
+    "balance" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "material_sales" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "customer_id" TEXT,
+    "user_id" TEXT,
+    "invoice_no" TEXT NOT NULL UNIQUE,
+    "total_amount" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "paid_amount" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "material_sale_items" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "sale_id" TEXT NOT NULL,
+    "material_id" TEXT NOT NULL,
+    "quantity" DECIMAL(12,2) NOT NULL,
+    "unit_price" DECIMAL(12,2) NOT NULL
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "transportation_records" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "delivery_no" TEXT NOT NULL UNIQUE,
+    "responsible_person" TEXT NOT NULL,
+    "cost" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "status" "DeliveryStatus" NOT NULL DEFAULT 'PENDING',
+    "delivery_date" TIMESTAMP(3),
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "transportation_items" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "transportation_id" TEXT NOT NULL,
+    "material_id" TEXT NOT NULL,
+    "quantity" DECIMAL(12,2) NOT NULL
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "worker_types" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL UNIQUE,
+    "description" TEXT,
+    "color" TEXT DEFAULT '#6366f1',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "daily_operational_expenses" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "staff_id" TEXT,
+    "project_id" TEXT,
+    "amount" DECIMAL(12,2) NOT NULL,
+    "description" TEXT NOT NULL,
+    "category" TEXT NOT NULL DEFAULT 'OTHER',
+    "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  // ── RBAC tables ────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS "rbac_permissions" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "key" TEXT NOT NULL UNIQUE,
+    "module" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "workspace" TEXT,
+    "label" TEXT NOT NULL,
+    "description" TEXT,
+    "is_system" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "rbac_roles" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "key" TEXT NOT NULL UNIQUE,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "is_system" BOOLEAN NOT NULL DEFAULT false,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "rbac_role_permissions" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "role_id" TEXT NOT NULL,
+    "permission_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "rbac_user_roles" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "user_id" TEXT NOT NULL,
+    "role_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "rbac_user_permissions" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "user_id" TEXT NOT NULL,
+    "permission_id" TEXT NOT NULL,
+    "effect" TEXT NOT NULL DEFAULT 'ALLOW',
+    "reason" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "worker_ledger_entries" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "user_id" TEXT,
+    "staff_id" TEXT,
+    "project_id" TEXT,
+    "type" "TransactionType" NOT NULL,
+    "amount" DECIMAL(12,2) NOT NULL,
+    "description" TEXT NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // ── Column Additions (idempotent) ────────────────────────────
+  `DO $$ BEGIN
+    ALTER TABLE "users" ADD COLUMN "construction_access" BOOLEAN NOT NULL DEFAULT true;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "users" ADD COLUMN "real_estate_access" BOOLEAN NOT NULL DEFAULT true;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "users" ADD COLUMN "material_management_access" BOOLEAN NOT NULL DEFAULT true;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "users" ADD COLUMN "language" TEXT NOT NULL DEFAULT 'en';
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "activity_logs" ADD COLUMN "resource" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "activity_logs" ADD COLUMN "device_info" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "materials" ADD COLUMN "category" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "materials" ADD COLUMN "material_type" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "materials" ADD COLUMN "sale_price" DECIMAL(12,2) NOT NULL DEFAULT 0;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "materials" ADD COLUMN "warehouse" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "materials" ADD COLUMN "low_stock_threshold" DECIMAL(12,2) NOT NULL DEFAULT 0;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "materials" ADD COLUMN "status" "MaterialProductStatus" NOT NULL DEFAULT 'ACTIVE';
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "inventory_transactions" ADD COLUMN "warehouse" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "deals" ADD COLUMN "payment_status" "DealPaymentStatus" NOT NULL DEFAULT 'PENDING';
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "staff" ADD COLUMN "worker_type_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "staff" ADD COLUMN "assigned_project_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "staff" ADD COLUMN "photo_url" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  // ── Foreign keys (idempotent) ────────────────────────────────
+  `DO $$ BEGIN
+    ALTER TABLE "staff" ADD CONSTRAINT "staff_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_category_id_fkey"
+      FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_property_id_fkey"
+      FOREIGN KEY ("property_id") REFERENCES "properties"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_deal_id_fkey"
+      FOREIGN KEY ("deal_id") REFERENCES "deals"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "project_tasks" ADD CONSTRAINT "project_tasks_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "project_tasks" ADD CONSTRAINT "project_tasks_assignee_id_fkey"
+      FOREIGN KEY ("assignee_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "project_tasks" ADD CONSTRAINT "project_tasks_staff_id_fkey"
+      FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "deals" ADD CONSTRAINT "deals_property_id_fkey"
+      FOREIGN KEY ("property_id") REFERENCES "properties"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "deals" ADD CONSTRAINT "deals_client_id_fkey"
+      FOREIGN KEY ("client_id") REFERENCES "clients"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "deals" ADD CONSTRAINT "deals_created_by_id_fkey"
+      FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "inventory_transactions" ADD CONSTRAINT "inventory_transactions_material_id_fkey"
+      FOREIGN KEY ("material_id") REFERENCES "materials"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "inventory_transactions" ADD CONSTRAINT "inventory_transactions_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "inventory_transactions" ADD CONSTRAINT "inventory_transactions_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "tenants" ADD CONSTRAINT "tenants_property_id_fkey"
+      FOREIGN KEY ("property_id") REFERENCES "properties"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rental_contracts" ADD CONSTRAINT "rental_contracts_tenant_id_fkey"
+      FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rental_contracts" ADD CONSTRAINT "rental_contracts_property_id_fkey"
+      FOREIGN KEY ("property_id") REFERENCES "properties"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rent_payments" ADD CONSTRAINT "rent_payments_tenant_id_fkey"
+      FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rent_payments" ADD CONSTRAINT "rent_payments_contract_id_fkey"
+      FOREIGN KEY ("contract_id") REFERENCES "rental_contracts"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "supplier_transactions" ADD CONSTRAINT "supplier_transactions_supplier_id_fkey"
+      FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "purchase_orders" ADD CONSTRAINT "purchase_orders_supplier_id_fkey"
+      FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "purchase_order_items" ADD CONSTRAINT "purchase_order_items_purchase_order_id_fkey"
+      FOREIGN KEY ("purchase_order_id") REFERENCES "purchase_orders"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "purchase_order_items" ADD CONSTRAINT "purchase_order_items_material_id_fkey"
+      FOREIGN KEY ("material_id") REFERENCES "materials"("id") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "material_sales" ADD CONSTRAINT "material_sales_customer_id_fkey"
+      FOREIGN KEY ("customer_id") REFERENCES "material_customers"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "material_sales" ADD CONSTRAINT "material_sales_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "material_sale_items" ADD CONSTRAINT "material_sale_items_sale_id_fkey"
+      FOREIGN KEY ("sale_id") REFERENCES "material_sales"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "material_sale_items" ADD CONSTRAINT "material_sale_items_material_id_fkey"
+      FOREIGN KEY ("material_id") REFERENCES "materials"("id") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transportation_items" ADD CONSTRAINT "transportation_items_transportation_id_fkey"
+      FOREIGN KEY ("transportation_id") REFERENCES "transportation_records"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transportation_items" ADD CONSTRAINT "transportation_items_material_id_fkey"
+      FOREIGN KEY ("material_id") REFERENCES "materials"("id") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "worker_ledger_entries" ADD CONSTRAINT "worker_ledger_entries_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "worker_ledger_entries" ADD CONSTRAINT "worker_ledger_entries_staff_id_fkey"
+      FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "worker_ledger_entries" ADD CONSTRAINT "worker_ledger_entries_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "staff" ADD CONSTRAINT "staff_worker_type_id_fkey"
+      FOREIGN KEY ("worker_type_id") REFERENCES "worker_types"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "staff" ADD CONSTRAINT "staff_assigned_project_id_fkey"
+      FOREIGN KEY ("assigned_project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "daily_operational_expenses" ADD CONSTRAINT "daily_operational_expenses_staff_id_fkey"
+      FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "daily_operational_expenses" ADD CONSTRAINT "daily_operational_expenses_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  // ── RBAC foreign keys ─────────────────────────────────────────
+  `DO $$ BEGIN
+    ALTER TABLE "rbac_role_permissions" ADD CONSTRAINT "rbac_role_permissions_role_id_fkey"
+      FOREIGN KEY ("role_id") REFERENCES "rbac_roles"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rbac_role_permissions" ADD CONSTRAINT "rbac_role_permissions_permission_id_fkey"
+      FOREIGN KEY ("permission_id") REFERENCES "rbac_permissions"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rbac_user_roles" ADD CONSTRAINT "rbac_user_roles_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rbac_user_roles" ADD CONSTRAINT "rbac_user_roles_role_id_fkey"
+      FOREIGN KEY ("role_id") REFERENCES "rbac_roles"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rbac_user_permissions" ADD CONSTRAINT "rbac_user_permissions_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rbac_user_permissions" ADD CONSTRAINT "rbac_user_permissions_permission_id_fkey"
+      FOREIGN KEY ("permission_id") REFERENCES "rbac_permissions"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  // ── Indexes (idempotent) ─────────────────────────────────────
+  `CREATE INDEX IF NOT EXISTS "users_email_idx"              ON "users"("email")`,
+  `CREATE INDEX IF NOT EXISTS "report_schedules_report_id_idx" ON "report_schedules"("report_id")`,
+  `CREATE INDEX IF NOT EXISTS "report_schedules_is_active_idx" ON "report_schedules"("is_active")`,
+  `CREATE INDEX IF NOT EXISTS "staff_department_idx"         ON "staff"("department")`,
+  `CREATE INDEX IF NOT EXISTS "staff_status_idx"             ON "staff"("status")`,
+  `CREATE INDEX IF NOT EXISTS "transactions_type_idx"        ON "transactions"("type")`,
+  `CREATE INDEX IF NOT EXISTS "transactions_date_idx"        ON "transactions"("date")`,
+  `CREATE INDEX IF NOT EXISTS "transactions_category_id_idx" ON "transactions"("category_id")`,
+  `CREATE INDEX IF NOT EXISTS "transactions_project_id_idx"  ON "transactions"("project_id")`,
+  `CREATE INDEX IF NOT EXISTS "transactions_property_id_idx" ON "transactions"("property_id")`,
+  `CREATE INDEX IF NOT EXISTS "activity_logs_user_id_idx"    ON "activity_logs"("user_id")`,
+  `CREATE INDEX IF NOT EXISTS "activity_logs_entity_idx"     ON "activity_logs"("entity")`,
+  `CREATE INDEX IF NOT EXISTS "activity_logs_created_at_idx" ON "activity_logs"("created_at")`,
+  `CREATE INDEX IF NOT EXISTS "projects_status_idx"          ON "projects"("status")`,
+  `CREATE INDEX IF NOT EXISTS "project_tasks_project_id_idx" ON "project_tasks"("project_id")`,
+  `CREATE INDEX IF NOT EXISTS "project_tasks_status_idx"     ON "project_tasks"("status")`,
+  `CREATE INDEX IF NOT EXISTS "properties_type_idx"          ON "properties"("type")`,
+  `CREATE INDEX IF NOT EXISTS "properties_status_idx"        ON "properties"("status")`,
+  `CREATE INDEX IF NOT EXISTS "deals_property_id_idx"        ON "deals"("property_id")`,
+  `CREATE INDEX IF NOT EXISTS "deals_client_id_idx"          ON "deals"("client_id")`,
+  `CREATE INDEX IF NOT EXISTS "deals_payment_status_idx"     ON "deals"("payment_status")`,
+  `CREATE INDEX IF NOT EXISTS "inventory_transactions_material_id_idx" ON "inventory_transactions"("material_id")`,
+  `CREATE INDEX IF NOT EXISTS "inventory_transactions_project_id_idx"  ON "inventory_transactions"("project_id")`,
+  `CREATE INDEX IF NOT EXISTS "inventory_transactions_date_idx"        ON "inventory_transactions"("date")`,
+  `CREATE INDEX IF NOT EXISTS "tenants_property_id_idx" ON "tenants"("property_id")`,
+  `CREATE INDEX IF NOT EXISTS "rental_contracts_tenant_id_idx" ON "rental_contracts"("tenant_id")`,
+  `CREATE INDEX IF NOT EXISTS "rental_contracts_property_id_idx" ON "rental_contracts"("property_id")`,
+  `CREATE INDEX IF NOT EXISTS "rental_contracts_status_idx" ON "rental_contracts"("status")`,
+  `CREATE INDEX IF NOT EXISTS "rent_payments_tenant_id_idx" ON "rent_payments"("tenant_id")`,
+  `CREATE INDEX IF NOT EXISTS "rent_payments_due_date_idx" ON "rent_payments"("due_date")`,
+  `CREATE INDEX IF NOT EXISTS "rent_payments_status_idx" ON "rent_payments"("status")`,
+  `CREATE INDEX IF NOT EXISTS "supplier_transactions_supplier_id_idx" ON "supplier_transactions"("supplier_id")`,
+  `CREATE INDEX IF NOT EXISTS "supplier_transactions_date_idx" ON "supplier_transactions"("date")`,
+  `CREATE INDEX IF NOT EXISTS "purchase_orders_supplier_id_idx" ON "purchase_orders"("supplier_id")`,
+  `CREATE INDEX IF NOT EXISTS "purchase_orders_status_idx" ON "purchase_orders"("status")`,
+  `CREATE INDEX IF NOT EXISTS "purchase_order_items_purchase_order_id_idx" ON "purchase_order_items"("purchase_order_id")`,
+  `CREATE INDEX IF NOT EXISTS "purchase_order_items_material_id_idx" ON "purchase_order_items"("material_id")`,
+  `CREATE INDEX IF NOT EXISTS "material_sales_customer_id_idx" ON "material_sales"("customer_id")`,
+  `CREATE INDEX IF NOT EXISTS "material_sales_date_idx" ON "material_sales"("date")`,
+  `CREATE INDEX IF NOT EXISTS "material_sale_items_sale_id_idx" ON "material_sale_items"("sale_id")`,
+  `CREATE INDEX IF NOT EXISTS "material_sale_items_material_id_idx" ON "material_sale_items"("material_id")`,
+  `CREATE INDEX IF NOT EXISTS "transportation_records_status_idx" ON "transportation_records"("status")`,
+  `CREATE INDEX IF NOT EXISTS "transportation_items_transportation_id_idx" ON "transportation_items"("transportation_id")`,
+  `CREATE INDEX IF NOT EXISTS "transportation_items_material_id_idx" ON "transportation_items"("material_id")`,
+  `CREATE INDEX IF NOT EXISTS "worker_ledger_entries_staff_id_idx" ON "worker_ledger_entries"("staff_id")`,
+  `CREATE INDEX IF NOT EXISTS "worker_ledger_entries_project_id_idx" ON "worker_ledger_entries"("project_id")`,
+  `CREATE INDEX IF NOT EXISTS "worker_ledger_entries_date_idx" ON "worker_ledger_entries"("date")`,
+  `CREATE INDEX IF NOT EXISTS "staff_worker_type_id_idx" ON "staff"("worker_type_id")`,
+  `CREATE INDEX IF NOT EXISTS "staff_assigned_project_id_idx" ON "staff"("assigned_project_id")`,
+  `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_staff_id_idx" ON "daily_operational_expenses"("staff_id")`,
+  `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_project_id_idx" ON "daily_operational_expenses"("project_id")`,
+  `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_date_idx" ON "daily_operational_expenses"("date")`,
+  `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_category_idx" ON "daily_operational_expenses"("category")`,
+
+  // ── RBAC indexes ───────────────────────────────────────────────
+  `CREATE INDEX IF NOT EXISTS "rbac_permissions_module_idx" ON "rbac_permissions"("module")`,
+  `CREATE INDEX IF NOT EXISTS "rbac_permissions_workspace_idx" ON "rbac_permissions"("workspace")`,
+  `CREATE INDEX IF NOT EXISTS "rbac_roles_is_active_idx" ON "rbac_roles"("is_active")`,
+  `CREATE INDEX IF NOT EXISTS "rbac_role_permissions_permission_id_idx" ON "rbac_role_permissions"("permission_id")`,
+  `CREATE INDEX IF NOT EXISTS "rbac_user_roles_role_id_idx" ON "rbac_user_roles"("role_id")`,
+  `CREATE INDEX IF NOT EXISTS "rbac_user_permissions_permission_id_idx" ON "rbac_user_permissions"("permission_id")`,
+
+  // ── Accounting Module additions (v8) ───────────────────────────
+  `DO $$ BEGIN
+    CREATE TYPE "AccountType" AS ENUM ('INCOME','EXPENSE','ASSET','LIABILITY','EQUITY');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE TABLE IF NOT EXISTS "accounts" (
+    "code"        TEXT          NOT NULL PRIMARY KEY,
+    "name"        TEXT          NOT NULL,
+    "parent_code" TEXT,
+    "type"        "AccountType" NOT NULL,
+    "tenant_id"   TEXT          NOT NULL,
+    "created_at"  TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"  TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "journal_entries" (
+    "id"                 TEXT          NOT NULL PRIMARY KEY,
+    "tenant_id"          TEXT          NOT NULL,
+    "account_code"       TEXT          NOT NULL,
+    "type"               TEXT          NOT NULL,
+    "date"               TIMESTAMP(3)  NOT NULL,
+    "contact_name"       TEXT,
+    "memo"               TEXT,
+    "split_account_code" TEXT,
+    "debit"              DECIMAL(12,2) NOT NULL,
+    "credit"             DECIMAL(12,2) NOT NULL,
+    "cleared_status"     BOOLEAN       NOT NULL DEFAULT false,
+    "created_at"         TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "journal_entries" ADD CONSTRAINT "journal_entries_account_code_fkey"
+      FOREIGN KEY ("account_code") REFERENCES "accounts"("code") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "accounts_parent_code_idx" ON "accounts"("parent_code")`,
+  `CREATE INDEX IF NOT EXISTS "accounts_tenant_id_idx"   ON "accounts"("tenant_id")`,
+  `CREATE INDEX IF NOT EXISTS "journal_entries_account_code_idx" ON "journal_entries"("account_code")`,
+  `CREATE INDEX IF NOT EXISTS "journal_entries_tenant_id_idx"    ON "journal_entries"("tenant_id")`,
+  `CREATE INDEX IF NOT EXISTS "journal_entries_date_idx"         ON "journal_entries"("date")`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD COLUMN "version" INTEGER NOT NULL DEFAULT 0;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "materials" ADD COLUMN "version" INTEGER NOT NULL DEFAULT 0;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "properties" ADD COLUMN "version" INTEGER NOT NULL DEFAULT 0;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "deals" ADD COLUMN "version" INTEGER NOT NULL DEFAULT 0;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "transactions_deal_id_idx" ON "transactions"("deal_id")`,
+  `CREATE INDEX IF NOT EXISTS "transactions_deleted_at_date_idx" ON "transactions"("deleted_at", "date")`,
+  `CREATE INDEX IF NOT EXISTS "transactions_deleted_at_type_date_idx" ON "transactions"("deleted_at", "type", "date")`,
+  `CREATE INDEX IF NOT EXISTS "materials_name_idx" ON "materials"("name")`,
+  `CREATE INDEX IF NOT EXISTS "materials_created_at_idx" ON "materials"("created_at")`,
+  `CREATE INDEX IF NOT EXISTS "rent_payments_contract_id_idx" ON "rent_payments"("contract_id")`,
+
+  // ── Workforce Contracts Module additions (v10) ─────────────────
+  `DO $$ BEGIN
+    CREATE TYPE "WorkforceContractStatus" AS ENUM ('DRAFT','ACTIVE','COMPLETED','CANCELLED','SUSPENDED');
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE TABLE IF NOT EXISTS "workforce_contracts" (
+    "id"              TEXT                     NOT NULL PRIMARY KEY,
+    "project_id"      TEXT                     NOT NULL,
+    "title"           TEXT                     NOT NULL,
+    "description"     TEXT,
+    "original_budget" DECIMAL(12,2)            NOT NULL,
+    "total_paid"      DECIMAL(12,2)            NOT NULL DEFAULT 0,
+    "status"          "WorkforceContractStatus" NOT NULL DEFAULT 'DRAFT',
+    "start_date"      TIMESTAMP(3),
+    "end_date"        TIMESTAMP(3),
+    "notes"           TEXT,
+    "version"         INTEGER                  NOT NULL DEFAULT 0,
+    "created_at"      TIMESTAMP(3)             NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"      TIMESTAMP(3)             NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"      TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "workforce_contract_workers" (
+    "id"          TEXT          NOT NULL PRIMARY KEY,
+    "contract_id" TEXT          NOT NULL,
+    "staff_id"    TEXT          NOT NULL,
+    "role"        TEXT,
+    "notes"       TEXT,
+    "assigned_at" TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "removed_at"  TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "workforce_contract_payments" (
+    "id"             TEXT          NOT NULL PRIMARY KEY,
+    "contract_id"    TEXT          NOT NULL,
+    "staff_id"       TEXT          NOT NULL,
+    "amount"         DECIMAL(12,2) NOT NULL,
+    "date"           TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "description"    TEXT          NOT NULL,
+    "recorded_by_id" TEXT          NOT NULL,
+    "notes"          TEXT,
+    "created_at"     TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "workforce_contract_adjustments" (
+    "id"             TEXT          NOT NULL PRIMARY KEY,
+    "contract_id"    TEXT          NOT NULL,
+    "amount"         DECIMAL(12,2) NOT NULL,
+    "reason"         TEXT          NOT NULL,
+    "adjusted_by_id" TEXT          NOT NULL,
+    "created_at"     TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "daily_operational_expenses" ADD COLUMN "recorded_by_user_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contracts" ADD CONSTRAINT "workforce_contracts_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_workers" ADD CONSTRAINT "workforce_contract_workers_contract_id_fkey"
+      FOREIGN KEY ("contract_id") REFERENCES "workforce_contracts"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_workers" ADD CONSTRAINT "workforce_contract_workers_staff_id_fkey"
+      FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_payments" ADD CONSTRAINT "workforce_contract_payments_contract_id_fkey"
+      FOREIGN KEY ("contract_id") REFERENCES "workforce_contracts"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_payments" ADD CONSTRAINT "workforce_contract_payments_staff_id_fkey"
+      FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_payments" ADD CONSTRAINT "workforce_contract_payments_recorded_by_id_fkey"
+      FOREIGN KEY ("recorded_by_id") REFERENCES "users"("id") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_adjustments" ADD CONSTRAINT "workforce_contract_adjustments_contract_id_fkey"
+      FOREIGN KEY ("contract_id") REFERENCES "workforce_contracts"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_adjustments" ADD CONSTRAINT "workforce_contract_adjustments_adjusted_by_id_fkey"
+      FOREIGN KEY ("adjusted_by_id") REFERENCES "users"("id") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "daily_operational_expenses" ADD CONSTRAINT "daily_operational_expenses_recorded_by_user_id_fkey"
+      FOREIGN KEY ("recorded_by_user_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "workforce_contracts_project_id_idx" ON "workforce_contracts"("project_id")`,
+  `CREATE INDEX IF NOT EXISTS "workforce_contracts_status_idx" ON "workforce_contracts"("status")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "workforce_contract_workers_contract_id_staff_id_key" ON "workforce_contract_workers"("contract_id", "staff_id")`,
+  `CREATE INDEX IF NOT EXISTS "workforce_contract_workers_staff_id_idx" ON "workforce_contract_workers"("staff_id")`,
+  `CREATE INDEX IF NOT EXISTS "workforce_contract_payments_contract_id_idx" ON "workforce_contract_payments"("contract_id")`,
+  `CREATE INDEX IF NOT EXISTS "workforce_contract_payments_staff_id_idx" ON "workforce_contract_payments"("staff_id")`,
+  `CREATE INDEX IF NOT EXISTS "workforce_contract_payments_date_idx" ON "workforce_contract_payments"("date")`,
+  `CREATE INDEX IF NOT EXISTS "workforce_contract_adjustments_contract_id_idx" ON "workforce_contract_adjustments"("contract_id")`,
+  `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_recorded_by_user_id_idx" ON "daily_operational_expenses"("recorded_by_user_id")`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_workers" DROP COLUMN IF EXISTS "daily_rate";
+  EXCEPTION WHEN others THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "categories" ADD COLUMN "code" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `CREATE UNIQUE INDEX IF NOT EXISTS "categories_code_key" ON "categories"("code")`,
+
+  // ── Payroll & Payslips Tables ──────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS "payrolls" (
+    "id"                   TEXT        NOT NULL PRIMARY KEY,
+    "name"                 TEXT        NOT NULL,
+    "year"                 INTEGER     NOT NULL,
+    "month"                INTEGER     NOT NULL,
+    "pay_period"           TEXT,
+    "payment_date"         TIMESTAMP(3),
+    "status"               "PayrollStatus" NOT NULL DEFAULT 'DRAFT',
+    "rejection_reason"     TEXT,
+    "total_base_salary"    NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "total_bonuses"        NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "total_deductions"     NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "total_tax"            NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "total_gross_salary"   NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "total_net_salary"     NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "expense_account_code" TEXT,
+    "created_by_id"        TEXT,
+    "approved_by_id"       TEXT,
+    "approved_at"          TIMESTAMP(3),
+    "paid_at"              TIMESTAMP(3),
+    "created_at"           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"           TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "payroll_items" (
+    "id"                  TEXT        NOT NULL PRIMARY KEY,
+    "payroll_id"          TEXT        NOT NULL,
+    "staff_id"            TEXT,
+    "employee_name"       TEXT        NOT NULL,
+    "employee_position"   TEXT,
+    "employee_department" "Department" NOT NULL DEFAULT 'GENERAL',
+    "base_salary"         NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "bonuses"             NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "deductions"          NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "tax"                 NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "gross_salary"        NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "net_salary"          NUMERIC(12,2) NOT NULL DEFAULT 0,
+    "payslip_number"      TEXT,
+    "status"              "PayrollStatus" NOT NULL DEFAULT 'DRAFT',
+    "notes"               TEXT,
+    "created_at"          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "payrolls" ADD CONSTRAINT "payrolls_created_by_id_fkey"
+      FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "payrolls" ADD CONSTRAINT "payrolls_approved_by_id_fkey"
+      FOREIGN KEY ("approved_by_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "payrolls" ADD CONSTRAINT "payrolls_expense_account_code_fkey"
+      FOREIGN KEY ("expense_account_code") REFERENCES "accounts"("code") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "payroll_items" ADD CONSTRAINT "payroll_items_payroll_id_fkey"
+      FOREIGN KEY ("payroll_id") REFERENCES "payrolls"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "payroll_items" ADD CONSTRAINT "payroll_items_staff_id_fkey"
+      FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "payrolls_status_idx" ON "payrolls"("status")`,
+  `CREATE INDEX IF NOT EXISTS "payrolls_year_month_idx" ON "payrolls"("year", "month")`,
+  `CREATE INDEX IF NOT EXISTS "payroll_items_payroll_id_idx" ON "payroll_items"("payroll_id")`,
+  `CREATE INDEX IF NOT EXISTS "payroll_items_staff_id_idx" ON "payroll_items"("staff_id")`,
+  `CREATE INDEX IF NOT EXISTS "payroll_items_payslip_number_idx" ON "payroll_items"("payslip_number")`,
+];
+
+/**
+ * Apply the tenant schema to a provisioned company database and record the schema version.
+ *
+ * Uses pure SQL via pg.Pool — no Prisma CLI binary required.
+ * All statements are idempotent (IF NOT EXISTS + DO...EXCEPTION blocks).
+ */
+export async function applyCompanySchema(companyDbUrl: string) {
+  const { directUrl } = getDatabaseConnectionPair(companyDbUrl);
+  const pool = new Pool({
+    connectionString: directUrl,
+    max: 1,
+    connectionTimeoutMillis: connectionTimeoutMillis(),
+    keepAlive: true,
+  });
+
+  const client = await pool.connect();
+  try {
+    console.log(`[applyCompanySchema] Applying ${TENANT_SCHEMA_STATEMENTS.length} DDL statements in a single batch...`);
+    await client.query("BEGIN");
+
+    const batchSql = TENANT_SCHEMA_STATEMENTS
+      .map(stmt => {
+        const trimmed = stmt.trim();
+        return trimmed.endsWith(";") ? trimmed : trimmed + ";";
+      })
+      .join("\n");
+
+    await client.query(batchSql);
+
+    // Upsert the schema version to track auto-migrations
+    await client.query(`
+      INSERT INTO "system_config" ("id", "key", "value", "created_at", "updated_at")
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ON CONFLICT ("key") DO UPDATE SET "value" = $3, "updated_at" = CURRENT_TIMESTAMP
+    `, ["schema_version_record", "schema_version", String(CURRENT_TENANT_SCHEMA_VERSION)]);
+
+    await client.query("COMMIT");
+    console.log(`[applyCompanySchema] Schema (v${CURRENT_TENANT_SCHEMA_VERSION}) applied successfully.`);
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[applyCompanySchema] DDL failed, rolled back:", message);
+    throw new Error(
+      `Company schema initialization failed. [Ref: SCHEMA_INIT_FAILED]\n` +
+      `Internal: ${message.slice(0, 500)}`
+    );
+  } finally {
+    client.release();
+    await pool.end().catch(() => undefined);
+  }
+}

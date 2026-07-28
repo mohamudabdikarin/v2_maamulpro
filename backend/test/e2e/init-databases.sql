@@ -1,0 +1,2 @@
+CREATE DATABASE maamulpro_tenant_a_e2e;
+CREATE DATABASE maamulpro_tenant_b_e2e;

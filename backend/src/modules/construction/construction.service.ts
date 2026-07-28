@@ -1,0 +1,780 @@
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  ContractAdjustmentDto,
+  ContractAssignmentDto,
+  ContractPaymentDto,
+  DailyExpenseDto,
+  InventoryMovementDto,
+  ProjectDto,
+  TaskDto,
+  WorkerLedgerDto,
+  WorkerTypeDto,
+  WorkforceContractDto,
+} from './dto/construction.dto';
+import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
+
+@Injectable()
+export class ConstructionService {
+  constructor(private readonly entitlements: SubscriptionEntitlementService) {}
+
+  // -----------------------------------------------------------
+  // Projects & Tasks
+  // -----------------------------------------------------------
+
+  async getProjects(tenantDb: any, query?: { status?: string; search?: string }) {
+    if (!tenantDb) return [];
+    const where: any = {};
+    if (query?.status) where.status = query.status;
+    if (query?.search) {
+      where.OR = [
+        { name: { contains: query.search, mode: 'insensitive' } },
+        { location: { contains: query.search, mode: 'insensitive' } },
+      ];
+    }
+
+    return tenantDb.project.findMany({
+      where,
+      include: {
+        tasks: true,
+        dailyExpenses: true,
+        assignedStaff: true,
+        _count: { select: { tasks: true, workforceContracts: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createProject(
+    tenantDb: any,
+    companyId: string,
+    data: ProjectDto,
+  ) {
+    if (!tenantDb) throw new BadRequestException('Tenant DB not available');
+    return this.entitlements.withinTenantQuota(
+      companyId,
+      tenantDb,
+      'constructionProjects',
+      (tx) => tx.project.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          location: data.location,
+          budget: data.budget,
+          startDate: data.startDate ? new Date(data.startDate) : null,
+          endDate: data.endDate ? new Date(data.endDate) : null,
+          status: (data.status || 'PLANNING') as any,
+          progress: data.progress || 0,
+          imageUrl: data.imageUrl,
+        },
+      }),
+    );
+  }
+
+  async getProject(tenantDb: any, id: string) {
+    const project = await tenantDb.project.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        tasks: { where: { deletedAt: null }, include: { assignee: true, staff: true } },
+        assignedStaff: true,
+        dailyExpenses: { where: { deletedAt: null } },
+        workforceContracts: { where: { deletedAt: null } },
+      },
+    });
+    if (!project) throw new NotFoundException('Project not found');
+    return project;
+  }
+
+  async updateProject(tenantDb: any, id: string, data: ProjectDto) {
+    await this.getProject(tenantDb, id);
+    return tenantDb.project.update({
+      where: { id },
+      data: { ...data, status: data.status as any },
+    });
+  }
+
+  async deleteProject(tenantDb: any, id: string) {
+    await this.getProject(tenantDb, id);
+    await tenantDb.$transaction([
+      tenantDb.projectTask.updateMany({ where: { projectId: id, deletedAt: null }, data: { deletedAt: new Date() } }),
+      tenantDb.project.update({ where: { id }, data: { deletedAt: new Date() } }),
+    ]);
+    return { deleted: true };
+  }
+
+  getTasks(tenantDb: any, query: { projectId?: string; status?: string; search?: string }) {
+    const where: any = { deletedAt: null };
+    if (query.projectId) where.projectId = query.projectId;
+    if (query.status) where.status = query.status;
+    if (query.search) where.OR = [
+      { title: { contains: query.search, mode: 'insensitive' } },
+      { description: { contains: query.search, mode: 'insensitive' } },
+    ];
+    return tenantDb.projectTask.findMany({
+      where,
+      include: { project: true, assignee: true, staff: true },
+      orderBy: [{ dueDate: 'asc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  createTask(tenantDb: any, data: TaskDto) {
+    return tenantDb.projectTask.create({
+      data: {
+        ...data,
+        status: (data.status as any) || 'NOT_STARTED',
+        priority: (data.priority as any) || 'MEDIUM',
+        progress: data.progress || 0,
+      },
+    });
+  }
+
+  async getTask(tenantDb: any, id: string) {
+    const task = await tenantDb.projectTask.findFirst({
+      where: { id, deletedAt: null },
+      include: { project: true, assignee: true, staff: true },
+    });
+    if (!task) throw new NotFoundException('Task not found');
+    return task;
+  }
+
+  async updateTask(tenantDb: any, id: string, data: TaskDto) {
+    const task = await tenantDb.projectTask.findFirst({ where: { id, deletedAt: null } });
+    if (!task) throw new NotFoundException('Task not found');
+    return tenantDb.projectTask.update({
+      where: { id },
+      data: { ...data, status: data.status as any, priority: data.priority as any },
+    });
+  }
+
+  async deleteTask(tenantDb: any, id: string) {
+    const result = await tenantDb.projectTask.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (!result.count) throw new NotFoundException('Task not found');
+    return { deleted: true };
+  }
+
+  // -----------------------------------------------------------
+  // Manpower & Workforce Contracts
+  // -----------------------------------------------------------
+
+  async getWorkforceContracts(tenantDb: any, projectId?: string) {
+    if (!tenantDb) return [];
+    const where: any = { deletedAt: null };
+    if (projectId) where.projectId = projectId;
+
+    return tenantDb.workforceContract.findMany({
+      where,
+      include: {
+        project: true,
+        payments: true,
+        budgetAdjustments: true,
+        workerAssignments: {
+          where: { removedAt: null },
+          include: { staff: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createWorkforceContract(tenantDb: any, data: WorkforceContractDto) {
+    if (!tenantDb) throw new BadRequestException('Tenant DB not available');
+    this.validateDateRange(data.startDate, data.endDate);
+
+    const contract = await tenantDb.workforceContract.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        projectId: data.projectId,
+        originalBudget: data.originalBudget,
+        startDate: data.startDate ? new Date(data.startDate) : null,
+        endDate: data.endDate ? new Date(data.endDate) : null,
+        status: (data.status as any) || 'DRAFT',
+        notes: data.notes,
+      },
+    });
+    await this.syncContractBudget(tenantDb, contract.id);
+    return this.getWorkforceContract(tenantDb, contract.id);
+  }
+
+  async getWorkforceContract(tenantDb: any, id: string) {
+    const contract = await tenantDb.workforceContract.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        project: true,
+        workerAssignments: { include: { staff: true } },
+        payments: { include: { staff: true, recordedBy: true }, orderBy: { date: 'desc' } },
+        budgetAdjustments: { include: { adjustedBy: true }, orderBy: { createdAt: 'desc' } },
+      },
+    });
+    if (!contract) throw new NotFoundException('Workforce contract not found');
+    return contract;
+  }
+
+  async updateWorkforceContract(tenantDb: any, id: string, data: WorkforceContractDto) {
+    const current = await this.getWorkforceContract(tenantDb, id);
+    this.validateDateRange(data.startDate, data.endDate);
+    if (data.originalBudget < Number(current.totalPaid)) {
+      throw new BadRequestException('Budget cannot be lower than payments already recorded');
+    }
+    const where: any = { id, deletedAt: null };
+    if (data.version !== undefined) where.version = data.version;
+    const result = await tenantDb.workforceContract.updateMany({
+      where,
+      data: {
+        projectId: data.projectId,
+        title: data.title,
+        description: data.description,
+        originalBudget: data.originalBudget,
+        status: data.status as any,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        notes: data.notes,
+        version: { increment: 1 },
+      },
+    });
+    if (!result.count) throw new ConflictException('Contract changed or no longer exists; reload and retry');
+    await this.syncContractBudget(tenantDb, id);
+    return this.getWorkforceContract(tenantDb, id);
+  }
+
+  async deleteWorkforceContract(tenantDb: any, id: string) {
+    const contract = await this.getWorkforceContract(tenantDb, id);
+    if (Number(contract.totalPaid) > 0) {
+      throw new ConflictException('A contract with recorded payments cannot be deleted');
+    }
+    await tenantDb.$transaction(async (tx: any) => {
+      await tx.workforceContract.update({
+        where: { id },
+        data: { deletedAt: new Date(), version: { increment: 1 } },
+      });
+      await tx.transaction.updateMany({
+        where: { referenceId: `wfcontract:${id}`, deletedAt: null },
+        data: { deletedAt: new Date(), version: { increment: 1 } },
+      });
+    });
+    return { deleted: true };
+  }
+
+  async transitionWorkforceContract(tenantDb: any, id: string, status: string) {
+    const contract = await this.getWorkforceContract(tenantDb, id);
+    const allowed: Record<string, string[]> = {
+      DRAFT: ['ACTIVE', 'CANCELLED'],
+      ACTIVE: ['SUSPENDED', 'COMPLETED', 'CANCELLED'],
+      SUSPENDED: ['ACTIVE', 'CANCELLED'],
+      COMPLETED: [],
+      CANCELLED: [],
+    };
+    if (!allowed[contract.status]?.includes(status)) {
+      throw new BadRequestException(`Cannot transition contract from ${contract.status} to ${status}`);
+    }
+    await tenantDb.workforceContract.update({
+      where: { id },
+      data: { status: status as any, version: { increment: 1 } },
+    });
+    await this.syncContractBudget(tenantDb, id);
+    return this.getWorkforceContract(tenantDb, id);
+  }
+
+  async assignContractWorker(tenantDb: any, contractId: string, data: ContractAssignmentDto) {
+    await this.getWorkforceContract(tenantDb, contractId);
+    const staff = await tenantDb.staff.findFirst({ where: { id: data.staffId, deletedAt: null } });
+    if (!staff) throw new NotFoundException('Staff member not found');
+    const existing = await tenantDb.workforceContractWorker.findUnique({
+      where: { contractId_staffId: { contractId, staffId: data.staffId } },
+    });
+    if (existing) {
+      return tenantDb.workforceContractWorker.update({
+        where: { id: existing.id },
+        data: { role: data.role, notes: data.notes, removedAt: null, assignedAt: new Date() },
+      });
+    }
+    return tenantDb.workforceContractWorker.create({
+      data: { contractId, staffId: data.staffId, role: data.role, notes: data.notes },
+    });
+  }
+
+  async removeContractWorker(tenantDb: any, contractId: string, staffId: string) {
+    const result = await tenantDb.workforceContractWorker.updateMany({
+      where: { contractId, staffId, removedAt: null },
+      data: { removedAt: new Date() },
+    });
+    if (!result.count) throw new NotFoundException('Active worker assignment not found');
+    return { removed: true };
+  }
+
+  async recordContractPayment(
+    tenantDb: any,
+    contractId: string,
+    userId: string,
+    data: ContractPaymentDto,
+  ) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const contract = await tx.workforceContract.findFirst({
+        where: { id: contractId, deletedAt: null },
+        include: { budgetAdjustments: true },
+      });
+      if (!contract) throw new NotFoundException('Workforce contract not found');
+      if (!['ACTIVE', 'COMPLETED'].includes(contract.status)) {
+        throw new BadRequestException('Payments can only be recorded for active or completed contracts');
+      }
+      const assigned = await tx.workforceContractWorker.findFirst({
+        where: { contractId, staffId: data.staffId, removedAt: null },
+      });
+      if (!assigned) throw new BadRequestException('Worker is not actively assigned to this contract');
+      const adjustedBudget = contract.budgetAdjustments.reduce(
+        (total: number, row: any) => total + Number(row.amount),
+        Number(contract.originalBudget),
+      );
+      if (Number(contract.totalPaid) + data.amount > adjustedBudget) {
+        throw new BadRequestException('Payment exceeds the remaining adjusted contract budget');
+      }
+      const payment = await tx.workforceContractPayment.create({
+        data: {
+          contractId,
+          staffId: data.staffId,
+          amount: data.amount,
+          date: data.date || new Date(),
+          description: data.description,
+          recordedById: userId,
+          notes: data.notes,
+        },
+      });
+      await tx.workforceContract.update({
+        where: { id: contractId },
+        data: { totalPaid: { increment: data.amount }, version: { increment: 1 } },
+      });
+      const category = await this.findOrCreateCategory(tx, 'Labor Expense');
+      await tx.workerLedgerEntry.create({
+        data: {
+          userId,
+          staffId: data.staffId,
+          projectId: contract.projectId,
+          type: 'EXPENSE',
+          amount: data.amount,
+          description: `${data.description} (contract payment ${payment.id})`,
+          date: data.date || new Date(),
+        },
+      });
+      await tx.transaction.create({
+        data: {
+          referenceId: `wfpayment:${payment.id}`,
+          type: 'EXPENSE',
+          status: 'CLEARED',
+          amount: data.amount,
+          description: `${data.description} (contract payment ${payment.id})`,
+          date: data.date || new Date(),
+          categoryId: category.id,
+          userId,
+          projectId: contract.projectId,
+          notes: data.notes,
+        },
+      });
+      return payment;
+    });
+  }
+
+  async adjustContractBudget(
+    tenantDb: any,
+    contractId: string,
+    userId: string,
+    data: ContractAdjustmentDto,
+  ) {
+    const contract = await this.getWorkforceContract(tenantDb, contractId);
+    const adjustments = contract.budgetAdjustments.reduce(
+      (total: number, row: any) => total + Number(row.amount),
+      0,
+    );
+    if (Number(contract.originalBudget) + adjustments + data.amount < Number(contract.totalPaid)) {
+      throw new BadRequestException('Adjusted budget cannot be lower than total payments');
+    }
+    const adjustment = await tenantDb.workforceContractAdjustment.create({
+      data: { contractId, amount: data.amount, reason: data.reason, adjustedById: userId },
+    });
+    await tenantDb.workforceContract.update({
+      where: { id: contractId },
+      data: { version: { increment: 1 } },
+    });
+    await this.syncContractBudget(tenantDb, contractId);
+    return adjustment;
+  }
+
+  // -----------------------------------------------------------
+  // Worker types, manpower expenses and worker ledger
+  // -----------------------------------------------------------
+
+  listWorkerTypes(tenantDb: any) {
+    return tenantDb.workerType.findMany({ where: { deletedAt: null }, orderBy: { name: 'asc' } });
+  }
+
+  async createWorkerType(tenantDb: any, data: WorkerTypeDto) {
+    const existing = await tenantDb.workerType.findFirst({
+      where: { name: { equals: data.name, mode: 'insensitive' }, deletedAt: null },
+    });
+    if (existing) throw new ConflictException('Worker type name already exists');
+    return tenantDb.workerType.create({ data: { ...data, color: data.color || '#4361ee' } });
+  }
+
+  async updateWorkerType(tenantDb: any, id: string, data: WorkerTypeDto) {
+    const result = await tenantDb.workerType.updateMany({
+      where: { id, deletedAt: null },
+      data,
+    });
+    if (!result.count) throw new NotFoundException('Worker type not found');
+    return tenantDb.workerType.findUnique({ where: { id } });
+  }
+
+  async deleteWorkerType(tenantDb: any, id: string) {
+    const assigned = await tenantDb.staff.count({ where: { workerTypeId: id, deletedAt: null } });
+    if (assigned) throw new ConflictException('Worker type is assigned to active staff');
+    const result = await tenantDb.workerType.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (!result.count) throw new NotFoundException('Worker type not found');
+    return { deleted: true };
+  }
+
+  async getManpowerDashboard(tenantDb: any, projectId?: string) {
+    const expenseWhere: any = { deletedAt: null };
+    const ledgerWhere: any = {};
+    if (projectId) {
+      expenseWhere.projectId = projectId;
+      ledgerWhere.projectId = projectId;
+    }
+    const [workers, workerTypes, expenses, ledger, expenseTotals] = await Promise.all([
+      tenantDb.staff.findMany({
+        where: { deletedAt: null, department: 'CONSTRUCTION' },
+        include: { workerType: true, assignedProjects: true },
+        orderBy: { firstName: 'asc' },
+      }),
+      this.listWorkerTypes(tenantDb),
+      tenantDb.dailyOperationalExpense.findMany({
+        where: expenseWhere,
+        include: { staff: true, project: true, recordedBy: true },
+        orderBy: { date: 'desc' },
+        take: 100,
+      }),
+      tenantDb.workerLedgerEntry.findMany({
+        where: ledgerWhere,
+        include: { staff: true, project: true, user: true },
+        orderBy: { date: 'desc' },
+        take: 100,
+      }),
+      tenantDb.dailyOperationalExpense.aggregate({ where: expenseWhere, _sum: { amount: true }, _count: true }),
+    ]);
+    return {
+      workers,
+      workerTypes,
+      expenses,
+      ledger,
+      summary: {
+        workerCount: workers.length,
+        expenseCount: expenseTotals._count,
+        totalExpenses: Number(expenseTotals._sum.amount || 0),
+      },
+    };
+  }
+
+  listDailyExpenses(tenantDb: any, projectId?: string) {
+    const where: any = { deletedAt: null };
+    if (projectId) where.projectId = projectId;
+    return tenantDb.dailyOperationalExpense.findMany({
+      where,
+      include: { staff: true, project: true, recordedBy: true },
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  async getDailyExpense(tenantDb: any, id: string) {
+    const expense = await tenantDb.dailyOperationalExpense.findFirst({
+      where: { id, deletedAt: null },
+      include: { staff: true, project: true, recordedBy: true },
+    });
+    if (!expense) throw new NotFoundException('Operational expense not found');
+    return expense;
+  }
+
+  async createDailyExpense(tenantDb: any, userId: string, data: DailyExpenseDto) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const expense = await tx.dailyOperationalExpense.create({
+        data: {
+          ...data,
+          category: data.category || 'OTHER',
+          date: data.date || new Date(),
+          recordedByUserId: userId,
+        },
+      });
+      await this.syncDailyExpense(tx, expense, userId);
+      return expense;
+    });
+  }
+
+  async updateDailyExpense(tenantDb: any, id: string, userId: string, data: DailyExpenseDto) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const current = await tx.dailyOperationalExpense.findFirst({ where: { id, deletedAt: null } });
+      if (!current) throw new NotFoundException('Operational expense not found');
+      const expense = await tx.dailyOperationalExpense.update({
+        where: { id },
+        data: {
+          ...data,
+          category: data.category || 'OTHER',
+          date: data.date || current.date,
+          recordedByUserId: userId,
+        },
+      });
+      await this.syncDailyExpense(tx, expense, userId);
+      return expense;
+    });
+  }
+
+  async deleteDailyExpense(tenantDb: any, id: string) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const result = await tx.dailyOperationalExpense.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
+      if (!result.count) throw new NotFoundException('Operational expense not found');
+      await tx.transaction.updateMany({
+        where: { referenceId: `expense:${id}`, deletedAt: null },
+        data: { deletedAt: new Date(), version: { increment: 1 } },
+      });
+      return { deleted: true };
+    });
+  }
+
+  listWorkerLedger(tenantDb: any, projectId?: string, staffId?: string) {
+    const where: any = {};
+    if (projectId) where.projectId = projectId;
+    if (staffId) where.staffId = staffId;
+    return tenantDb.workerLedgerEntry.findMany({
+      where,
+      include: { staff: true, project: true, user: true },
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  async createWorkerLedgerEntry(tenantDb: any, userId: string, data: WorkerLedgerDto) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const entry = await tx.workerLedgerEntry.create({
+        data: {
+          ...data,
+          type: data.type as any,
+          date: data.date || new Date(),
+          userId,
+        },
+      });
+      await this.syncWorkerLedger(tx, entry, userId);
+      return entry;
+    });
+  }
+
+  async deleteWorkerLedgerEntry(tenantDb: any, id: string) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const entry = await tx.workerLedgerEntry.findUnique({ where: { id } });
+      if (!entry) throw new NotFoundException('Worker ledger entry not found');
+      await tx.workerLedgerEntry.delete({ where: { id } });
+      await tx.transaction.updateMany({
+        where: { referenceId: `ledger:${id}`, deletedAt: null },
+        data: { deletedAt: new Date(), version: { increment: 1 } },
+      });
+      return { deleted: true };
+    });
+  }
+
+  // -----------------------------------------------------------
+  // Construction inventory movements
+  // -----------------------------------------------------------
+
+  async getInventory(tenantDb: any, projectId?: string) {
+    const movementWhere: any = {};
+    if (projectId) movementWhere.projectId = projectId;
+    const [materials, movements] = await Promise.all([
+      tenantDb.material.findMany({
+        where: { deletedAt: null },
+        orderBy: { name: 'asc' },
+      }),
+      tenantDb.inventoryTransaction.findMany({
+        where: movementWhere,
+        include: { material: true, project: true, user: true },
+        orderBy: { date: 'desc' },
+        take: 250,
+      }),
+    ]);
+    return {
+      materials,
+      movements,
+      summary: {
+        materialCount: materials.length,
+        lowStockCount: materials.filter(
+          (material: any) => Number(material.quantity) <= Number(material.lowStockThreshold),
+        ).length,
+        stockValue: materials.reduce(
+          (total: number, material: any) => total + Number(material.quantity) * Number(material.unitCost),
+          0,
+        ),
+      },
+    };
+  }
+
+  async createInventoryMovement(tenantDb: any, userId: string, data: InventoryMovementDto) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const material = await tx.material.findFirst({ where: { id: data.materialId, deletedAt: null } });
+      if (!material) throw new NotFoundException('Material not found');
+      if (data.type === 'USAGE' && !data.projectId) {
+        throw new BadRequestException('A project is required for material usage');
+      }
+      const currentQuantity = Number(material.quantity);
+      const delta = data.type === 'USAGE' ? -data.quantity : data.type === 'TRANSFER' ? 0 : data.quantity;
+      const nextQuantity = currentQuantity + delta;
+      if (nextQuantity < 0) throw new BadRequestException('Insufficient stock for this movement');
+      const updated = await tx.material.updateMany({
+        where: { id: material.id, version: material.version, deletedAt: null },
+        data: {
+          quantity: nextQuantity,
+          warehouse: data.warehouse || material.warehouse,
+          version: { increment: 1 },
+        },
+      });
+      if (!updated.count) throw new ConflictException('Stock changed while recording movement; reload and retry');
+      return tx.inventoryTransaction.create({
+        data: {
+          materialId: data.materialId,
+          projectId: data.projectId,
+          type: data.type as any,
+          quantity: data.quantity,
+          userId,
+          notes: data.notes,
+          warehouse: data.warehouse,
+          date: new Date(),
+        },
+        include: { material: true, project: true, user: true },
+      });
+    });
+  }
+
+  private validateDateRange(startDate?: Date, endDate?: Date) {
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      throw new BadRequestException('End date must be on or after start date');
+    }
+  }
+
+  private async findOrCreateCategory(tx: any, name: string) {
+    const existing = await tx.category.findFirst({
+      where: { name: { equals: name, mode: 'insensitive' }, deletedAt: null },
+    });
+    if (existing) return existing;
+    return tx.category.create({ data: { name, color: '#e7515a' } });
+  }
+
+  private async syncDailyExpense(tx: any, expense: any, userId: string) {
+    const category = await this.findOrCreateCategory(tx, expense.category || 'Operational Expense');
+    return tx.transaction.upsert({
+      where: { referenceId: `expense:${expense.id}` },
+      create: {
+        referenceId: `expense:${expense.id}`,
+        type: 'EXPENSE',
+        status: 'CLEARED',
+        description: `${expense.description} (expense ${expense.id})`,
+        amount: expense.amount,
+        date: expense.date,
+        categoryId: category.id,
+        projectId: expense.projectId,
+        userId,
+      },
+      update: {
+        type: 'EXPENSE',
+        status: 'CLEARED',
+        description: `${expense.description} (expense ${expense.id})`,
+        amount: expense.amount,
+        date: expense.date,
+        categoryId: category.id,
+        projectId: expense.projectId,
+        userId,
+        deletedAt: null,
+        version: { increment: 1 },
+      },
+    });
+  }
+
+  private async syncWorkerLedger(tx: any, entry: any, userId: string) {
+    const category = await this.findOrCreateCategory(
+      tx,
+      entry.type === 'EXPENSE' ? 'Labor Expense' : 'Labor Income',
+    );
+    return tx.transaction.upsert({
+      where: { referenceId: `ledger:${entry.id}` },
+      create: {
+        referenceId: `ledger:${entry.id}`,
+        type: entry.type,
+        status: 'CLEARED',
+        description: `${entry.description} (ledger ${entry.id})`,
+        amount: entry.amount,
+        date: entry.date,
+        categoryId: category.id,
+        projectId: entry.projectId,
+        userId,
+      },
+      update: {
+        type: entry.type,
+        status: 'CLEARED',
+        description: `${entry.description} (ledger ${entry.id})`,
+        amount: entry.amount,
+        date: entry.date,
+        categoryId: category.id,
+        projectId: entry.projectId,
+        userId,
+        deletedAt: null,
+        version: { increment: 1 },
+      },
+    });
+  }
+
+  private async syncContractBudget(tenantDb: any, contractId: string) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const contract = await tx.workforceContract.findUnique({
+        where: { id: contractId },
+        include: { budgetAdjustments: true },
+      });
+      if (!contract) return;
+      const referenceId = `wfcontract:${contractId}`;
+      if (contract.deletedAt || !['ACTIVE', 'COMPLETED'].includes(contract.status)) {
+        await tx.transaction.updateMany({
+          where: { referenceId, deletedAt: null },
+          data: { deletedAt: new Date(), version: { increment: 1 } },
+        });
+        return;
+      }
+      const category = await this.findOrCreateCategory(tx, 'Workforce Contract Budget');
+      const amount = contract.budgetAdjustments.reduce(
+        (total: number, row: any) => total + Number(row.amount),
+        Number(contract.originalBudget),
+      );
+      await tx.transaction.upsert({
+        where: { referenceId },
+        create: {
+          referenceId,
+          type: 'INCOME',
+          status: 'CLEARED',
+          description: `${contract.title} (wfcontract ${contractId})`,
+          amount,
+          date: contract.startDate || contract.createdAt,
+          categoryId: category.id,
+          projectId: contract.projectId,
+        },
+        update: {
+          type: 'INCOME',
+          status: 'CLEARED',
+          description: `${contract.title} (wfcontract ${contractId})`,
+          amount,
+          date: contract.startDate || contract.createdAt,
+          categoryId: category.id,
+          projectId: contract.projectId,
+          deletedAt: null,
+          version: { increment: 1 },
+        },
+      });
+    });
+  }
+}

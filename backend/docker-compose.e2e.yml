@@ -1,0 +1,16 @@
+services:
+  postgres-e2e:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: maamulpro
+      POSTGRES_PASSWORD: maamulpro_e2e
+      POSTGRES_DB: maamulpro_central_e2e
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maamulpro -d maamulpro_central_e2e"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - ./test/e2e/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro

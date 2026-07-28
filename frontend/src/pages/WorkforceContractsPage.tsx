@@ -1,0 +1,167 @@
+import { FormEvent, useEffect, useState } from 'react';
+import AppShell from '../components/maamulpro/AppShell';
+import { api } from '../lib/api';
+
+type Project = { id: string; name: string };
+type Staff = { id: string; firstName: string; lastName: string };
+type Assignment = { staffId: string; removedAt?: string; role?: string; staff: Staff };
+type Payment = { id: string; amount: number | string; date: string; description: string; staff: Staff };
+type Adjustment = { id: string; amount: number | string; reason: string; createdAt: string };
+type Contract = {
+    id: string;
+    projectId: string;
+    title: string;
+    description?: string;
+    originalBudget: number | string;
+    totalPaid: number | string;
+    status: string;
+    startDate?: string;
+    endDate?: string;
+    notes?: string;
+    version: number;
+    project?: Project;
+    workerAssignments: Assignment[];
+    payments: Payment[];
+    budgetAdjustments: Adjustment[];
+};
+
+const emptyContract = { projectId: '', title: '', description: '', originalBudget: '', startDate: '', endDate: '', notes: '' };
+const allowedTransitions: Record<string, string[]> = {
+    DRAFT: ['ACTIVE', 'CANCELLED'],
+    ACTIVE: ['SUSPENDED', 'COMPLETED', 'CANCELLED'],
+    SUSPENDED: ['ACTIVE', 'CANCELLED'],
+    COMPLETED: [],
+    CANCELLED: [],
+};
+
+const WorkforceContractsPage = () => {
+    const [contracts, setContracts] = useState<Contract[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [staff, setStaff] = useState<Staff[]>([]);
+    const [selectedId, setSelectedId] = useState('');
+    const [contractForm, setContractForm] = useState<Record<string, any>>(emptyContract);
+    const [editing, setEditing] = useState<Contract | null>(null);
+    const [modal, setModal] = useState(false);
+    const [worker, setWorker] = useState({ staffId: '', role: '', notes: '' });
+    const [payment, setPayment] = useState({ staffId: '', amount: '', date: '', description: '', notes: '' });
+    const [adjustment, setAdjustment] = useState({ amount: '', reason: '' });
+    const [error, setError] = useState('');
+
+    const load = async () => {
+        try {
+            const [contractRows, projectRows, staffRows] = await Promise.all([
+                api<Contract[]>('/api/construction/contracts'),
+                api<Project[]>('/api/construction/projects'),
+                api<Staff[]>('/api/staff'),
+            ]);
+            setContracts(contractRows);
+            setProjects(projectRows);
+            setStaff(Array.isArray(staffRows) ? staffRows : []);
+            if (selectedId && !contractRows.some((row) => row.id === selectedId)) setSelectedId('');
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : 'Unable to load contracts');
+        }
+    };
+    useEffect(() => { load(); }, []);
+    const selected = contracts.find((row) => row.id === selectedId);
+    const adjustedBudget = selected ? Number(selected.originalBudget) + selected.budgetAdjustments.reduce((sum, row) => sum + Number(row.amount), 0) : 0;
+
+    const saveContract = async (event: FormEvent) => {
+        event.preventDefault();
+        setError('');
+        try {
+            await api(editing ? `/api/construction/contracts/${editing.id}` : '/api/construction/contracts', {
+                method: editing ? 'PATCH' : 'POST',
+                body: JSON.stringify({
+                    ...contractForm,
+                    originalBudget: Number(contractForm.originalBudget),
+                    startDate: contractForm.startDate || undefined,
+                    endDate: contractForm.endDate || undefined,
+                    status: editing?.status,
+                    version: editing?.version,
+                }),
+            });
+            setModal(false);
+            await load();
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : 'Unable to save contract');
+        }
+    };
+    const openCreate = () => { setEditing(null); setContractForm(emptyContract); setModal(true); };
+    const openEdit = (row: Contract) => {
+        setEditing(row);
+        setContractForm({
+            projectId: row.projectId,
+            title: row.title,
+            description: row.description || '',
+            originalBudget: row.originalBudget,
+            startDate: row.startDate?.slice(0, 10) || '',
+            endDate: row.endDate?.slice(0, 10) || '',
+            notes: row.notes || '',
+        });
+        setModal(true);
+    };
+    const transition = async (row: Contract, status: string) => {
+        try { await api(`/api/construction/contracts/${row.id}/status`, { method: 'POST', body: JSON.stringify({ status }) }); await load(); }
+        catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update status'); }
+    };
+    const remove = async (row: Contract) => {
+        if (!window.confirm(`Delete ${row.title}?`)) return;
+        try { await api(`/api/construction/contracts/${row.id}`, { method: 'DELETE' }); await load(); }
+        catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to delete contract'); }
+    };
+    const assignWorker = async (event: FormEvent) => {
+        event.preventDefault();
+        if (!selected) return;
+        try { await api(`/api/construction/contracts/${selected.id}/workers`, { method: 'POST', body: JSON.stringify(worker) }); setWorker({ staffId: '', role: '', notes: '' }); await load(); }
+        catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to assign worker'); }
+    };
+    const removeWorker = async (staffId: string) => {
+        if (!selected) return;
+        try { await api(`/api/construction/contracts/${selected.id}/workers/${staffId}`, { method: 'DELETE' }); await load(); }
+        catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to remove worker'); }
+    };
+    const addPayment = async (event: FormEvent) => {
+        event.preventDefault();
+        if (!selected) return;
+        try {
+            await api(`/api/construction/contracts/${selected.id}/payments`, { method: 'POST', body: JSON.stringify({ ...payment, amount: Number(payment.amount), date: payment.date || undefined }) });
+            setPayment({ staffId: '', amount: '', date: '', description: '', notes: '' });
+            await load();
+        } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to record payment'); }
+    };
+    const addAdjustment = async (event: FormEvent) => {
+        event.preventDefault();
+        if (!selected) return;
+        try {
+            await api(`/api/construction/contracts/${selected.id}/adjustments`, { method: 'POST', body: JSON.stringify({ amount: Number(adjustment.amount), reason: adjustment.reason }) });
+            setAdjustment({ amount: '', reason: '' });
+            await load();
+        } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to adjust budget'); }
+    };
+
+    return <AppShell>
+        <div className="mb-6 flex items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">Workforce Contracts</h1><p className="mt-1 text-white-dark">Contract budgets, assigned workers, payments and controlled lifecycle transitions.</p></div><button className="btn btn-primary" onClick={openCreate}>New contract</button></div>
+        {error && <div className="mb-5 rounded-md bg-danger-light p-4 text-danger">{error}</div>}
+        <div className="panel overflow-x-auto p-0">
+            <table className="table-hover w-full"><thead><tr><th>Contract</th><th>Project</th><th>Status</th><th>Budget</th><th>Paid</th><th>Workers</th><th>Actions</th></tr></thead>
+                <tbody>{contracts.map((row) => <tr key={row.id} className={selectedId === row.id ? 'bg-primary-light' : ''}><td><button className="font-semibold text-primary" onClick={() => setSelectedId(row.id)}>{row.title}</button></td><td>{row.project?.name}</td><td><span className="badge bg-primary">{row.status}</span></td><td>${Number(row.originalBudget).toLocaleString()}</td><td>${Number(row.totalPaid).toLocaleString()}</td><td>{row.workerAssignments.filter((entry) => !entry.removedAt).length}</td><td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(row)}>Edit</button>{allowedTransitions[row.status]?.map((status) => <button className="btn btn-sm btn-outline-info" key={status} onClick={() => transition(row, status)}>{status}</button>)}<button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button></div></td></tr>)}</tbody>
+            </table>
+        </div>
+        {selected && <div className="mt-6 space-y-6">
+            <div className="grid gap-4 sm:grid-cols-3"><div className="panel"><p className="text-white-dark">Adjusted budget</p><p className="mt-2 text-2xl font-bold">${adjustedBudget.toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Total paid</p><p className="mt-2 text-2xl font-bold">${Number(selected.totalPaid).toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Remaining</p><p className="mt-2 text-2xl font-bold text-success">${(adjustedBudget - Number(selected.totalPaid)).toLocaleString()}</p></div></div>
+            <div className="grid gap-6 xl:grid-cols-3">
+                <form className="panel space-y-3" onSubmit={assignWorker}><h2 className="font-bold">Assign worker</h2><select className="form-select" required value={worker.staffId} onChange={(e) => setWorker({ ...worker, staffId: e.target.value })}><option value="">Select worker…</option>{staff.map((person) => <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>)}</select><input className="form-input" placeholder="Role" value={worker.role} onChange={(e) => setWorker({ ...worker, role: e.target.value })} /><textarea className="form-textarea" placeholder="Notes" value={worker.notes} onChange={(e) => setWorker({ ...worker, notes: e.target.value })} /><button className="btn btn-primary w-full">Assign</button></form>
+                <form className="panel space-y-3" onSubmit={addPayment}><h2 className="font-bold">Record payment</h2><select className="form-select" required value={payment.staffId} onChange={(e) => setPayment({ ...payment, staffId: e.target.value })}><option value="">Assigned worker…</option>{selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <option key={entry.staffId} value={entry.staffId}>{entry.staff.firstName} {entry.staff.lastName}</option>)}</select><input className="form-input" type="number" min="0.01" step="0.01" placeholder="Amount" required value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} /><input className="form-input" type="date" value={payment.date} onChange={(e) => setPayment({ ...payment, date: e.target.value })} /><input className="form-input" placeholder="Description" required value={payment.description} onChange={(e) => setPayment({ ...payment, description: e.target.value })} /><button className="btn btn-success w-full">Record payment</button></form>
+                <form className="panel space-y-3" onSubmit={addAdjustment}><h2 className="font-bold">Adjust budget</h2><input className="form-input" type="number" step="0.01" placeholder="Positive or negative amount" required value={adjustment.amount} onChange={(e) => setAdjustment({ ...adjustment, amount: e.target.value })} /><textarea className="form-textarea" placeholder="Reason" required value={adjustment.reason} onChange={(e) => setAdjustment({ ...adjustment, reason: e.target.value })} /><button className="btn btn-warning w-full">Apply adjustment</button></form>
+            </div>
+            <div className="grid gap-6 xl:grid-cols-2">
+                <div className="panel"><h2 className="mb-4 font-bold">Active workers</h2><div className="space-y-2">{selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <div className="flex items-center justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={entry.staffId}><span>{entry.staff.firstName} {entry.staff.lastName} <small className="text-white-dark">{entry.role}</small></span><button className="btn btn-sm btn-outline-danger" onClick={() => removeWorker(entry.staffId)}>Remove</button></div>)}</div></div>
+                <div className="panel"><h2 className="mb-4 font-bold">Payment history</h2><div className="space-y-2">{selected.payments.map((row) => <div className="flex justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={row.id}><span>{row.staff.firstName} {row.staff.lastName}<small className="block text-white-dark">{row.description}</small></span><strong>${Number(row.amount).toLocaleString()}</strong></div>)}</div></div>
+            </div>
+        </div>}
+        {modal && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4" onMouseDown={(e) => { if (e.currentTarget === e.target) setModal(false); }}><form className="panel max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto" onSubmit={saveContract}><div className="flex justify-between"><h2 className="text-xl font-bold">{editing ? 'Edit contract' : 'Create contract'}</h2><button type="button" className="btn btn-sm btn-outline-dark" onClick={() => setModal(false)}>Close</button></div><div className="grid gap-4 sm:grid-cols-2"><div><label>Project</label><select className="form-select mt-1" required value={contractForm.projectId} onChange={(e) => setContractForm({ ...contractForm, projectId: e.target.value })}><option value="">Select project…</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></div><div><label>Title</label><input className="form-input mt-1" required value={contractForm.title} onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })} /></div><div><label>Original budget</label><input className="form-input mt-1" type="number" min="0" step="0.01" required value={contractForm.originalBudget} onChange={(e) => setContractForm({ ...contractForm, originalBudget: e.target.value })} /></div><div><label>Start date</label><input className="form-input mt-1" type="date" value={contractForm.startDate} onChange={(e) => setContractForm({ ...contractForm, startDate: e.target.value })} /></div><div><label>End date</label><input className="form-input mt-1" type="date" value={contractForm.endDate} onChange={(e) => setContractForm({ ...contractForm, endDate: e.target.value })} /></div><div className="sm:col-span-2"><label>Description</label><textarea className="form-textarea mt-1" value={contractForm.description} onChange={(e) => setContractForm({ ...contractForm, description: e.target.value })} /></div><div className="sm:col-span-2"><label>Notes</label><textarea className="form-textarea mt-1" value={contractForm.notes} onChange={(e) => setContractForm({ ...contractForm, notes: e.target.value })} /></div></div><button className="btn btn-primary w-full">Save contract</button></form></div>}
+    </AppShell>;
+};
+
+export default WorkforceContractsPage;

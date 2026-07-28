@@ -1,0 +1,308 @@
+// ============================================================
+// MaamulPro — Central Registry Database Schema
+// Tracks all tenants, their database connections, and modules.
+// ============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/central"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ──────────────────────────────────────────────────────────────
+// Company Registry
+// ──────────────────────────────────────────────────────────────
+
+enum ModuleMode {
+  CONSTRUCTION_ONLY
+  REAL_ESTATE_ONLY
+  MATERIAL_MANAGEMENT_ONLY
+  CONSTRUCTION_MATERIAL
+  REAL_ESTATE_MATERIAL
+  HYBRID
+  ENTERPRISE
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_SETUP
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  CANCELLED
+}
+
+enum PlanTier {
+  FREE
+  BASIC
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+model Company {
+  id        String       @id @default(cuid())
+  name      String
+  subdomain String       @unique
+  companyType String?    @map("company_type")
+  dbUrl     String       @map("db_url")
+  logoUrl   String?      @map("logo_url")
+  phone     String?
+  address   String?
+  description String?
+  mode      ModuleMode   @default(HYBRID)
+  status    CompanyStatus @default(PENDING_SETUP)
+
+  constructionEnabled Boolean @default(false) @map("construction_enabled")
+  realEstateEnabled   Boolean @default(false) @map("real_estate_enabled")
+  materialManagementEnabled Boolean @default(false) @map("material_management_enabled")
+
+  adminEmail String  @unique @map("admin_email")
+  adminName  String  @map("admin_name")
+
+  // Subscription fields
+  subscriptionStatus SubscriptionStatus @default(PENDING) @map("subscription_status")
+  planTier           PlanTier?          @map("plan_tier")
+  planKey            String?            @map("plan_key")
+  entitlements       Json               @default("{}")
+  subscriptionAmount Float?             @map("subscription_amount")
+  termDurationMonths Int?               @map("term_duration_months")
+  subscriptionStartAt DateTime?         @map("subscription_start_at")
+  subscriptionExpiresAt DateTime?       @map("subscription_expires_at")
+  autoRecur          Boolean            @default(false) @map("auto_recur")
+  accessGranted      Boolean            @default(false) @map("access_granted")
+  version            Int                @default(0)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users CompanyUser[]
+  subscriptionTransactions SubscriptionTransaction[]
+  subscriptions TenantSubscription[]
+  invoices      Invoice[]
+
+  @@map("tenants")
+}
+
+// ──────────────────────────────────────────────────────────────
+// Subscription Transaction Ledger
+// Audit trail for all subscription-related actions
+// ──────────────────────────────────────────────────────────────
+
+model SubscriptionTransaction {
+  id                String             @id @default(cuid())
+  companyId         String             @map("company_id")
+  transactionType   String             @map("transaction_type") // APPROVAL, RENEWAL, SUSPENSION, EXPIRATION
+  amount            Float?
+  termDurationMonths Int?              @map("term_duration_months")
+  previousStatus    String             @map("previous_status")
+  newStatus         String             @map("new_status")
+  startAt           DateTime?          @map("start_at")
+  expiresAt         DateTime?          @map("expires_at")
+  approvedBy        String?            @map("approved_by") // CentralAdmin ID
+  notes             String?
+  createdAt         DateTime           @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([newStatus])
+  @@map("subscription_transactions")
+}
+
+// ──────────────────────────────────────────────────────────────
+// Company Users (Shared Auth — User-Anchored Tenancy)
+// Each row ties one user credential to one company.
+// The id MUST match the corresponding tenant database User.id.
+// ──────────────────────────────────────────────────────────────
+
+model CompanyUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  companyId    String    @map("company_id")
+  role         String    @default("STAFF")
+  isActive     Boolean   @default(true) @map("is_active")
+
+  resetTokenHash      String?   @map("reset_token_hash")
+  resetTokenExpiresAt DateTime? @map("reset_token_expires_at")
+  resetRequestedAt    DateTime? @map("reset_requested_at")
+  passwordResetAt     DateTime? @map("password_reset_at")
+
+  lastLoginAt DateTime? @map("last_login_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([companyId])
+  @@map("company_users")
+}
+
+// ──────────────────────────────────────────────────────────────
+// Platform Admin (Internal Super Admin)
+// Lives in the central DB — never inside a tenant database.
+// ──────────────────────────────────────────────────────────────
+
+model CentralAdmin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+
+  resetTokenHash      String?   @map("reset_token_hash")
+  resetTokenExpiresAt DateTime? @map("reset_token_expires_at")
+  resetRequestedAt    DateTime? @map("reset_requested_at")
+  passwordResetAt     DateTime? @map("password_reset_at")
+
+  lastLoginAt DateTime? @map("last_login_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("central_admins")
+}
+
+// ──────────────────────────────────────────────────────────────
+// Email Verification (Shared Module)
+// Used for company onboarding and email change flows
+// ──────────────────────────────────────────────────────────────
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  FAILED
+}
+
+enum VerificationContext {
+  COMPANY_ONBOARDING
+  EMAIL_CHANGE
+  PASSWORD_RESET
+}
+
+model EmailVerification {
+  id                   String               @id @default(cuid())
+  email                String               @map("email")
+  context              VerificationContext   @map("context")
+  hashedCode           String               @map("hashed_code")
+  expiresAt            DateTime             @map("expires_at")
+  status               VerificationStatus   @default(PENDING) @map("status")
+  attempts             Int                  @default(0) @map("attempts")
+  verifiedAt           DateTime?            @map("verified_at")
+  ipAddress            String?              @map("ip_address")
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+
+  @@unique([email, context])
+  @@index([email])
+  @@index([expiresAt])
+  @@map("email_verifications")
+}
+
+// ──────────────────────────────────────────────────────────────
+// Platform Subscription Plans & Invoicing
+// Complete Super Admin platform management engine
+// ──────────────────────────────────────────────────────────────
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PAID
+  OVERDUE
+  EXPIRED
+  CANCELLED
+}
+
+enum InvoiceKind {
+  INITIAL
+  PLAN_CHANGE
+  RENEWAL
+}
+
+model SubscriptionPlan {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  name            String
+  description     String?
+  priceMonthly    Float    @map("price_monthly")
+  priceYearly     Float    @map("price_yearly")
+  constructionMax Int      @default(0) @map("construction_max")
+  propertiesMax   Int      @default(0) @map("properties_max")
+  usersMax        Int      @default(5) @map("users_max")
+  features        Json     
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  subscriptions   TenantSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model TenantSubscription {
+  id               String             @id @default(cuid())
+  companyId        String             @map("company_id")
+  planId           String             @map("plan_id")
+  billingCycle     String             @default("MONTHLY") @map("billing_cycle")
+  status           SubscriptionStatus @default(PENDING)
+  amount           Float
+  startAt          DateTime           @map("start_at")
+  expiresAt        DateTime           @map("expires_at")
+  nextBillingAt    DateTime?          @map("next_billing_at")
+  autoRenew        Boolean            @default(true) @map("auto_renew")
+  entitlementSnapshot Json            @default("{}") @map("entitlement_snapshot")
+  activatedAt      DateTime?          @map("activated_at")
+  suspendedAt      DateTime?          @map("suspended_at")
+  cancelledAt      DateTime?          @map("cancelled_at")
+  version          Int                @default(0)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  company          Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plan             SubscriptionPlan   @relation(fields: [planId], references: [id])
+  invoices         Invoice[]
+
+  @@index([companyId])
+  @@index([status])
+  @@map("tenant_subscriptions")
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String        @unique @map("invoice_number")
+  companyId      String        @map("company_id")
+  subscriptionId String?       @map("subscription_id")
+  amount         Float
+  currency       String        @default("USD")
+  kind           InvoiceKind   @default(INITIAL)
+  status         InvoiceStatus @default(UNPAID)
+  dueDate        DateTime      @map("due_date")
+  expiresAt      DateTime      @map("expires_at")
+  periodStart    DateTime      @map("period_start")
+  periodEnd      DateTime      @map("period_end")
+  paidAt         DateTime?     @map("paid_at")
+  cancelledAt    DateTime?     @map("cancelled_at")
+  paymentMethod  String?       @map("payment_method")
+  idempotencyKey String?       @unique @map("idempotency_key")
+  notes          String?
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  company        Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  subscription   TenantSubscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([companyId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("invoices")
+}
+
