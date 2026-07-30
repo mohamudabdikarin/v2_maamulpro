@@ -10,4 +10,16 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src'),
         },
     },
+    build: {
+        chunkSizeWarningLimit: 600,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    charts: ['apexcharts', 'react-apexcharts'],
+                    react: ['react', 'react-dom', 'react-router-dom'],
+                    state: ['@reduxjs/toolkit', 'react-redux'],
+                },
+            },
+        },
+    },
 });

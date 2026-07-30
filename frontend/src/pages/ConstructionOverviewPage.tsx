@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
+import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
 import { EmptyState, ErrorAlert, LoadingState, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { useApiRows } from '../hooks/useApiData';
 
@@ -32,7 +33,7 @@ const ConstructionOverviewPage = () => {
             <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">{projects.slice(0, 6).map((project) => {
                 const completed = (project.tasks || []).filter((task) => task.status === 'COMPLETED').length;
                 return <Link className="panel overflow-hidden p-0 transition hover:-translate-y-1" to={`/app/construction/projects/${project.id}`} key={project.id}>
-                    {project.imageUrl ? <img src={project.imageUrl} className="h-36 w-full object-cover" alt="" /> : <div className="h-20 bg-gradient-to-r from-primary to-info" />}
+                    {project.imageUrl ? <AuthenticatedImage src={project.imageUrl} className="h-36 w-full object-cover" alt="" /> : <div className="h-20 bg-gradient-to-r from-primary to-info" />}
                     <div className="p-5"><div className="flex items-start justify-between gap-3"><div><h2 className="text-lg font-bold">{project.name}</h2><p className="text-sm text-white-dark">{project.location || 'Location not set'}</p></div><StatusPill value={project.status} /></div>
                         <div className="mt-4 h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-dark"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, project.progress || 0)}%` }} /></div>
                         <div className="mt-2 flex justify-between text-xs text-white-dark"><span>{project.progress || 0}% complete</span><span>{completed}/{project.tasks?.length || 0} tasks</span></div>

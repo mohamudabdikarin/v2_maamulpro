@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
+import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
 import { ErrorAlert, LoadingState, PageHeader, StatusPill, humanize, money, shortDate } from '../components/maamulpro/PageKit';
 import { useApiData } from '../hooks/useApiData';
 
@@ -40,7 +41,7 @@ const EntityDetailPage = (props: Props) => {
         {state.error && <ErrorAlert message={state.error} onRetry={state.reload} />}
         {!state.loading && !state.error && <div className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-3">
-                {props.imageKey && row[props.imageKey] && <div className="panel"><img className="h-56 w-full rounded-lg object-cover" src={row[props.imageKey]} alt="" /></div>}
+                {props.imageKey && row[props.imageKey] && <div className="panel"><AuthenticatedImage className="h-56 w-full rounded-lg object-cover" src={row[props.imageKey]} alt="" /></div>}
                 <div className={`panel grid gap-4 sm:grid-cols-2 ${props.imageKey && row[props.imageKey] ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
                     {props.statusKey && <div><p className="text-xs uppercase text-white-dark">{humanize(props.statusKey)}</p><div className="mt-2"><StatusPill value={row[props.statusKey]} /></div></div>}
                     {props.primaryFields.map((key) => <div key={key}><p className="text-xs font-bold uppercase tracking-wide text-white-dark">{humanize(key)}</p><p className="mt-1 whitespace-pre-wrap text-base font-semibold">{display(key, row[key], props)}</p></div>)}

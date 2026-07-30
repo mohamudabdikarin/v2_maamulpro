@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
+import { Modal } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 
 type Project = { id: string; name: string };
@@ -46,6 +47,7 @@ const WorkforceContractsPage = () => {
     const [payment, setPayment] = useState({ staffId: '', amount: '', date: '', description: '', notes: '' });
     const [adjustment, setAdjustment] = useState({ amount: '', reason: '' });
     const [error, setError] = useState('');
+    const [deleteTarget, setDeleteTarget] = useState<Contract | null>(null);
 
     const load = async () => {
         try {
@@ -105,9 +107,9 @@ const WorkforceContractsPage = () => {
         try { await api(`/api/construction/contracts/${row.id}/status`, { method: 'POST', body: JSON.stringify({ status }) }); await load(); }
         catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update status'); }
     };
-    const remove = async (row: Contract) => {
-        if (!window.confirm(`Delete ${row.title}?`)) return;
-        try { await api(`/api/construction/contracts/${row.id}`, { method: 'DELETE' }); await load(); }
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        try { await api(`/api/construction/contracts/${deleteTarget.id}`, { method: 'DELETE' }); setDeleteTarget(null); await load(); }
         catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to delete contract'); }
     };
     const assignWorker = async (event: FormEvent) => {
@@ -145,7 +147,7 @@ const WorkforceContractsPage = () => {
         {error && <div className="mb-5 rounded-md bg-danger-light p-4 text-danger">{error}</div>}
         <div className="panel overflow-x-auto p-0">
             <table className="table-hover w-full"><thead><tr><th>Contract</th><th>Project</th><th>Status</th><th>Budget</th><th>Paid</th><th>Workers</th><th>Actions</th></tr></thead>
-                <tbody>{contracts.map((row) => <tr key={row.id} className={selectedId === row.id ? 'bg-primary-light' : ''}><td><button className="font-semibold text-primary" onClick={() => setSelectedId(row.id)}>{row.title}</button></td><td>{row.project?.name}</td><td><span className="badge bg-primary">{row.status}</span></td><td>${Number(row.originalBudget).toLocaleString()}</td><td>${Number(row.totalPaid).toLocaleString()}</td><td>{row.workerAssignments.filter((entry) => !entry.removedAt).length}</td><td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(row)}>Edit</button>{allowedTransitions[row.status]?.map((status) => <button className="btn btn-sm btn-outline-info" key={status} onClick={() => transition(row, status)}>{status}</button>)}<button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button></div></td></tr>)}</tbody>
+                <tbody>{contracts.map((row) => <tr key={row.id} className={selectedId === row.id ? 'bg-primary-light' : ''}><td><button className="font-semibold text-primary" onClick={() => setSelectedId(row.id)}>{row.title}</button></td><td>{row.project?.name}</td><td><span className="badge bg-primary">{row.status}</span></td><td>${Number(row.originalBudget).toLocaleString()}</td><td>${Number(row.totalPaid).toLocaleString()}</td><td>{row.workerAssignments.filter((entry) => !entry.removedAt).length}</td><td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(row)}>Edit</button>{allowedTransitions[row.status]?.map((status) => <button className="btn btn-sm btn-outline-info" key={status} onClick={() => transition(row, status)}>{status}</button>)}<button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteTarget(row)}>Delete</button></div></td></tr>)}</tbody>
             </table>
         </div>
         {selected && <div className="mt-6 space-y-6">
@@ -160,7 +162,25 @@ const WorkforceContractsPage = () => {
                 <div className="panel"><h2 className="mb-4 font-bold">Payment history</h2><div className="space-y-2">{selected.payments.map((row) => <div className="flex justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={row.id}><span>{row.staff.firstName} {row.staff.lastName}<small className="block text-white-dark">{row.description}</small></span><strong>${Number(row.amount).toLocaleString()}</strong></div>)}</div></div>
             </div>
         </div>}
-        {modal && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4" onMouseDown={(e) => { if (e.currentTarget === e.target) setModal(false); }}><form className="panel max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto" onSubmit={saveContract}><div className="flex justify-between"><h2 className="text-xl font-bold">{editing ? 'Edit contract' : 'Create contract'}</h2><button type="button" className="btn btn-sm btn-outline-dark" onClick={() => setModal(false)}>Close</button></div><div className="grid gap-4 sm:grid-cols-2"><div><label>Project</label><select className="form-select mt-1" required value={contractForm.projectId} onChange={(e) => setContractForm({ ...contractForm, projectId: e.target.value })}><option value="">Select project…</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></div><div><label>Title</label><input className="form-input mt-1" required value={contractForm.title} onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })} /></div><div><label>Original budget</label><input className="form-input mt-1" type="number" min="0" step="0.01" required value={contractForm.originalBudget} onChange={(e) => setContractForm({ ...contractForm, originalBudget: e.target.value })} /></div><div><label>Start date</label><input className="form-input mt-1" type="date" value={contractForm.startDate} onChange={(e) => setContractForm({ ...contractForm, startDate: e.target.value })} /></div><div><label>End date</label><input className="form-input mt-1" type="date" value={contractForm.endDate} onChange={(e) => setContractForm({ ...contractForm, endDate: e.target.value })} /></div><div className="sm:col-span-2"><label>Description</label><textarea className="form-textarea mt-1" value={contractForm.description} onChange={(e) => setContractForm({ ...contractForm, description: e.target.value })} /></div><div className="sm:col-span-2"><label>Notes</label><textarea className="form-textarea mt-1" value={contractForm.notes} onChange={(e) => setContractForm({ ...contractForm, notes: e.target.value })} /></div></div><button className="btn btn-primary w-full">Save contract</button></form></div>}
+        <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Edit contract' : 'Create contract'}><form className="grid gap-4 sm:grid-cols-2" onSubmit={saveContract}>
+            <div><label>Project</label><select className="form-select mt-1" required value={contractForm.projectId} onChange={(e) => setContractForm({ ...contractForm, projectId: e.target.value })}><option value="">Select project…</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></div>
+            <div><label>Title</label><input className="form-input mt-1" required value={contractForm.title} onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })} /></div>
+            <div><label>Original budget</label><input className="form-input mt-1" type="number" min="0" step="0.01" required value={contractForm.originalBudget} onChange={(e) => setContractForm({ ...contractForm, originalBudget: e.target.value })} /></div>
+            <div><label>Start date</label><input className="form-input mt-1" type="date" value={contractForm.startDate} onChange={(e) => setContractForm({ ...contractForm, startDate: e.target.value })} /></div>
+            <div><label>End date</label><input className="form-input mt-1" type="date" value={contractForm.endDate} onChange={(e) => setContractForm({ ...contractForm, endDate: e.target.value })} /></div>
+            <div className="sm:col-span-2"><label>Description</label><textarea className="form-textarea mt-1" value={contractForm.description} onChange={(e) => setContractForm({ ...contractForm, description: e.target.value })} /></div>
+            <div className="sm:col-span-2"><label>Notes</label><textarea className="form-textarea mt-1" value={contractForm.notes} onChange={(e) => setContractForm({ ...contractForm, notes: e.target.value })} /></div>
+            <button className="btn btn-primary w-full sm:col-span-2">Save contract</button>
+        </form></Modal>
+        <Modal open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete contract">
+            <div className="space-y-4">
+                <p className="text-white-dark">Delete contract <strong>"{deleteTarget?.title}"</strong>? This cannot be undone.</p>
+                <div className="flex justify-end gap-2">
+                    <button className="btn btn-outline-dark" onClick={() => setDeleteTarget(null)}>Cancel</button>
+                    <button className="btn btn-danger" onClick={confirmDelete}>Delete contract</button>
+                </div>
+            </div>
+        </Modal>
     </AppShell>;
 };
 

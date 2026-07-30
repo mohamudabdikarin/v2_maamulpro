@@ -7,9 +7,11 @@ const LoginPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const superAdmin = location.pathname.startsWith('/superadmin');
+    const successMessage = (location.state as { message?: string } | null)?.message;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -19,7 +21,7 @@ const LoginPage = () => {
         setLoading(true);
         try {
             const session = await api<Session>(superAdmin ? '/api/auth/superadmin/login' : '/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-            sessionStore.set(session);
+            sessionStore.set(session, rememberMe);
             navigate(superAdmin ? '/superadmin/dashboard' : '/app/dashboard', { replace: true });
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : 'Sign in failed');
@@ -67,8 +69,9 @@ const LoginPage = () => {
                                         <button aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute end-4 top-1/2 -translate-y-1/2 transition hover:text-primary" onClick={() => setShowPassword((visible) => !visible)} type="button">{showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}</button>
                                     </div>
                                 </div>
+                                {successMessage && <div className="rounded border border-success/30 bg-success-light px-3 py-2 text-sm text-success" role="status">{successMessage}</div>}
                                 {error && <div className="rounded border border-danger/30 bg-danger-light px-3 py-2 text-sm text-danger" role="alert">{error}</div>}
-                                <div><label className="flex cursor-pointer items-center"><input className="form-checkbox bg-white dark:bg-black" type="checkbox" /><span className="text-white-dark">Remember me</span></label></div>
+                                <div><label className="flex cursor-pointer items-center"><input checked={rememberMe} className="form-checkbox bg-white dark:bg-black" onChange={(event) => setRememberMe(event.target.checked)} type="checkbox" /><span className="text-white-dark">Remember me on this device</span></label></div>
                                 <button className="btn btn-gradient !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]" disabled={loading} type="submit">{loading ? 'Signing in…' : 'Sign in'}</button>
                             </form>
                         </div>

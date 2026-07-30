@@ -40,6 +40,12 @@ export type SessionUser = {
             properties: number;
         };
     };
+    enterpriseConfiguration?: {
+        workspaceControls: Record<string, boolean>;
+        sidebarVisibility: Record<string, boolean>;
+        reportVisibility: Record<string, boolean>;
+        analyticsVisibility: Record<string, boolean>;
+    };
 };
 
 export type Session = {
@@ -53,13 +59,17 @@ const STORAGE_KEY = 'maamulpro.session';
 export const sessionStore = {
     get(): Session | null {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+            const value = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
+            return JSON.parse(value || 'null');
         } catch {
             return null;
         }
     },
-    set(session: Session) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    set(session: Session, remember = Boolean(localStorage.getItem(STORAGE_KEY))) {
+        const target = remember ? localStorage : sessionStorage;
+        const other = remember ? sessionStorage : localStorage;
+        other.removeItem(STORAGE_KEY);
+        target.setItem(STORAGE_KEY, JSON.stringify(session));
         window.dispatchEvent(new CustomEvent('maamulpro:session', { detail: session }));
     },
     updateUser(user: SessionUser) {
@@ -70,6 +80,7 @@ export const sessionStore = {
         return updated;
     },
     clear() {
+        sessionStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(STORAGE_KEY);
         window.dispatchEvent(new CustomEvent('maamulpro:session', { detail: null }));
     },
@@ -98,6 +109,19 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
         throw new Error(readable);
     }
     return (payload as ApiEnvelope<T>).data;
+}
+
+export async function apiBlob(path: string): Promise<Blob> {
+    const session = sessionStore.get();
+    const headers = new Headers({ Accept: 'image/*' });
+    if (session?.accessToken) headers.set('Authorization', `Bearer ${session.accessToken}`);
+    if (session?.user.companyId) headers.set('X-Company-Id', session.user.companyId);
+    const response = await fetch(`${API_URL}${path}`, { headers });
+    if (!response.ok) {
+        if (response.status === 401) sessionStore.clear();
+        throw new Error(`Image request failed (${response.status})`);
+    }
+    return response.blob();
 }
 
 let sessionRefreshPromise: Promise<Session | null> | null = null;

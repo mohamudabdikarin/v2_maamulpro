@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
+import { ArrowLeft, KeyRound, LoaderCircle, Mail } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import IconLockDots from '../../components/Icon/IconLockDots';
 import { api } from '../../lib/api';
 
 const PasswordRecoveryPage = () => {
@@ -11,36 +11,65 @@ const PasswordRecoveryPage = () => {
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
-    const [previewCode, setPreviewCode] = useState('');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [working, setWorking] = useState(false);
+    const signInPath = superAdmin ? '/superadmin/login' : '/sign-in';
 
     const request = async (event: FormEvent) => {
-        event.preventDefault(); setError('');
+        event.preventDefault();
+        setError('');
+        setWorking(true);
         try {
-            const result = await api<{ accepted: boolean; previewCode?: string }>('/api/auth/password/forgot', { method: 'POST', body: JSON.stringify({ email }) });
-            setPreviewCode(result.previewCode || '');
+            await api<{ accepted: boolean }>('/api/auth/password/forgot', {
+                method: 'POST', body: JSON.stringify({ email }),
+            });
             setMessage('If the address belongs to an active account, a reset code has been sent.');
             setStep('reset');
-        } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to request reset'); }
-    };
-    const reset = async (event: FormEvent) => {
-        event.preventDefault(); setError('');
-        try {
-            await api('/api/auth/password/reset', { method: 'POST', body: JSON.stringify({ email, code, newPassword }) });
-            navigate(superAdmin ? '/superadmin/login' : '/sign-in', { replace: true, state: { message: 'Password reset. Sign in with your new password.' } });
-        } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to reset password'); }
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : 'Unable to request reset');
+        } finally {
+            setWorking(false);
+        }
     };
 
-    return <div className="grid min-h-screen place-items-center bg-[#f6f8fb] p-6 dark:bg-[#060818]">
-        <div className="panel w-full max-w-md p-8 shadow-xl">
-            <div className="mb-7 flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-white"><IconLockDots /></span><div><h1 className="text-2xl font-extrabold">Password recovery</h1><p className="text-white-dark">Secure account reset</p></div></div>
-            {message && <div className="mb-5 rounded-md bg-success-light p-3 text-success">{message}</div>}
-            {previewCode && <div className="mb-5 rounded-md bg-info-light p-3 text-info">Development reset code: <strong>{previewCode}</strong></div>}
-            {error && <div className="mb-5 rounded-md bg-danger-light p-3 text-danger">{error}</div>}
-            {step === 'request' ? <form className="space-y-5" onSubmit={request}><div><label>Email address</label><input className="form-input mt-2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div><button className="btn btn-primary w-full">Send reset code</button></form>
-                : <form className="space-y-5" onSubmit={reset}><div><label>Email address</label><input className="form-input mt-2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div><div><label>Six-digit code</label><input className="form-input mt-2" inputMode="numeric" minLength={6} maxLength={6} required value={code} onChange={(e) => setCode(e.target.value)} /></div><div><label>New password</label><input className="form-input mt-2" type="password" minLength={10} required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} /></div><button className="btn btn-primary w-full">Reset password</button><button type="button" className="btn btn-outline-dark w-full" onClick={() => setStep('request')}>Request another code</button></form>}
-            <Link className="mt-6 block text-center text-primary hover:underline" to={superAdmin ? '/superadmin/login' : '/sign-in'}>Back to sign in</Link>
+    const reset = async (event: FormEvent) => {
+        event.preventDefault();
+        setError('');
+        setWorking(true);
+        try {
+            await api('/api/auth/password/reset', { method: 'POST', body: JSON.stringify({ email, code, newPassword }) });
+            navigate(signInPath, { replace: true, state: { message: 'Password reset. Sign in with your new password.' } });
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : 'Unable to reset password');
+        } finally {
+            setWorking(false);
+        }
+    };
+
+    return <div>
+        <div className="absolute inset-0"><img alt="" aria-hidden="true" className="h-full w-full object-cover" src="/assets/images/auth/bg-gradient.png" /></div>
+        <div className="relative flex min-h-screen items-center justify-center bg-[url(/assets/images/auth/map.png)] bg-cover bg-center bg-no-repeat px-6 py-10 dark:bg-[#060818] sm:px-16">
+            <img alt="" aria-hidden="true" className="absolute left-0 top-1/2 h-full max-h-[893px] -translate-y-1/2" src="/assets/images/auth/coming-soon-object1.png" />
+            <img alt="" aria-hidden="true" className="absolute left-24 top-0 h-40 md:left-[30%]" src="/assets/images/auth/coming-soon-object2.png" />
+            <img alt="" aria-hidden="true" className="absolute right-0 top-0 h-[300px]" src="/assets/images/auth/coming-soon-object3.png" />
+            <img alt="" aria-hidden="true" className="absolute bottom-0 end-[28%]" src="/assets/images/auth/polygon-object.svg" />
+            <div className="relative flex w-full max-w-[1502px] flex-col justify-between overflow-hidden rounded-md bg-white/60 backdrop-blur-lg dark:bg-black/50 lg:min-h-[758px] lg:flex-row lg:gap-10 xl:gap-0">
+                <div className="relative hidden w-full items-center justify-center bg-[linear-gradient(225deg,rgba(239,18,98,1)_0%,rgba(67,97,238,1)_100%)] p-5 lg:inline-flex lg:max-w-[835px] xl:-ms-28 ltr:xl:skew-x-[14deg] rtl:xl:skew-x-[-14deg]">
+                    <div className="ltr:xl:-skew-x-[14deg] rtl:xl:skew-x-[-14deg]"><div className="ms-10 block w-48 text-4xl font-extrabold tracking-wide text-white lg:w-72">MaamulPro</div><div className="mt-24 hidden w-full max-w-[430px] lg:block"><img alt="" aria-hidden="true" className="w-full" src="/assets/images/auth/login.svg" /></div></div>
+                </div>
+                <div className="relative flex w-full flex-col items-center justify-center px-4 py-12 sm:px-6 lg:max-w-[667px]">
+                    <div className="w-full max-w-[440px]">
+                        <Link className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline" to={signInPath}><ArrowLeft size={16} /> Back to sign in</Link>
+                        <div className="mb-10"><span className="mb-4 grid h-11 w-11 place-items-center rounded-md bg-primary text-white"><KeyRound size={21} /></span><h1 className="text-3xl font-extrabold uppercase !leading-snug text-primary md:text-4xl">{step === 'request' ? 'Reset password' : 'Set new password'}</h1><p className="text-base font-bold leading-normal text-white-dark">{step === 'request' ? 'Enter your email and we will send a reset code.' : 'Enter the code and choose a new password.'}</p></div>
+                        {message && <div className="mb-5 rounded border border-success/30 bg-success-light px-3 py-2 text-sm text-success">{message}</div>}
+                        {error && <div className="mb-5 rounded border border-danger/30 bg-danger-light px-3 py-2 text-sm text-danger" role="alert">{error}</div>}
+                        {step === 'request' ? <form className="space-y-5 dark:text-white" onSubmit={request}><div><label htmlFor="recovery-email">Email address</label><div className="relative text-white-dark"><input autoComplete="email" className="form-input ps-10 placeholder:text-white-dark" id="recovery-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Enter email address" /><Mail aria-hidden="true" className="absolute start-4 top-1/2 -translate-y-1/2" size={18} /></div></div><button className="btn btn-gradient !mt-6 w-full border-0 uppercase" disabled={working}>{working ? <><LoaderCircle className="mr-2 animate-spin" size={16} /> Sending code…</> : 'Send reset code'}</button></form>
+                            : <form className="space-y-5 dark:text-white" onSubmit={reset}><div><label htmlFor="recovery-email">Email address</label><div className="relative text-white-dark"><input autoComplete="email" className="form-input ps-10 placeholder:text-white-dark" id="recovery-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Enter email address" /><Mail aria-hidden="true" className="absolute start-4 top-1/2 -translate-y-1/2" size={18} /></div></div><div><label htmlFor="reset-code">Six-digit code</label><input className="form-input mt-1 placeholder:text-white-dark" id="reset-code" inputMode="numeric" minLength={6} maxLength={6} required value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="Enter 6-digit code" /></div><div><label htmlFor="new-password">New password</label><div className="relative text-white-dark"><input className="form-input ps-10 placeholder:text-white-dark" id="new-password" type="password" minLength={12} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,200}" required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="Enter new password" /><KeyRound aria-hidden="true" className="absolute start-4 top-1/2 -translate-y-1/2" size={18} /></div><p className="mt-1 text-xs text-white-dark">Use 12+ characters with uppercase, lowercase, a number, and a symbol.</p></div><button className="btn btn-gradient !mt-6 w-full border-0 uppercase" disabled={working}>{working ? <><LoaderCircle className="mr-2 animate-spin" size={16} /> Resetting password…</> : 'Reset password'}</button><button type="button" className="btn btn-outline-dark w-full" disabled={working} onClick={() => setStep('request')}>Use another email</button></form>}
+                    </div>
+                    <p className="absolute bottom-6 w-full text-center text-sm dark:text-white">© {new Date().getFullYear()} MaamulPro. All rights reserved.</p>
+                </div>
+            </div>
         </div>
     </div>;
 };

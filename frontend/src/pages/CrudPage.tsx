@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { api } from '../lib/api';
 import LineItemsEditor, { LineItemConfig } from '../components/maamulpro/LineItemsEditor';
-import { EmptyState, ErrorAlert, LoadingState, Modal, PageHeader, StatGrid, StatusPill, humanize as titleize, money, shortDate } from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, LoadingState, Modal, PageHeader, StatGrid, StatusPill, SuccessAlert, fieldHint, humanize as titleize, money, shortDate, somaliExample } from '../components/maamulpro/PageKit';
 
 export type CrudField = {
     name: string;
     label: string;
     type?: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'json' | 'lineItems' | 'image' | 'checkbox' | 'password';
     required?: boolean;
+    placeholder?: string;
+    hint?: string;
     options?: { value: string; label: string }[];
     uploadFolder?: 'avatars' | 'staff' | 'projects' | 'properties' | 'materials' | 'branding';
     lookup?: { endpoint: string; valueKey?: string; labelKeys: string[] };
@@ -63,11 +65,17 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState('');
     const [viewing, setViewing] = useState<Record<string, any> | null>(null);
     const [filterValue, setFilterValue] = useState('');
     const [lookups, setLookups] = useState<Record<string, { value: string; label: string }[]>>({});
+    const [confirmation, setConfirmation] = useState<{ row: Record<string, any>; transition?: NonNullable<CrudPageProps['transitions']>[number] } | null>(null);
+    const [confirmationReason, setConfirmationReason] = useState('');
+    const [confirming, setConfirming] = useState(false);
     const load = () => {
         setLoading(true);
         return api<unknown>(endpoint).then((result) => setRows(unwrap(result))).catch((reason) => setError(reason.message)).finally(() => setLoading(false));
@@ -103,9 +111,10 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         return String(value);
     };
 
-    const showCreate = () => { setEditing(null); setForm(emptyForm(fields)); setOpen(true); };
+    const showCreate = () => { setEditing(null); setForm(emptyForm(fields)); setFieldErrors({}); setError(''); setOpen(true); };
     const showEdit = (row: Record<string, any>) => {
         setEditing(row);
+        setFieldErrors({}); setError('');
         setForm(Object.fromEntries(fields.map((field) => {
             const value = row[field.name];
             if (field.type === 'date' && value) return [field.name, String(value).slice(0, 10)];
@@ -132,7 +141,14 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         else if (recordId) api<Record<string, any>>(`${endpoint}/${recordId}`).then(showEdit).catch((reason) => setError(reason.message));
     }, [endpoint, initialMode, recordId]);
     const submit = async (event: FormEvent) => {
-        event.preventDefault(); setError('');
+        event.preventDefault(); setError(''); setSuccess('');
+        const errors = Object.fromEntries(fields.flatMap((field) => {
+            const value = form[field.name];
+            const empty = value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length);
+            return field.required && empty ? [[field.name, `${field.label} is required.`]] : [];
+        }));
+        if (Object.keys(errors).length) { setFieldErrors(errors); return; }
+        setFieldErrors({}); setSaving(true);
         try {
             const payload = Object.fromEntries(fields.map((field) => {
                 const value = form[field.name];
@@ -152,24 +168,31 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                     .map((field) => api('/api/uploads/images', { method: 'DELETE', body: JSON.stringify({ url: editing[field.name] }) }).catch(() => undefined)));
             }
             setOpen(false); await load();
+            setSuccess(editing ? `${title} was updated successfully.` : `${title} was created successfully.`);
             if (returnTo) navigate(returnTo);
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to save record'); }
+        finally { setSaving(false); }
     };
-    const remove = async (row: Record<string, any>) => {
-        if (!window.confirm('Delete this record?')) return;
-        try { await api(`${endpoint}/${row.id}`, { method: 'DELETE' }); await load(); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to delete record'); }
-    };
-    const transition = async (row: Record<string, any>, item: NonNullable<CrudPageProps['transitions']>[number]) => {
-        const action = item.action;
-        const reason = action === 'reject' ? window.prompt('Rejection reason') : undefined;
-        if (action === 'reject' && !reason) return;
-        if (!window.confirm(`${humanize(action)} this record?`)) return;
+    const remove = (row: Record<string, any>) => { setConfirmationReason(''); setConfirmation({ row }); };
+    const transition = (row: Record<string, any>, item: NonNullable<CrudPageProps['transitions']>[number]) => { setConfirmationReason(''); setConfirmation({ row, transition: item }); };
+    const confirmAction = async () => {
+        if (!confirmation) return;
+        const { row, transition: item } = confirmation;
+        if (item?.action === 'reject' && !confirmationReason.trim()) { setError('A rejection reason is required.'); return; }
+        setConfirming(true); setError('');
         try {
-            const suffix = item.path === '' ? '' : `/${item.path || 'transition'}`;
-            await api(`${endpoint}/${row.id}${suffix}`, { method: item.method || 'POST', body: JSON.stringify(item.body || { action, reason }) });
+            if (!item) await api(`${endpoint}/${row.id}`, { method: 'DELETE' });
+            else {
+                const suffix = item.path === '' ? '' : `/${item.path || 'transition'}`;
+                await api(`${endpoint}/${row.id}${suffix}`, { method: item.method || 'POST', body: JSON.stringify(item.body || { action: item.action, reason: confirmationReason.trim() || undefined }) });
+            }
             await load();
+            setSuccess(item ? `${humanize(item.action)} completed successfully.` : `${title} was deleted successfully.`);
+            setConfirmation(null);
         } catch (reason) {
-            setError(reason instanceof Error ? reason.message : 'Unable to change record status');
+            setError(reason instanceof Error ? reason.message : item ? 'Unable to change record status' : 'Unable to delete record');
+        } finally {
+            setConfirming(false);
         }
     };
     const uploadImage = async (field: CrudField, file?: File) => {
@@ -206,6 +229,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             ...(amountKey ? [{ label: `Filtered ${titleize(amountKey)}`, value: money(amountTotal), tone: 'success' }] : []),
         ]} />
         <div className="panel mb-5 flex flex-col gap-3 sm:flex-row"><input className="form-input flex-1" placeholder="Search records…" value={search} onChange={(e) => setSearch(e.target.value)} />{filterKey && <select className="form-select sm:w-56" value={filterValue} onChange={(e) => setFilterValue(e.target.value)}><option value="">All {titleize(filterKey)}</option>{filterOptions.map((value) => <option value={value} key={value}>{titleize(value)}</option>)}</select>}</div>
+        {success && <SuccessAlert message={success} onDismiss={() => setSuccess('')} />}
         {error && <ErrorAlert message={error} onRetry={load} />}
         <div className="panel overflow-x-auto p-0">
             {loading ? <LoadingState /> : !filtered.length ? <EmptyState title="No records found" description="Adjust the filters or add the first record." /> :
@@ -221,20 +245,25 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             </div>)}{printable && <button className="btn btn-primary" onClick={() => printRecord(viewing)}>Print record</button>}</div>}
         </Modal>
         {open && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4" onMouseDown={(e) => { if (e.currentTarget === e.target) returnTo ? navigate(returnTo) : setOpen(false); }}>
-            <form className="panel max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto" onSubmit={submit}>
+            <form className="panel max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto" noValidate onSubmit={submit}>
                 <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${title}` : `Add ${title}`}</h2><button type="button" className="btn btn-outline-dark btn-sm" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)}>Close</button></div>
+                {error && <ErrorAlert message={error} />}
                 <div className="grid gap-4 sm:grid-cols-2">{fields.map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
-                    <label htmlFor={field.name}>{field.label}</label>
+                    <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
                     {field.type === 'select' || field.lookup ? <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
-                        : field.type === 'textarea' || field.type === 'json' ? <textarea id={field.name} className={`form-textarea mt-1 ${field.type === 'json' ? 'min-h-40 font-mono text-xs' : ''}`} required={field.required} value={form[field.name]} onChange={(e) => setForm({ ...form, [field.name]: e.target.value })} />
+                        : field.type === 'textarea' || field.type === 'json' ? <textarea id={field.name} className={`form-textarea mt-1 ${field.type === 'json' ? 'min-h-40 font-mono text-xs' : ''} ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
                         : field.type === 'lineItems' && field.lineItems ? <div className="mt-1"><LineItemsEditor value={form[field.name]} onChange={(items) => setForm({ ...form, [field.name]: items })} config={field.lineItems} /></div>
                         : field.type === 'image' ? <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">{form[field.name] && <img className="h-20 w-20 rounded-lg border border-white-light object-cover dark:border-[#191e3a]" src={form[field.name]} alt="" />}<div className="flex-1"><input id={field.name} className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === field.name} onChange={(e) => uploadImage(field, e.target.files?.[0])} />{uploading === field.name && <p className="mt-1 text-xs text-primary">Uploading…</p>}{form[field.name] && <button type="button" className="mt-2 text-xs text-danger hover:underline" onClick={() => setForm({ ...form, [field.name]: '' })}>Remove from record</button>}</div></div>
                         : field.type === 'checkbox' ? <input id={field.name} className="form-checkbox mt-2 block" type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => setForm({ ...form, [field.name]: e.target.checked })} />
-                        : <input id={field.name} className="form-input mt-1" type={field.type || 'text'} required={field.required} value={form[field.name]} onChange={(e) => setForm({ ...form, [field.name]: e.target.value })} />}
+                        : <input id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} type={field.type || 'text'} placeholder={field.placeholder || somaliExample(field.name, field.type)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />}
+                    {fieldErrors[field.name] ? <p className="mt-1 text-xs text-danger" role="alert">{fieldErrors[field.name]}</p> : fieldHint(field.name, field.type, field.hint) && <p className="mt-1 text-xs text-white-dark">{fieldHint(field.name, field.type, field.hint)}</p>}
                 </div>)}</div>
-                <button className="btn btn-primary w-full">Save record</button>
+                <button className="btn btn-primary w-full" disabled={saving}>{saving ? 'Saving…' : 'Save record'}</button>
             </form>
         </div>}
+        <Modal open={Boolean(confirmation)} onClose={() => !confirming && setConfirmation(null)} title={confirmation?.transition ? `${humanize(confirmation.transition.action)} record` : `Delete ${title}`}>
+            {confirmation && <div className="space-y-4"><p className="text-white-dark">{confirmation.transition ? `Are you sure you want to ${confirmation.transition.action} this record?` : 'This action permanently removes the record and cannot be undone.'}</p>{confirmation.transition?.action === 'reject' && <div><label className="font-semibold" htmlFor="rejection-reason">Rejection reason <span className="text-danger">*</span></label><textarea id="rejection-reason" className="form-textarea mt-1" placeholder="Sharax sababta diidmada" value={confirmationReason} onChange={(event) => setConfirmationReason(event.target.value)} /></div>}<div className="flex justify-end gap-2"><button className="btn btn-outline-dark" disabled={confirming} onClick={() => setConfirmation(null)}>Cancel</button><button className={`btn ${confirmation.transition?.tone === 'danger' || !confirmation.transition ? 'btn-danger' : 'btn-primary'}`} disabled={confirming} onClick={confirmAction}>{confirming ? 'Please wait…' : confirmation.transition ? humanize(confirmation.transition.action) : 'Delete record'}</button></div></div>}
+        </Modal>
     </AppShell>;
 };
 

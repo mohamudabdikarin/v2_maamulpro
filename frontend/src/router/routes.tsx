@@ -39,7 +39,6 @@ const CompanyOnboardingPage = lazy(() => import('../pages/CompanyOnboardingPage'
 const SuperAdminCompanyPage = lazy(() => import('../pages/SuperAdminCompanyPage'));
 const SuperAdminAccountPage = lazy(() => import('../pages/SuperAdminAccountPage'));
 const ReportSchedulesPage = lazy(() => import('../pages/ReportSchedulesPage'));
-const SubscriptionPlansPage = lazy(() => import('../pages/SubscriptionPlansPage'));
 const LegacyRedirectPage = lazy(() => import('../pages/LegacyRedirectPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
@@ -226,7 +225,6 @@ const routes = [
     { path: '/superadmin/companies/new', element: <CompanyOnboardingPage />, layout: 'blank' },
     { path: '/superadmin/companies/:id', element: <SuperAdminCompanyPage />, layout: 'blank' },
     { path: '/superadmin/account', element: <SuperAdminAccountPage />, layout: 'blank' },
-    { path: '/superadmin/plans', element: <SubscriptionPlansPage />, layout: 'blank' },
     { path: '/superadmin/billing', element: <SuperAdminBillingPage />, layout: 'blank' },
     { path: '*', element: <NotFoundPage />, layout: 'blank' },
 ];

@@ -14,11 +14,12 @@ const AnalyticsPage = () => {
     const [period, setPeriod] = useState('monthly');
     const [workspace, setWorkspace] = useState('all');
     const features = sessionStore.get()?.user.entitlements?.features;
+    const analyticsVisibility = sessionStore.get()?.user.enterpriseConfiguration?.analyticsVisibility;
     const state = useApiData<Analytics>(`/api/dashboard/analytics?period=${period}&workspace=${workspace}`, { totals: { totalIncome: 0, totalExpense: 0, netProfit: 0, transactionCount: 0 }, series: [], distribution: [] });
     const maximum = Math.max(1, ...state.data.series.flatMap((point) => [point.income, point.expense]));
     return <AppShell>
         <PageHeader eyebrow="Decision intelligence" title="Analytics Center" description="Compare financial movement and operational distribution across enabled workspaces." actions={<>
-            <select className="form-select w-40" value={workspace} onChange={(event) => setWorkspace(event.target.value)}><option value="all">All workspaces</option>{features?.construction && <option value="construction">Construction</option>}{features?.realEstate && <option value="real_estate">Real estate</option>}{features?.materials && <option value="material_management">Materials</option>}</select>
+            <select className="form-select w-40" value={workspace} onChange={(event) => setWorkspace(event.target.value)}><option value="all">All workspaces</option>{features?.construction && analyticsVisibility?.construction !== false && <option value="construction">Construction</option>}{features?.realEstate && analyticsVisibility?.real_estate !== false && <option value="real_estate">Real estate</option>}{features?.materials && analyticsVisibility?.material_management !== false && <option value="material_management">Materials</option>}</select>
             <select className="form-select w-36" value={period} onChange={(event) => setPeriod(event.target.value)}><option value="weekly">7 days</option><option value="monthly">This month</option><option value="yearly">This year</option></select>
         </>} />
         {state.error && <ErrorAlert message={state.error} onRetry={state.reload} />}

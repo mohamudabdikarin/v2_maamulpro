@@ -33,14 +33,13 @@ const companyGroups: Group[] = [
 ];
 
 const platformGroups: Group[] = [
-    { label: 'Platform', icon: <IconMenuDashboard className={iconClass} />, items: [{ label: 'Dashboard', to: '/superadmin/dashboard' }, { label: 'Companies', to: '/superadmin/companies' }, { label: 'Plans', to: '/superadmin/plans' }, { label: 'Subscriptions & billing', to: '/superadmin/billing' }] },
+    { label: 'Platform', icon: <IconMenuDashboard className={iconClass} />, items: [{ label: 'Dashboard', to: '/superadmin/dashboard' }, { label: 'Companies', to: '/superadmin/companies' }, { label: 'Subscriptions & billing', to: '/superadmin/billing' }] },
     { label: 'Administration', icon: <IconMenuForms className={iconClass} />, items: [{ label: 'My account', to: '/superadmin/account' }] },
 ];
 
 const platformItems: Item[] = [
     { label: 'Dashboard', to: '/superadmin/dashboard', icon: <IconMenuDashboard className={iconClass} /> },
     { label: 'Companies', to: '/superadmin/companies', icon: <IconMenuUsers className={iconClass} /> },
-    { label: 'Plans', to: '/superadmin/plans', icon: <IconMenuInvoice className={iconClass} /> },
     { label: 'Subscriptions & billing', to: '/superadmin/billing', icon: <IconMenuCharts className={iconClass} /> },
     { label: 'My account', to: '/superadmin/account', icon: <IconMenuForms className={iconClass} /> },
 ];
@@ -60,11 +59,39 @@ const Sidebar = () => {
     const groups = useMemo(() => {
         if (isPlatform) return platformGroups;
         const features = session?.user.entitlements?.features;
+        const enterprise = session?.user.enterpriseConfiguration;
+        const workspaceKey = (label: string) => label === 'Construction'
+            ? 'construction'
+            : label === 'Real estate'
+                ? 'real_estate'
+                : label === 'Materials'
+                    ? 'material_management'
+                    : '';
+        const sidebarKey = (item: Item) => {
+            if (item.to === '/app/dashboard') return 'dashboard';
+            if (item.to === '/app/analytics') return 'analytics';
+            if (item.to.startsWith('/app/staff')) return 'staff';
+            if (item.to.startsWith('/app/financials') || item.to.startsWith('/app/payroll')) return 'financials';
+            if (item.to.startsWith('/app/reports') || item.to.startsWith('/app/report-schedules')) return 'reports';
+            if (item.to.startsWith('/app/audits')) return 'audits';
+            if (item.to.startsWith('/app/roles') || item.to.startsWith('/app/settings')) return 'workspaces';
+            return '';
+        };
         return companyGroups
             .filter((group) => !group.feature || Boolean(features?.[group.feature]))
+            .filter((group) => {
+                const workspace = workspaceKey(group.label);
+                return !workspace
+                    || (enterprise?.workspaceControls?.[workspace] !== false
+                        && enterprise?.sidebarVisibility?.[workspace] !== false);
+            })
             .map((group) => ({
                 ...group,
-                items: group.items.filter((item) => !item.feature || Boolean(features?.[item.feature])),
+                items: group.items.filter((item) => {
+                    if (item.feature && !features?.[item.feature]) return false;
+                    const key = sidebarKey(item);
+                    return !key || enterprise?.sidebarVisibility?.[key] !== false;
+                }),
             }))
             .filter((group) => group.items.length);
     }, [isPlatform, session]);

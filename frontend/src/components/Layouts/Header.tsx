@@ -25,14 +25,27 @@ const Header = () => {
 
     useEffect(() => {
         if (!isSuperAdmin) return;
-        api<{ notifications: PlatformNotification[] }>('/api/superadmin/notifications')
-            .then((result) => setNotifications(result.notifications))
-            .catch(() => setNotifications([]));
+        let active = true;
+        const loadNotifications = () => {
+            api<{ notifications: PlatformNotification[] }>('/api/superadmin/notifications')
+                .then((result) => { if (active) setNotifications(result.notifications); })
+                .catch(() => { if (active) setNotifications([]); });
+        };
+        loadNotifications();
+        window.addEventListener('maamulpro:platform-notifications', loadNotifications);
+        return () => {
+            active = false;
+            window.removeEventListener('maamulpro:platform-notifications', loadNotifications);
+        };
     }, [isSuperAdmin]);
 
-    const logout = () => {
-        sessionStore.clear();
-        navigate(isSuperAdmin ? '/superadmin/login' : '/', { replace: true });
+    const logout = async () => {
+        try {
+            await api('/api/auth/logout', { method: 'POST' });
+        } finally {
+            sessionStore.clear();
+            navigate(isSuperAdmin ? '/superadmin/login' : '/', { replace: true });
+        }
     };
     const accountPath = isSuperAdmin ? '/superadmin/account' : '/app/settings';
 

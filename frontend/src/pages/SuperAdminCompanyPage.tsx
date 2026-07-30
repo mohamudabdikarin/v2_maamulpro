@@ -1,179 +1,115 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Building2, CreditCard, FileText, Settings2, Trash2, UserCog } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
-import {
-    EmptyState,
-    ErrorAlert,
-    Field,
-    LoadingState,
-    Modal,
-    PageHeader,
-    StatGrid,
-    StatusPill,
-    money,
-    shortDate,
-} from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, Field, LoadingState, Modal, PageHeader, StatGrid, StatusPill, SuccessAlert, money, shortDate } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
+import EnterpriseConfigurationPanel from '../components/maamulpro/EnterpriseConfigurationPanel';
 
-const moduleFields = [
-    ['constructionEnabled', 'Construction'],
-    ['realEstateEnabled', 'Real estate'],
-    ['materialManagementEnabled', 'Materials'],
+const moduleFields = [['constructionEnabled', 'Construction'], ['realEstateEnabled', 'Real estate'], ['materialManagementEnabled', 'Materials']] as const;
+const managementTabs = [
+    { id: 'overview', label: 'Overview', icon: Building2 },
+    { id: 'access', label: 'Access & account', icon: UserCog },
+    { id: 'billing', label: 'Subscription & invoices', icon: CreditCard },
+    { id: 'configuration', label: 'Tenant configuration', icon: Settings2 },
+    { id: 'activity', label: 'Subscription activity', icon: FileText },
+    { id: 'danger', label: 'Danger zone', icon: Trash2 },
 ] as const;
+type Tab = (typeof managementTabs)[number]['id'];
 
 const SuperAdminCompanyPage = () => {
     const { id = '' } = useParams();
     const navigate = useNavigate();
     const [company, setCompany] = useState<any>(null);
+    const [activeTab, setActiveTab] = useState<Tab>('overview');
     const [error, setError] = useState('');
+    const [message, setMessage] = useState('');
     const [editing, setEditing] = useState(false);
+    const [subscriptionOpen, setSubscriptionOpen] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [operation, setOperation] = useState('');
+    const [temporaryPassword, setTemporaryPassword] = useState('');
     const [form, setForm] = useState<any>({});
+    const [moduleDraft, setModuleDraft] = useState<Record<string, boolean>>({});
+    const [subscriptionForm, setSubscriptionForm] = useState({ amount: '', termDurationMonths: '1', autoRecur: false, notes: '' });
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
-    const load = () => api<any>(`/api/superadmin/companies/${id}`)
-        .then((row) => {
-            setCompany(row);
-            setForm({
-                name: row.name,
-                adminName: row.adminName,
-                adminEmail: row.adminEmail,
-                companyType: row.companyType || '',
-                phone: row.phone || '',
-                address: row.address || '',
-                description: row.description || '',
-                logoUrl: row.logoUrl || '',
-                constructionEnabled: Boolean(row.constructionEnabled),
-                realEstateEnabled: Boolean(row.realEstateEnabled),
-                materialManagementEnabled: Boolean(row.materialManagementEnabled),
-            });
-        })
-        .catch((reason) => setError(reason.message));
-
+    const load = () => api<any>(`/api/superadmin/companies/${id}`).then((row) => {
+        setCompany(row);
+        setForm({ name: row.name, adminName: row.adminName, adminEmail: row.adminEmail, companyType: row.companyType || '', phone: row.phone || '', address: row.address || '', description: row.description || '', logoUrl: row.logoUrl || '' });
+        setModuleDraft({ constructionEnabled: Boolean(row.constructionEnabled), realEstateEnabled: Boolean(row.realEstateEnabled), materialManagementEnabled: Boolean(row.materialManagementEnabled) });
+        setSubscriptionForm({ amount: String(row.subscriptionAmount ?? ''), termDurationMonths: String(row.termDurationMonths || 1), autoRecur: Boolean(row.autoRecur), notes: '' });
+    }).catch((reason) => setError(reason.message));
     useEffect(() => { load(); }, [id]);
 
-    const patch = async (path: string, body: unknown) => {
-        setError('');
-        try {
-            await api(`/api/superadmin/companies/${id}/${path}`, {
-                method: 'PATCH',
-                body: JSON.stringify(body),
-            });
-            await load();
-        } catch (reason) {
-            setError(reason instanceof Error ? reason.message : 'Update failed');
-        }
+    const run = async (key: string, path: string, method: 'POST' | 'PATCH' | 'DELETE' = 'POST', body: unknown = {}) => {
+        setOperation(key); setError(''); setMessage('');
+        try { await api(path, { method, body: JSON.stringify(body) }); await load(); setMessage('Tenant operation completed successfully.'); return true; }
+        catch (reason) { setError(reason instanceof Error ? reason.message : 'Tenant operation failed.'); return false; }
+        finally { setOperation(''); }
     };
-
-    const save = async (event: FormEvent) => {
+    const patchStatus = () => run('status', `/api/superadmin/companies/${id}/status`, 'PATCH', { status: company.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE' });
+    const saveModules = () => {
+        if (!Object.values(moduleDraft).some(Boolean)) { setError('At least one module must remain enabled.'); return; }
+        return run('modules', `/api/superadmin/companies/${id}/modules`, 'PATCH', moduleDraft);
+    };
+    const sendOwnerReset = () => run('reset', '/api/auth/password/forgot', 'POST', { email: company.adminEmail });
+    const createTemporaryPassword = async () => {
+        setOperation('temporary-password'); setError('');
+        try { const result = await api<{ password: string }>(`/api/superadmin/companies/${id}/owner/temporary-password`, { method: 'POST' }); setTemporaryPassword(result.password); setMessage('Temporary owner password generated. Copy it now; it will not be shown again.'); }
+        catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to generate a temporary password.'); }
+        finally { setOperation(''); }
+    };
+    const saveProfile = async (event: FormEvent) => {
+        event.preventDefault(); setSaving(true); setError('');
+        try { await api(`/api/superadmin/companies/${id}`, { method: 'PATCH', body: JSON.stringify(form) }); setEditing(false); await load(); setMessage('Tenant profile updated successfully.'); }
+        catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update tenant profile.'); }
+        finally { setSaving(false); }
+    };
+    const configureSubscription = async (event: FormEvent) => {
         event.preventDefault();
-        setSaving(true);
-        setError('');
-        try {
-            const payload = { ...form };
-            if (company?.subscriptions?.some((row: any) => ['ACTIVE', 'SUSPENDED'].includes(row.status))) {
-                delete payload.constructionEnabled;
-                delete payload.realEstateEnabled;
-                delete payload.materialManagementEnabled;
-            }
-            const updated: any = await api(`/api/superadmin/companies/${id}`, {
-                method: 'PATCH',
-                body: JSON.stringify(payload),
-            });
-            setEditing(false);
-            await load();
-            if (updated.synchronizationWarning) setError(updated.synchronizationWarning);
-        } catch (reason) {
-            setError(reason instanceof Error ? reason.message : 'Unable to save company');
-        } finally {
-            setSaving(false);
-        }
+        const saved = await run('subscription', `/api/superadmin/companies/${id}/subscription`, 'PATCH', { amount: Number(subscriptionForm.amount), termDurationMonths: Number(subscriptionForm.termDurationMonths), autoRecur: subscriptionForm.autoRecur, notes: subscriptionForm.notes || undefined });
+        if (saved) setSubscriptionOpen(false);
     };
-
     const remove = async () => {
-        if (!company || !window.confirm(`Delete ${company.name}'s platform record? The tenant database will be retained.`)) return;
-        try {
-            await api(`/api/superadmin/companies/${id}`, { method: 'DELETE' });
-            navigate('/superadmin/companies', { replace: true });
-        } catch (reason) {
-            setError(reason instanceof Error ? reason.message : 'Unable to delete company');
-        }
+        setDeleteConfirmOpen(false);
+        if (await run('delete', `/api/superadmin/companies/${id}`, 'DELETE')) navigate('/superadmin/companies', { replace: true });
     };
 
-    if (!company) {
-        return <AppShell><PageHeader title="Company" />{error ? <ErrorAlert message={error} onRetry={load} /> : <div className="panel"><LoadingState /></div>}</AppShell>;
-    }
-
-    const effectiveSubscription = company.subscriptions?.find((row: any) => ['ACTIVE', 'SUSPENDED'].includes(row.status))
-        || company.subscriptions?.find((row: any) => row.status === 'PENDING')
-        || company.subscriptions?.[0];
-    const planManaged = Boolean(effectiveSubscription && ['ACTIVE', 'SUSPENDED'].includes(effectiveSubscription.status));
+    if (!company) return <AppShell><PageHeader title="Company" />{error ? <ErrorAlert message={error} onRetry={load} /> : <div className="panel"><LoadingState /></div>}</AppShell>;
+    const modules = [company.constructionEnabled && 'Construction', company.realEstateEnabled && 'Real estate', company.materialManagementEnabled && 'Materials'].filter(Boolean).join(', ') || 'None';
 
     return <AppShell>
-        <PageHeader
-            eyebrow="Tenant administration"
-            title={company.name}
-            description={`${company.subdomain} · ${company.adminEmail}`}
-            actions={<>
-                <button className="btn btn-outline-primary" onClick={() => setEditing(true)}>Edit company</button>
-                <Link className="btn btn-outline-primary" to="/superadmin/billing">Manage billing</Link>
-                <Link className="btn btn-outline-dark" to="/superadmin/companies">Back</Link>
-            </>}
-        />
-        {error && <ErrorAlert message={error} onRetry={load} />}
-        <StatGrid items={[
-            { label: 'Status', value: <StatusPill value={company.status} /> },
-            { label: 'Plan', value: effectiveSubscription?.plan?.name || company.planKey || company.planTier || 'None', tone: 'info' },
-            { label: 'Users', value: company.users?.length || 0 },
-            { label: 'Subscription', value: money(company.subscriptionAmount), tone: 'success' },
-        ]} />
-
-        <div className="grid gap-6 xl:grid-cols-2">
-            <section className="panel">
-                <h2 className="text-lg font-bold">Company access</h2>
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                    {['ACTIVE', 'SUSPENDED', 'PENDING_SETUP'].map((status) => <button key={status} className={`btn ${company.status === status ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => patch('status', { status })}>{status.replace(/_/g, ' ')}</button>)}
-                </div>
-                <p className="mt-5 text-sm text-white-dark">{planManaged ? 'Workspace access is enforced by the active subscription plan.' : 'Workspace access can be staged until a paid plan becomes active.'}</p>
-                <div className="mt-3 space-y-3">
-                    {moduleFields.map(([key, label]) => <div className="flex items-center justify-between rounded-md bg-gray-50 p-4 dark:bg-dark" key={key}><span>{label}</span>{planManaged ? <StatusPill value={company[key] ? 'ENABLED' : 'DISABLED'} /> : <input className="form-checkbox" type="checkbox" checked={Boolean(company[key])} onChange={(event) => patch('modules', { [key]: event.target.checked })} />}</div>)}
-                </div>
-            </section>
-            <section className="panel">
-                <h2 className="text-lg font-bold">Tenant identity & entitlement</h2>
-                <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-                    <div><dt>Owner</dt><dd className="font-bold">{company.adminName}</dd></div>
-                    <div><dt>Email</dt><dd className="font-bold">{company.adminEmail}</dd></div>
-                    <div><dt>Company type</dt><dd>{company.companyType || '—'}</dd></div>
-                    <div><dt>Created</dt><dd>{shortDate(company.createdAt)}</dd></div>
-                    <div><dt>Subscription expires</dt><dd>{shortDate(company.subscriptionExpiresAt)}</dd></div>
-                    <div><dt>Access granted</dt><dd>{company.accessGranted ? 'Yes' : 'No'}</dd></div>
-                </dl>
-                <h3 className="mt-6 font-bold">Enforced limits</h3>
-                <dl className="mt-3 grid gap-2 sm:grid-cols-3">
-                    {Object.entries(company.entitlements?.limits || {}).map(([key, value]) => <div className="rounded bg-gray-50 p-3 dark:bg-dark" key={key}><dt className="text-xs text-white-dark">{key.replace(/([A-Z])/g, ' $1')}</dt><dd className="font-bold">{Number(value) === 0 ? 'Unlimited' : String(value)}</dd></div>)}
-                </dl>
-            </section>
+        <nav className="mb-5 flex items-center gap-2 text-sm" aria-label="Breadcrumb"><Link className="text-primary hover:underline" to="/superadmin/dashboard">Dashboard</Link><span className="text-white-dark">/</span><Link className="text-primary hover:underline" to="/superadmin/companies">Companies</Link><span className="text-white-dark">/</span><span className="font-semibold">{company.name}</span></nav>
+        {error && <ErrorAlert message={error} onRetry={load} />}{message && <SuccessAlert message={message} onDismiss={() => setMessage('')} />}
+        <div className="panel overflow-hidden p-0">
+            <div className="flex items-center justify-between gap-4 border-b border-white-light px-5 py-4 dark:border-dark"><div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary-light text-primary">{company.logoUrl ? <img className="h-8 w-8 rounded object-contain" src={company.logoUrl} alt="" /> : <Building2 size={20} />}</span><div className="min-w-0"><h1 className="truncate text-xl font-bold">{company.name}</h1><p className="truncate text-xs text-white-dark">{company.subdomain}</p></div></div><a className="btn btn-primary shrink-0" href={`/sign-in?tenant=${encodeURIComponent(company.subdomain)}`} target="_blank" rel="noreferrer">Visit company</a></div>
+            <div className="flex min-h-[620px] items-stretch">
+                <aside className="w-64 shrink-0 border-r border-white-light bg-gray-50/50 p-4 dark:border-dark dark:bg-[#0e1726]">
+                    <nav className="flex flex-col gap-1" aria-label="Tenant management">
+                        {managementTabs.map((item) => { const Icon = item.icon; return <button key={item.id} type="button" onClick={() => setActiveTab(item.id)} className={`flex shrink-0 items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-semibold transition ${activeTab === item.id ? 'bg-primary-light text-primary' : item.id === 'danger' ? 'text-danger hover:bg-danger-light' : 'text-white-dark hover:bg-white dark:hover:bg-black'}`} aria-current={activeTab === item.id ? 'page' : undefined}><Icon size={18} />{item.label}</button>; })}
+                    </nav>
+                </aside>
+                <main className="min-w-0 flex-1 p-5 sm:p-7">
+                    {activeTab === 'overview' && <><div className="mb-6 flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Tenant overview</p><h2 className="mt-1 text-2xl font-extrabold">{company.name}</h2><p className="mt-1 text-sm text-white-dark">{company.subdomain} · {company.adminEmail}</p></div><StatusPill value={company.status} /></div><StatGrid items={[{ label: 'Status', value: <StatusPill value={company.status} /> }, { label: 'Modules', value: modules, tone: 'info' }, { label: 'Users', value: company.users?.length || 0 }, { label: 'Subscription', value: money(company.subscriptionAmount), tone: 'success' }]} /><section><h3 className="text-lg font-bold">Company details</h3><dl className="mt-4 divide-y divide-white-light dark:divide-dark"><div className="grid gap-2 py-3 sm:grid-cols-[180px_minmax(0,1fr)]"><dt className="text-xs font-bold uppercase text-white-dark">Primary owner</dt><dd className="font-bold">{company.adminName}<span className="block text-sm font-normal text-white-dark">{company.adminEmail}</span></dd></div><div className="grid gap-2 py-3 sm:grid-cols-[180px_minmax(0,1fr)]"><dt className="text-xs font-bold uppercase text-white-dark">Subscription</dt><dd>{company.subscriptionStatus || 'PENDING'} · expires {shortDate(company.subscriptionExpiresAt)}</dd></div><div className="grid gap-2 py-3 sm:grid-cols-[180px_minmax(0,1fr)]"><dt className="text-xs font-bold uppercase text-white-dark">Location</dt><dd>{company.address || 'Not provided'}</dd></div><div className="grid gap-2 py-3 sm:grid-cols-[180px_minmax(0,1fr)]"><dt className="text-xs font-bold uppercase text-white-dark">Created</dt><dd>{shortDate(company.createdAt)}</dd></div></dl>{company.description && <p className="mt-4 text-sm text-white-dark">{company.description}</p>}</section></>}
+                    {activeTab === 'access' && <><div className="mb-6"><h2 className="text-2xl font-extrabold">Access & account</h2><p className="mt-1 text-sm text-white-dark">Control the owner account, tenant status, and enabled product modules. Roles and permissions are synchronized automatically.</p></div><div className="grid gap-7 xl:grid-cols-2"><section><h3 className="font-bold">Tenant access</h3><p className="mt-1 text-sm text-white-dark">{company.status === 'ACTIVE' ? 'The tenant can access enabled workspaces.' : 'The tenant is not currently active.'}</p><button className={`btn mt-4 ${company.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-success'}`} disabled={Boolean(operation)} onClick={patchStatus}>{company.status === 'ACTIVE' ? 'Suspend tenant' : 'Activate tenant'}</button><h3 className="mt-7 font-bold">Enabled modules</h3><div className="mt-3 space-y-3">{moduleFields.map(([key, label]) => <label className={`flex items-center justify-between rounded-md bg-gray-50 p-4 dark:bg-dark ${company.status === 'ACTIVE' ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`} key={key}><span>{label}</span><input className="form-checkbox" type="checkbox" disabled={company.status !== 'ACTIVE'} checked={Boolean(moduleDraft[key])} onChange={(event) => setModuleDraft({ ...moduleDraft, [key]: event.target.checked })} /></label>)}</div>{company.status !== 'ACTIVE' && <p className="mt-3 text-xs text-warning">Activate this tenant before changing modules.</p>}<button className="btn btn-primary mt-4" disabled={company.status !== 'ACTIVE' || Boolean(operation)} onClick={saveModules}>{operation === 'modules' ? 'Saving…' : 'Save module changes'}</button></section><section><h3 className="font-bold">Owner account tools</h3><p className="mt-1 text-sm text-white-dark">Use these actions only for the tenant’s primary administrator.</p><div className="mt-4 grid gap-3"><button className="btn btn-outline-primary" disabled={Boolean(operation)} onClick={sendOwnerReset}>Send password reset</button><button className="btn btn-outline-primary" disabled={Boolean(operation)} onClick={createTemporaryPassword}>{operation === 'temporary-password' ? 'Generating…' : 'Generate temporary password'}</button><button className="btn btn-outline-dark" onClick={() => setEditing(true)}>Edit owner and tenant profile</button></div>{temporaryPassword && <div className="mt-5 rounded-md bg-primary-light p-4 text-primary"><p className="text-xs font-bold uppercase">Temporary owner password</p><div className="mt-2 flex flex-wrap items-center gap-2"><code className="rounded bg-white px-3 py-2 font-mono text-sm text-black dark:bg-black dark:text-white">{temporaryPassword}</code><button className="btn btn-sm btn-outline-primary" type="button" onClick={() => navigator.clipboard.writeText(temporaryPassword)}>Copy</button><button className="btn btn-sm btn-outline-dark" type="button" onClick={() => setTemporaryPassword('')}>Hide</button></div></div>}</section></div></>}
+                    {activeTab === 'billing' && <><div className="mb-6 flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-2xl font-extrabold">Subscription & invoices</h2><p className="mt-1 text-sm text-white-dark">Manage access terms, renewals, and invoice settlement for this tenant.</p></div><Link className="btn btn-outline-primary" to="/superadmin/billing">Open billing workspace</Link></div><section className="rounded-md bg-gray-50 p-5 dark:bg-dark"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase text-white-dark">Current subscription</p><div className="mt-1 flex items-center gap-2"><StatusPill value={company.subscriptionStatus} /><span className="font-bold">{money(company.subscriptionAmount)}</span></div></div><span className="text-sm text-white-dark">Expires {shortDate(company.subscriptionExpiresAt)}</span></div><div className="mt-5 flex flex-wrap gap-2">{company.subscriptionStatus === 'PENDING' && <button className="btn btn-success" disabled={Boolean(operation)} onClick={() => setSubscriptionOpen(true)}>Approve subscription</button>}{company.subscriptionStatus === 'ACTIVE' && <button className="btn btn-outline-primary" disabled={Boolean(operation)} onClick={() => run('renew', `/api/superadmin/companies/${id}/subscription/renew`)}>Renew subscription</button>}{company.subscriptionStatus === 'ACTIVE' && <button className="btn btn-outline-warning" disabled={Boolean(operation)} onClick={() => run('suspend', `/api/superadmin/companies/${id}/subscription/suspend`)}>Suspend access</button>}{['SUSPENDED', 'EXPIRED', 'CANCELLED'].includes(company.subscriptionStatus) && <button className="btn btn-success" disabled={Boolean(operation)} onClick={() => setSubscriptionOpen(true)}>Reactivate subscription</button>}{['ACTIVE', 'SUSPENDED'].includes(company.subscriptionStatus) && <button className="btn btn-outline-dark" disabled={Boolean(operation)} onClick={() => run('auto-renew', `/api/superadmin/companies/${id}/subscription/auto-renew`, 'PATCH', { autoRenew: !company.autoRecur })}>{company.autoRecur ? 'Disable auto-renew' : 'Enable auto-renew'}</button>}</div></section><section className="mt-7"><h3 className="mb-4 text-lg font-bold">Invoices</h3>{!company.invoices?.length ? <EmptyState title="No invoices" /> : <div className="overflow-x-auto"><table className="table-hover w-full"><thead><tr><th>Invoice</th><th>Issued</th><th>Due</th><th>Amount</th><th>Status</th><th /></tr></thead><tbody>{company.invoices.map((row: any) => <tr key={row.id}><td>{row.invoiceNumber}</td><td>{shortDate(row.createdAt)}</td><td>{shortDate(row.dueDate)}</td><td>{money(row.amount)}</td><td><StatusPill value={row.status} /></td><td>{['UNPAID', 'OVERDUE'].includes(row.status) && <div className="flex gap-2"><button className="btn btn-sm btn-success" disabled={Boolean(operation)} onClick={() => run(`pay-${row.id}`, `/api/superadmin/invoices/${row.id}/pay`, 'POST', { paymentMethod: 'MANUAL_BANK_TRANSFER' })}>Mark paid</button><button className="btn btn-sm btn-outline-danger" disabled={Boolean(operation)} onClick={() => run(`cancel-${row.id}`, `/api/superadmin/invoices/${row.id}/cancel`)}>Cancel</button></div>}</td></tr>)}</tbody></table></div>}</section></>}
+                    {activeTab === 'configuration' && <><div className="mb-6"><h2 className="text-2xl font-extrabold">Tenant configuration</h2><p className="mt-1 text-sm text-white-dark">Control workspace access, sidebar visibility, reports, and analytics.</p></div><EnterpriseConfigurationPanel companyId={id} modules={{ construction: Boolean(company.constructionEnabled), real_estate: Boolean(company.realEstateEnabled), material_management: Boolean(company.materialManagementEnabled) }} /></>}
+                    {activeTab === 'activity' && <><div className="mb-6"><h2 className="text-2xl font-extrabold">Subscription activity</h2><p className="mt-1 text-sm text-white-dark">An auditable history of subscription and access changes.</p></div>{!company.subscriptionTransactions?.length ? <EmptyState title="No subscription history" /> : <div className="overflow-x-auto"><table className="table-hover w-full"><thead><tr><th>Action</th><th>Previous</th><th>New status</th><th>Amount</th><th>Term</th><th>Date</th><th>Notes</th></tr></thead><tbody>{company.subscriptionTransactions.map((row: any) => <tr key={row.id}><td>{String(row.transactionType).replace(/_/g, ' ')}</td><td><StatusPill value={row.previousStatus} /></td><td><StatusPill value={row.newStatus} /></td><td>{row.amount == null ? '—' : money(row.amount)}</td><td>{row.termDurationMonths ? `${row.termDurationMonths} months` : '—'}</td><td>{shortDate(row.createdAt)}</td><td className="max-w-xs text-sm text-white-dark">{row.notes || '—'}</td></tr>)}</tbody></table></div>}</>}
+                    {activeTab === 'danger' && <div className="max-w-2xl"><h2 className="text-2xl font-extrabold text-danger">Danger zone</h2><p className="mt-2 text-sm text-white-dark">Deleting a tenant permanently removes its central records, billing history, owner records, and managed tenant database.</p><div className="mt-6 rounded-md bg-danger-light p-5"><h3 className="font-bold text-danger">Delete tenant</h3><p className="mt-1 text-sm text-danger">This action cannot be undone.</p><button className="btn btn-danger mt-4" disabled={Boolean(operation)} onClick={() => setDeleteConfirmOpen(true)}>Delete {company.name}</button></div></div>}
+                </main>
+            </div>
         </div>
-
-        <section className="panel mt-6 overflow-hidden p-0">
-            <div className="p-5"><h2 className="text-lg font-bold">Invoices</h2></div>
-            {!company.invoices?.length ? <EmptyState title="No invoices" /> : <div className="overflow-x-auto"><table className="table-hover w-full"><thead><tr><th>Invoice</th><th>Type</th><th>Issued</th><th>Due</th><th>Expires</th><th>Amount</th><th>Status</th></tr></thead><tbody>{company.invoices.map((row: any) => <tr key={row.id}><td>{row.invoiceNumber}</td><td>{String(row.kind || 'INITIAL').replace(/_/g, ' ')}</td><td>{shortDate(row.createdAt)}</td><td>{shortDate(row.dueDate)}</td><td>{shortDate(row.expiresAt)}</td><td>{money(row.amount)}</td><td><StatusPill value={row.status} /></td></tr>)}</tbody></table></div>}
-        </section>
-        <div className="mt-6 flex justify-end"><button className="btn btn-outline-danger" onClick={remove}>Delete company</button></div>
-
-        <Modal open={editing} onClose={() => setEditing(false)} title="Edit company" wide>
-            <form className="grid gap-5 md:grid-cols-2" onSubmit={save}>
-                <Field label="Company name" required><input className="form-input mt-1" required value={form.name || ''} onChange={(event) => setForm({ ...form, name: event.target.value })} /></Field>
-                <Field label="Company type"><input className="form-input mt-1" value={form.companyType || ''} onChange={(event) => setForm({ ...form, companyType: event.target.value })} /></Field>
-                <Field label="Owner name" required><input className="form-input mt-1" required value={form.adminName || ''} onChange={(event) => setForm({ ...form, adminName: event.target.value })} /></Field>
-                <Field label="Owner email" required><input className="form-input mt-1" type="email" required value={form.adminEmail || ''} onChange={(event) => setForm({ ...form, adminEmail: event.target.value })} /></Field>
-                <Field label="Phone"><input className="form-input mt-1" value={form.phone || ''} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></Field>
-                <Field label="Logo URL"><input className="form-input mt-1" value={form.logoUrl || ''} onChange={(event) => setForm({ ...form, logoUrl: event.target.value })} /></Field>
-                <div className="md:col-span-2"><Field label="Address"><input className="form-input mt-1" value={form.address || ''} onChange={(event) => setForm({ ...form, address: event.target.value })} /></Field></div>
-                <div className="md:col-span-2"><Field label="Internal description"><textarea className="form-textarea mt-1" value={form.description || ''} onChange={(event) => setForm({ ...form, description: event.target.value })} /></Field></div>
-                {!planManaged && <div className="md:col-span-2 grid gap-3 sm:grid-cols-3">{moduleFields.map(([key, label]) => <label className="flex items-center gap-2 rounded border border-white-light p-3 dark:border-dark" key={key}><input className="form-checkbox" type="checkbox" checked={Boolean(form[key])} onChange={(event) => setForm({ ...form, [key]: event.target.checked })} />{label}</label>)}</div>}
-                <div className="flex justify-end gap-2 md:col-span-2"><button type="button" className="btn btn-outline-dark" onClick={() => setEditing(false)}>Cancel</button><button className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button></div>
-            </form>
+        <Modal open={editing} onClose={() => setEditing(false)} title="Edit tenant" wide><form className="grid gap-5 md:grid-cols-2" onSubmit={saveProfile}><Field label="Company name" required><input className="form-input mt-1" required value={form.name || ''} onChange={(event) => setForm({ ...form, name: event.target.value })} /></Field><Field label="Company type"><input className="form-input mt-1" value={form.companyType || ''} onChange={(event) => setForm({ ...form, companyType: event.target.value })} /></Field><Field label="Owner name" required><input className="form-input mt-1" required value={form.adminName || ''} onChange={(event) => setForm({ ...form, adminName: event.target.value })} /></Field><Field label="Owner email" required><input className="form-input mt-1" type="email" required value={form.adminEmail || ''} onChange={(event) => setForm({ ...form, adminEmail: event.target.value })} /></Field><Field label="Phone"><input className="form-input mt-1" value={form.phone || ''} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></Field><Field label="Logo URL"><input className="form-input mt-1" value={form.logoUrl || ''} onChange={(event) => setForm({ ...form, logoUrl: event.target.value })} /></Field><div className="md:col-span-2"><Field label="Address"><input className="form-input mt-1" value={form.address || ''} onChange={(event) => setForm({ ...form, address: event.target.value })} /></Field></div><div className="md:col-span-2"><Field label="Internal description"><textarea className="form-textarea mt-1" value={form.description || ''} onChange={(event) => setForm({ ...form, description: event.target.value })} /></Field></div><div className="flex justify-end gap-2 md:col-span-2"><button type="button" className="btn btn-outline-dark" onClick={() => setEditing(false)}>Cancel</button><button className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button></div></form></Modal>
+        <Modal open={subscriptionOpen} onClose={() => setSubscriptionOpen(false)} title={company.subscriptionStatus === 'PENDING' ? 'Approve subscription' : 'Reactivate subscription'}><form className="space-y-4" onSubmit={configureSubscription}><p className="text-sm text-white-dark">Configure direct billing and grant platform access to {company.name}.</p><Field label="Amount ($)" required><input className="form-input mt-1" type="number" min="0" step="0.01" required value={subscriptionForm.amount} onChange={(event) => setSubscriptionForm({ ...subscriptionForm, amount: event.target.value })} /></Field><Field label="Term duration (months)" required><input className="form-input mt-1" type="number" min="1" required value={subscriptionForm.termDurationMonths} onChange={(event) => setSubscriptionForm({ ...subscriptionForm, termDurationMonths: event.target.value })} /></Field><label className="flex cursor-pointer items-center justify-between rounded-md bg-gray-50 p-3 dark:bg-dark"><span><strong className="block">Auto-renewal</strong><small className="text-white-dark">Extend the billing term automatically</small></span><input className="form-checkbox" type="checkbox" checked={subscriptionForm.autoRecur} onChange={(event) => setSubscriptionForm({ ...subscriptionForm, autoRecur: event.target.checked })} /></label><Field label="Notes"><textarea className="form-textarea mt-1" rows={3} value={subscriptionForm.notes} onChange={(event) => setSubscriptionForm({ ...subscriptionForm, notes: event.target.value })} /></Field><div className="flex justify-end gap-2"><button className="btn btn-outline-dark" type="button" onClick={() => setSubscriptionOpen(false)}>Cancel</button><button className="btn btn-success" disabled={Boolean(operation)}>{operation === 'subscription' ? 'Saving…' : 'Grant access'}</button></div></form></Modal>
+        <Modal open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} title="Delete tenant">
+            <div className="space-y-4">
+                <p className="text-white-dark">Permanently delete <strong>{company?.name}</strong>, its owner records, billing history and managed tenant database? This cannot be undone.</p>
+                <div className="flex justify-end gap-2">
+                    <button className="btn btn-outline-dark" disabled={Boolean(operation)} onClick={() => setDeleteConfirmOpen(false)}>Cancel</button>
+                    <button className="btn btn-danger" disabled={Boolean(operation)} onClick={remove}>{operation === 'delete' ? 'Please wait…' : 'Delete tenant'}</button>
+                </div>
+            </div>
         </Modal>
     </AppShell>;
 };

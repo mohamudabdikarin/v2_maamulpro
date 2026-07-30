@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
+import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
 import { EmptyState, ErrorAlert, LoadingState, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { useApiRows } from '../hooks/useApiData';
 
@@ -26,7 +27,7 @@ const ConstructionProjectsPage = () => {
         {state.error && <ErrorAlert message={state.error} onRetry={state.reload} />}
         {state.loading ? <div className="panel"><LoadingState /></div> : !rows.length ? <div className="panel"><EmptyState title="No matching projects" /></div> :
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{rows.map((project) => <article className="panel overflow-hidden p-0" key={project.id}>
-                {project.imageUrl ? <img className="h-44 w-full object-cover" src={project.imageUrl} alt="" /> : <div className="h-24 bg-gradient-to-br from-primary/80 to-info" />}
+                {project.imageUrl ? <AuthenticatedImage className="h-44 w-full object-cover" src={project.imageUrl} alt="" /> : <div className="h-24 bg-gradient-to-br from-primary/80 to-info" />}
                 <div className="p-5"><div className="flex items-start justify-between gap-2"><div><h2 className="text-xl font-bold">{project.name}</h2><p className="text-sm text-white-dark">{project.location || 'No location'}</p></div><StatusPill value={project.status} /></div>
                     <p className="mt-3 line-clamp-2 min-h-[2.5rem] text-sm text-white-dark">{project.description || 'No description provided.'}</p>
                     <div className="mt-4 flex justify-between text-xs"><span>Progress</span><strong>{project.progress || 0}%</strong></div><div className="mt-1 h-2 rounded bg-gray-200 dark:bg-dark"><div className="h-2 rounded bg-primary" style={{ width: `${Math.min(100, project.progress || 0)}%` }} /></div>
