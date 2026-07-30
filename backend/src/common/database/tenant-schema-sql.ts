@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 13;
+export const CURRENT_TENANT_SCHEMA_VERSION = 14;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -441,6 +441,8 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "invoice_no" TEXT NOT NULL UNIQUE,
     "total_amount" DECIMAL(12,2) NOT NULL DEFAULT 0,
     "paid_amount" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "discount_amount" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "discount_percent" DECIMAL(5,2),
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "notes" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -628,6 +630,14 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
 
   `DO $$ BEGIN
     ALTER TABLE "staff" ADD COLUMN "photo_url" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "material_sales" ADD COLUMN "discount_amount" DECIMAL(12,2) NOT NULL DEFAULT 0;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "material_sales" ADD COLUMN "discount_percent" DECIMAL(5,2);
   EXCEPTION WHEN duplicate_column THEN null; END $$`,
 
   // ── Foreign keys (idempotent) ────────────────────────────────

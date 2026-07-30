@@ -15,6 +15,7 @@ import {
 } from '../../common/database/neon-management.service';
 import { protectDatabaseUrl, revealDatabaseUrl } from '../../common/database/database-credentials';
 import { getDatabaseConnectionPair, isNeonDatabaseUrl } from '../../common/database/database-url';
+import { applyCompanySchema } from '../../common/database/tenant-schema-sql';
 import { CreateCompanyDto } from './superadmin.dto';
 import * as argon2 from 'argon2';
 import { SubscriptionLifecycleService } from '../../common/subscriptions/subscription-lifecycle.service';
@@ -1097,5 +1098,28 @@ export class SuperAdminService {
       }).filter(Boolean),
     ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 12);
     return { notifications };
+  }
+
+  async syncTenantSchemas() {
+    const companies = await this.central.company.findMany({
+      where: { status: { not: 'PENDING_SETUP' } },
+      select: { id: true, name: true, dbUrl: true },
+    });
+
+    const results: { companyId: string; name: string; status: string; error?: string }[] = [];
+    for (const company of companies) {
+      try {
+        const { directUrl } = getDatabaseConnectionPair(revealDatabaseUrl(company.dbUrl));
+        await applyCompanySchema(directUrl);
+        results.push({ companyId: company.id, name: company.name, status: 'ok' });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        results.push({ companyId: company.id, name: company.name, status: 'error', error: msg });
+      }
+    }
+
+    const ok = results.filter((r) => r.status === 'ok').length;
+    const failed = results.filter((r) => r.status === 'error');
+    return { total: companies.length, ok, failed: failed.length, details: failed };
   }
 }
