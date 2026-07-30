@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
-import { EmptyState, ErrorAlert, Field, LoadingState, Modal, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, Field, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 import { unwrapRows } from '../hooks/useApiData';
 
@@ -60,7 +60,7 @@ const FinancialsPage = () => {
             <Field label="Type" required><select className="form-select mt-1" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}><option>INCOME</option><option>EXPENSE</option></select></Field><Field label="Status"><select className="form-select mt-1" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{['PENDING', 'PROCESSING', 'CLEARED', 'CANCELLED'].map((value) => <option key={value}>{value}</option>)}</select></Field>
             <div className="sm:col-span-2"><Field label="Description" required><input className="form-input mt-1" required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field></div><Field label="Amount" required><input className="form-input mt-1" type="number" min=".01" step=".01" required value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></Field><Field label="Date"><input className="form-input mt-1" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></Field>
             <Field label="Category"><select className="form-select mt-1" value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}><option value="">Uncategorized</option>{categories.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></Field><Field label="Project"><select className="form-select mt-1" value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value, propertyId: e.target.value ? '' : form.propertyId })}><option value="">No project</option>{projects.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></Field><Field label="Property"><select className="form-select mt-1" value={form.propertyId} onChange={(e) => setForm({ ...form, propertyId: e.target.value, projectId: e.target.value ? '' : form.projectId })}><option value="">No property</option>{properties.map((row) => <option key={row.id} value={row.id}>{row.title}</option>)}</select></Field>
-            <div className="sm:col-span-2"><Field label="Notes"><textarea className="form-textarea mt-1" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field></div><button className="btn btn-primary sm:col-span-2">Save transaction</button>
+            <div className="sm:col-span-2"><Field label="Notes"><textarea className="form-textarea mt-1" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field></div><FormActions onCancel={() => setOpen(false)} saveLabel="Save transaction" />
         </form></Modal>
         <Modal open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete transaction">
             <div className="space-y-4">

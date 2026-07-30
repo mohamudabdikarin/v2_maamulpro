@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Edit3, PauseCircle, RefreshCw, Search } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
-import { EmptyState, ErrorAlert, LoadingState, Modal, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 
 type Company = any;
@@ -181,7 +181,7 @@ const SuperAdminBillingPage = () => {
                 <label className="block"><span className="font-semibold">Term duration (months)</span><input className="form-input mt-1" type="number" min="1" required value={form.termDurationMonths} onChange={(event) => setForm({ ...form, termDurationMonths: event.target.value })} /></label>
                 <label className="flex cursor-pointer items-center justify-between rounded-md border border-white-light p-3 dark:border-dark"><span><strong className="block">Auto-renew</strong></span><input className="form-checkbox" type="checkbox" checked={form.autoRecur} onChange={(event) => setForm({ ...form, autoRecur: event.target.checked })} /></label>
                 <label className="block"><span className="font-semibold">Notes</span><textarea className="form-textarea mt-1" rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>
-                <div className="flex justify-end gap-2"><button className="btn btn-outline-dark" type="button" onClick={() => setEditCompany(null)}>Cancel</button><button className="btn btn-primary" disabled={Boolean(working)}>{working ? 'Saving…' : 'Save changes'}</button></div>
+                <FormActions onCancel={() => setEditCompany(null)} loading={Boolean(working)} saveLabel="Save changes" savingLabel="Saving…" />
             </form>}
         </Modal>
     </AppShell>;

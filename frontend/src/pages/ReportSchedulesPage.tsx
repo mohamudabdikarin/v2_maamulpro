@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
-import { EmptyState, ErrorAlert, Field, LoadingState, Modal, PageHeader, StatGrid, StatusPill, shortDate } from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, Field, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, shortDate } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 
 type Report = { id: string; name: string; workspace: string; description?: string };
@@ -34,7 +34,7 @@ const ReportSchedulesPage = () => {
             <Field label="Report end date"><input className="form-input mt-1" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></Field>
             <div className="md:col-span-2"><Field label="Project / property / material scope" hint="Optional scope used by the selected workspace report"><select className="form-select mt-1" value={form.entityId} onChange={(e) => setForm({ ...form, entityId: e.target.value })}><option value="">All records</option>{entities.map((entity) => <option value={entity.id} key={entity.id}>{entity.name || entity.title}</option>)}</select></Field></div>
             <label className="flex items-center gap-3"><input className="form-checkbox" type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />Active schedule</label>
-            <div className="flex justify-end gap-2 md:col-span-2"><button type="button" className="btn btn-outline-dark" onClick={() => setOpen(false)}>Cancel</button><button className="btn btn-primary">Save schedule</button></div>
+            <div className="md:col-span-2"><FormActions onCancel={() => setOpen(false)} saveLabel="Save schedule" /></div>
         </form></Modal>
         <Modal open={Boolean(deleteId)} onClose={() => setDeleteId(null)} title="Delete schedule">
             <div className="space-y-4">

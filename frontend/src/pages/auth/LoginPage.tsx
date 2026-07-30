@@ -72,7 +72,7 @@ const LoginPage = () => {
                                 {successMessage && <div className="rounded border border-success/30 bg-success-light px-3 py-2 text-sm text-success" role="status">{successMessage}</div>}
                                 {error && <div className="rounded border border-danger/30 bg-danger-light px-3 py-2 text-sm text-danger" role="alert">{error}</div>}
                                 <div><label className="flex cursor-pointer items-center"><input checked={rememberMe} className="form-checkbox bg-white dark:bg-black" onChange={(event) => setRememberMe(event.target.checked)} type="checkbox" /><span className="text-white-dark">Remember me on this device</span></label></div>
-                                <button className="btn btn-gradient !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]" disabled={loading} type="submit">{loading ? 'Signing in…' : 'Sign in'}</button>
+                                <button className="btn btn-primary !mt-6 w-full uppercase" disabled={loading} type="submit">{loading ? 'Signing in…' : 'Sign in'}</button>
                             </form>
                         </div>
                         <p className="absolute bottom-6 w-full text-center dark:text-white">© {new Date().getFullYear()} MaamulPro. All rights reserved.</p>
