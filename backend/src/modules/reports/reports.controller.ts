@@ -40,8 +40,9 @@ export class ReportsController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('entityId') entityId?: string,
+    @Query('projectId') projectId?: string,
   ) {
-    return this.reportsService.runReport(db, reportId, { startDate, endDate, entityId });
+    return this.reportsService.runReport(db, reportId, { startDate, endDate, entityId, projectId });
   }
 
   @Get('schedules')

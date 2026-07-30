@@ -20,8 +20,18 @@ export type CompanyUserModel = runtime.Types.Result.DefaultSelection<Prisma.$Com
 
 export type AggregateCompanyUser = {
   _count: CompanyUserCountAggregateOutputType | null
+  _avg: CompanyUserAvgAggregateOutputType | null
+  _sum: CompanyUserSumAggregateOutputType | null
   _min: CompanyUserMinAggregateOutputType | null
   _max: CompanyUserMaxAggregateOutputType | null
+}
+
+export type CompanyUserAvgAggregateOutputType = {
+  sessionVersion: number | null
+}
+
+export type CompanyUserSumAggregateOutputType = {
+  sessionVersion: number | null
 }
 
 export type CompanyUserMinAggregateOutputType = {
@@ -31,6 +41,7 @@ export type CompanyUserMinAggregateOutputType = {
   companyId: string | null
   role: string | null
   isActive: boolean | null
+  sessionVersion: number | null
   resetTokenHash: string | null
   resetTokenExpiresAt: Date | null
   resetRequestedAt: Date | null
@@ -48,6 +59,7 @@ export type CompanyUserMaxAggregateOutputType = {
   companyId: string | null
   role: string | null
   isActive: boolean | null
+  sessionVersion: number | null
   resetTokenHash: string | null
   resetTokenExpiresAt: Date | null
   resetRequestedAt: Date | null
@@ -65,6 +77,7 @@ export type CompanyUserCountAggregateOutputType = {
   companyId: number
   role: number
   isActive: number
+  sessionVersion: number
   resetTokenHash: number
   resetTokenExpiresAt: number
   resetRequestedAt: number
@@ -77,6 +90,14 @@ export type CompanyUserCountAggregateOutputType = {
 }
 
 
+export type CompanyUserAvgAggregateInputType = {
+  sessionVersion?: true
+}
+
+export type CompanyUserSumAggregateInputType = {
+  sessionVersion?: true
+}
+
 export type CompanyUserMinAggregateInputType = {
   id?: true
   email?: true
@@ -84,6 +105,7 @@ export type CompanyUserMinAggregateInputType = {
   companyId?: true
   role?: true
   isActive?: true
+  sessionVersion?: true
   resetTokenHash?: true
   resetTokenExpiresAt?: true
   resetRequestedAt?: true
@@ -101,6 +123,7 @@ export type CompanyUserMaxAggregateInputType = {
   companyId?: true
   role?: true
   isActive?: true
+  sessionVersion?: true
   resetTokenHash?: true
   resetTokenExpiresAt?: true
   resetRequestedAt?: true
@@ -118,6 +141,7 @@ export type CompanyUserCountAggregateInputType = {
   companyId?: true
   role?: true
   isActive?: true
+  sessionVersion?: true
   resetTokenHash?: true
   resetTokenExpiresAt?: true
   resetRequestedAt?: true
@@ -167,6 +191,18 @@ export type CompanyUserAggregateArgs<ExtArgs extends runtime.Types.Extensions.In
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: CompanyUserAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: CompanyUserSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: CompanyUserMinAggregateInputType
@@ -197,6 +233,8 @@ export type CompanyUserGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   _count?: CompanyUserCountAggregateInputType | true
+  _avg?: CompanyUserAvgAggregateInputType
+  _sum?: CompanyUserSumAggregateInputType
   _min?: CompanyUserMinAggregateInputType
   _max?: CompanyUserMaxAggregateInputType
 }
@@ -208,6 +246,7 @@ export type CompanyUserGroupByOutputType = {
   companyId: string
   role: string
   isActive: boolean
+  sessionVersion: number
   resetTokenHash: string | null
   resetTokenExpiresAt: Date | null
   resetRequestedAt: Date | null
@@ -217,6 +256,8 @@ export type CompanyUserGroupByOutputType = {
   updatedAt: Date
   deletedAt: Date | null
   _count: CompanyUserCountAggregateOutputType | null
+  _avg: CompanyUserAvgAggregateOutputType | null
+  _sum: CompanyUserSumAggregateOutputType | null
   _min: CompanyUserMinAggregateOutputType | null
   _max: CompanyUserMaxAggregateOutputType | null
 }
@@ -246,6 +287,7 @@ export type CompanyUserWhereInput = {
   companyId?: Prisma.StringFilter<"CompanyUser"> | string
   role?: Prisma.StringFilter<"CompanyUser"> | string
   isActive?: Prisma.BoolFilter<"CompanyUser"> | boolean
+  sessionVersion?: Prisma.IntFilter<"CompanyUser"> | number
   resetTokenHash?: Prisma.StringNullableFilter<"CompanyUser"> | string | null
   resetTokenExpiresAt?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
   resetRequestedAt?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
@@ -264,6 +306,7 @@ export type CompanyUserOrderByWithRelationInput = {
   companyId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -285,6 +328,7 @@ export type CompanyUserWhereUniqueInput = Prisma.AtLeast<{
   companyId?: Prisma.StringFilter<"CompanyUser"> | string
   role?: Prisma.StringFilter<"CompanyUser"> | string
   isActive?: Prisma.BoolFilter<"CompanyUser"> | boolean
+  sessionVersion?: Prisma.IntFilter<"CompanyUser"> | number
   resetTokenHash?: Prisma.StringNullableFilter<"CompanyUser"> | string | null
   resetTokenExpiresAt?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
   resetRequestedAt?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
@@ -303,6 +347,7 @@ export type CompanyUserOrderByWithAggregationInput = {
   companyId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -312,8 +357,10 @@ export type CompanyUserOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CompanyUserCountOrderByAggregateInput
+  _avg?: Prisma.CompanyUserAvgOrderByAggregateInput
   _max?: Prisma.CompanyUserMaxOrderByAggregateInput
   _min?: Prisma.CompanyUserMinOrderByAggregateInput
+  _sum?: Prisma.CompanyUserSumOrderByAggregateInput
 }
 
 export type CompanyUserScalarWhereWithAggregatesInput = {
@@ -326,6 +373,7 @@ export type CompanyUserScalarWhereWithAggregatesInput = {
   companyId?: Prisma.StringWithAggregatesFilter<"CompanyUser"> | string
   role?: Prisma.StringWithAggregatesFilter<"CompanyUser"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"CompanyUser"> | boolean
+  sessionVersion?: Prisma.IntWithAggregatesFilter<"CompanyUser"> | number
   resetTokenHash?: Prisma.StringNullableWithAggregatesFilter<"CompanyUser"> | string | null
   resetTokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CompanyUser"> | Date | string | null
   resetRequestedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CompanyUser"> | Date | string | null
@@ -342,6 +390,7 @@ export type CompanyUserCreateInput = {
   passwordHash: string
   role?: string
   isActive?: boolean
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -360,6 +409,7 @@ export type CompanyUserUncheckedCreateInput = {
   companyId: string
   role?: string
   isActive?: boolean
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -376,6 +426,7 @@ export type CompanyUserUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -394,6 +445,7 @@ export type CompanyUserUncheckedUpdateInput = {
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -411,6 +463,7 @@ export type CompanyUserCreateManyInput = {
   companyId: string
   role?: string
   isActive?: boolean
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -427,6 +480,7 @@ export type CompanyUserUpdateManyMutationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -444,6 +498,7 @@ export type CompanyUserUncheckedUpdateManyInput = {
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -471,6 +526,7 @@ export type CompanyUserCountOrderByAggregateInput = {
   companyId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrder
@@ -481,6 +537,10 @@ export type CompanyUserCountOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
 }
 
+export type CompanyUserAvgOrderByAggregateInput = {
+  sessionVersion?: Prisma.SortOrder
+}
+
 export type CompanyUserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -488,6 +548,7 @@ export type CompanyUserMaxOrderByAggregateInput = {
   companyId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrder
@@ -505,6 +566,7 @@ export type CompanyUserMinOrderByAggregateInput = {
   companyId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrder
@@ -513,6 +575,10 @@ export type CompanyUserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+}
+
+export type CompanyUserSumOrderByAggregateInput = {
+  sessionVersion?: Prisma.SortOrder
 }
 
 export type CompanyUserCreateNestedManyWithoutCompanyInput = {
@@ -563,6 +629,7 @@ export type CompanyUserCreateWithoutCompanyInput = {
   passwordHash: string
   role?: string
   isActive?: boolean
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -579,6 +646,7 @@ export type CompanyUserUncheckedCreateWithoutCompanyInput = {
   passwordHash: string
   role?: string
   isActive?: boolean
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -625,6 +693,7 @@ export type CompanyUserScalarWhereInput = {
   companyId?: Prisma.StringFilter<"CompanyUser"> | string
   role?: Prisma.StringFilter<"CompanyUser"> | string
   isActive?: Prisma.BoolFilter<"CompanyUser"> | boolean
+  sessionVersion?: Prisma.IntFilter<"CompanyUser"> | number
   resetTokenHash?: Prisma.StringNullableFilter<"CompanyUser"> | string | null
   resetTokenExpiresAt?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
   resetRequestedAt?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
@@ -641,6 +710,7 @@ export type CompanyUserCreateManyCompanyInput = {
   passwordHash: string
   role?: string
   isActive?: boolean
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -657,6 +727,7 @@ export type CompanyUserUpdateWithoutCompanyInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -673,6 +744,7 @@ export type CompanyUserUncheckedUpdateWithoutCompanyInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -689,6 +761,7 @@ export type CompanyUserUncheckedUpdateManyWithoutCompanyInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -708,6 +781,7 @@ export type CompanyUserSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   companyId?: boolean
   role?: boolean
   isActive?: boolean
+  sessionVersion?: boolean
   resetTokenHash?: boolean
   resetTokenExpiresAt?: boolean
   resetRequestedAt?: boolean
@@ -726,6 +800,7 @@ export type CompanyUserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   companyId?: boolean
   role?: boolean
   isActive?: boolean
+  sessionVersion?: boolean
   resetTokenHash?: boolean
   resetTokenExpiresAt?: boolean
   resetRequestedAt?: boolean
@@ -744,6 +819,7 @@ export type CompanyUserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   companyId?: boolean
   role?: boolean
   isActive?: boolean
+  sessionVersion?: boolean
   resetTokenHash?: boolean
   resetTokenExpiresAt?: boolean
   resetRequestedAt?: boolean
@@ -762,6 +838,7 @@ export type CompanyUserSelectScalar = {
   companyId?: boolean
   role?: boolean
   isActive?: boolean
+  sessionVersion?: boolean
   resetTokenHash?: boolean
   resetTokenExpiresAt?: boolean
   resetRequestedAt?: boolean
@@ -772,7 +849,7 @@ export type CompanyUserSelectScalar = {
   deletedAt?: boolean
 }
 
-export type CompanyUserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "companyId" | "role" | "isActive" | "resetTokenHash" | "resetTokenExpiresAt" | "resetRequestedAt" | "passwordResetAt" | "lastLoginAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["companyUser"]>
+export type CompanyUserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "companyId" | "role" | "isActive" | "sessionVersion" | "resetTokenHash" | "resetTokenExpiresAt" | "resetRequestedAt" | "passwordResetAt" | "lastLoginAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["companyUser"]>
 export type CompanyUserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
 }
@@ -795,6 +872,7 @@ export type $CompanyUserPayload<ExtArgs extends runtime.Types.Extensions.Interna
     companyId: string
     role: string
     isActive: boolean
+    sessionVersion: number
     resetTokenHash: string | null
     resetTokenExpiresAt: Date | null
     resetRequestedAt: Date | null
@@ -1233,6 +1311,7 @@ export interface CompanyUserFieldRefs {
   readonly companyId: Prisma.FieldRef<"CompanyUser", 'String'>
   readonly role: Prisma.FieldRef<"CompanyUser", 'String'>
   readonly isActive: Prisma.FieldRef<"CompanyUser", 'Boolean'>
+  readonly sessionVersion: Prisma.FieldRef<"CompanyUser", 'Int'>
   readonly resetTokenHash: Prisma.FieldRef<"CompanyUser", 'String'>
   readonly resetTokenExpiresAt: Prisma.FieldRef<"CompanyUser", 'DateTime'>
   readonly resetRequestedAt: Prisma.FieldRef<"CompanyUser", 'DateTime'>

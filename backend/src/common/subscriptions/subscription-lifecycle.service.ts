@@ -241,7 +241,10 @@ export class SubscriptionLifecycleService implements OnModuleInit {
           version: { increment: 1 },
         },
       });
-      const entitlementData = this.entitlements.companyEntitlementData(plan);
+      const entitlementData = this.entitlements.companyEntitlementData(
+        plan,
+        this.entitlements.tenantModulesFromCompany(invoice.company),
+      );
       await tx.company.update({
         where: { id: invoice.companyId },
         data: {
@@ -527,7 +530,10 @@ export class SubscriptionLifecycleService implements OnModuleInit {
         await tx.company.update({
           where: { id: subscription.companyId },
           data: {
-            ...this.entitlements.companyEntitlementData(plan),
+            ...this.entitlements.companyEntitlementData(
+              plan,
+              this.entitlements.tenantModulesFromCompany(subscription.company),
+            ),
             planTier: legacyPlanTier(plan.key),
             subscriptionAmount: amount,
             version: { increment: 1 },
@@ -560,7 +566,10 @@ export class SubscriptionLifecycleService implements OnModuleInit {
         await tx.company.update({
           where: { id: subscription.companyId },
           data: {
-            ...this.entitlements.companyEntitlementData(subscription.plan),
+            ...this.entitlements.companyEntitlementData(
+              subscription.plan,
+              this.entitlements.tenantModulesFromCompany(subscription.company),
+            ),
             planTier: legacyPlanTier(subscription.plan.key),
             version: { increment: 1 },
           },

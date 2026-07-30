@@ -15,14 +15,12 @@ import { SuperAdminService } from './superadmin.service';
 import { RequireRoles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import {
-  AssignSubscriptionDto,
   AutoRenewDto,
+  ConfigureCompanySubscriptionDto,
   CreateCompanyDto,
-  CreateSubscriptionPlanDto,
   InvoicePaymentDto,
   SubscriptionNotesDto,
   UpdateCompanyDto,
-  UpdateSubscriptionPlanDto,
 } from './superadmin.dto';
 
 @Controller('api/superadmin')
@@ -38,9 +36,17 @@ export class SuperAdminController {
   @Patch('account/email')
   updateAccountEmail(
     @CurrentUser('id') adminId: string,
+    @Body() body: { email: string; currentPassword: string; verificationCode: string },
+  ) {
+    return this.superAdminService.updateAccountEmail(adminId, body.email, body.currentPassword, body.verificationCode);
+  }
+
+  @Post('account/email-verification/send')
+  sendAccountEmailVerification(
+    @CurrentUser('id') adminId: string,
     @Body() body: { email: string; currentPassword: string },
   ) {
-    return this.superAdminService.updateAccountEmail(adminId, body.email, body.currentPassword);
+    return this.superAdminService.sendAccountEmailVerification(adminId, body.email, body.currentPassword);
   }
 
   @Patch('account/password')
@@ -59,6 +65,21 @@ export class SuperAdminController {
   @Post('companies')
   async createCompany(@Body() body: CreateCompanyDto, @CurrentUser('id') adminId: string) {
     return this.superAdminService.createCompany(body, adminId);
+  }
+
+  @Get('companies/email-availability')
+  checkCompanyEmailAvailability(@Query('email') email: string) {
+    return this.superAdminService.checkCompanyEmailAvailability(email);
+  }
+
+  @Post('companies/email-verification/send')
+  sendCompanyOnboardingVerification(@Body() body: { email: string }) {
+    return this.superAdminService.sendCompanyOnboardingVerification(body.email);
+  }
+
+  @Post('companies/email-verification/verify')
+  verifyCompanyOnboardingEmail(@Body() body: { email: string; code: string }) {
+    return this.superAdminService.verifyCompanyOnboardingEmail(body.email, body.code);
   }
 
   @Get('neon/status')
@@ -103,41 +124,39 @@ export class SuperAdminController {
     return this.superAdminService.updateCompanyModules(id, body);
   }
 
-  // -----------------------------------------------------------
-  // Subscription Plans
-  // -----------------------------------------------------------
-
-  @Get('plans')
-  async getAllPlans() {
-    return this.superAdminService.getAllPlans();
+  @Post('companies/:id/rbac/sync')
+  @HttpCode(HttpStatus.OK)
+  async syncCompanyRbac(@Param('id') id: string) {
+    return this.superAdminService.syncCompanyRbac(id);
   }
 
-  @Post('plans')
-  async createPlan(@Body() body: CreateSubscriptionPlanDto) {
-    return this.superAdminService.createPlan(body);
+  @Post('companies/:id/owner/temporary-password')
+  @HttpCode(HttpStatus.OK)
+  generateCompanyOwnerTemporaryPassword(@Param('id') id: string) {
+    return this.superAdminService.generateCompanyOwnerTemporaryPassword(id);
   }
 
-  @Patch('plans/:id')
-  async updatePlan(@Param('id') id: string, @Body() body: UpdateSubscriptionPlanDto) {
-    return this.superAdminService.updatePlan(id, body);
+  @Get('companies/:id/enterprise-configuration')
+  getCompanyEnterpriseConfiguration(@Param('id') id: string) {
+    return this.superAdminService.getCompanyEnterpriseConfiguration(id);
+  }
+
+  @Patch('companies/:id/enterprise-configuration')
+  updateCompanyEnterpriseConfiguration(
+    @Param('id') id: string,
+    @Body() body: {
+      workspaceControls: Record<string, boolean>;
+      sidebarVisibility: Record<string, boolean>;
+      reportVisibility: Record<string, boolean>;
+      analyticsVisibility: Record<string, boolean>;
+    },
+  ) {
+    return this.superAdminService.updateCompanyEnterpriseConfiguration(id, body);
   }
 
   // -----------------------------------------------------------
   // Subscriptions & Invoicing
   // -----------------------------------------------------------
-
-  @Post('subscriptions/assign')
-  async assignSubscription(
-    @CurrentUser('id') adminId: string,
-    @Body() body: AssignSubscriptionDto,
-  ) {
-    return this.superAdminService.assignSubscription(
-      body.companyId,
-      body.planId,
-      body.billingCycle,
-      adminId,
-    );
-  }
 
   @Post('invoices/:id/pay')
   @HttpCode(HttpStatus.OK)
@@ -156,6 +175,15 @@ export class SuperAdminController {
     @CurrentUser('id') adminId: string,
   ) {
     return this.superAdminService.createRenewalInvoice(id, adminId);
+  }
+
+  @Patch('companies/:id/subscription')
+  configureCompanySubscription(
+    @Param('id') id: string,
+    @CurrentUser('id') adminId: string,
+    @Body() body: ConfigureCompanySubscriptionDto,
+  ) {
+    return this.superAdminService.configureCompanySubscription(id, body, adminId);
   }
 
   @Post('companies/:id/subscription/suspend')

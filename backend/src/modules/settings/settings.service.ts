@@ -14,6 +14,7 @@ import {
   UpdateLanguageDto,
   UpdateProfileDto,
 } from './dto/settings.dto';
+import { assertStrongPassword } from '../../common/security/password-policy';
 
 const CONFIG_KEYS: Record<keyof UpdateCompanySettingsDto, string> = {
   companyName: 'company_name',
@@ -130,12 +131,7 @@ export class SettingsService {
   }
 
   async changePassword(tenantDb: any, userId: string, data: ChangePasswordDto) {
-    if (!/[A-Z]/.test(data.newPassword) || !/[a-z]/.test(data.newPassword) ||
-        !/[0-9]/.test(data.newPassword) || !/[^A-Za-z0-9]/.test(data.newPassword)) {
-      throw new BadRequestException(
-        'Password must contain uppercase, lowercase, number, and symbol characters',
-      );
-    }
+    assertStrongPassword(data.newPassword);
     const centralUser = await (this.centralPrisma as any).companyUser.findUnique({
       where: { id: userId },
     });
@@ -148,7 +144,11 @@ export class SettingsService {
     const passwordHash = await argon2.hash(data.newPassword);
     await (this.centralPrisma as any).companyUser.update({
       where: { id: userId },
-      data: { passwordHash, passwordResetAt: new Date() },
+      data: {
+        passwordHash,
+        passwordResetAt: new Date(),
+        sessionVersion: { increment: 1 },
+      },
     });
     await tenantDb.user.update({ where: { id: userId }, data: { passwordHash } });
     return { changed: true };

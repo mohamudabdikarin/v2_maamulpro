@@ -1,5 +1,7 @@
-import { Body, Controller, Delete, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
+import { Readable } from 'node:stream';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { DeleteUploadDto } from './dto/delete-upload.dto';
 import { UploadsService } from './uploads.service';
@@ -21,5 +23,21 @@ export class UploadsController {
   @Delete('images')
   deleteImage(@Body() body: DeleteUploadDto, @CurrentUser() user: any) {
     return this.uploads.deleteImage(body.url, user.companyId, user.isSuperAdmin);
+  }
+
+  @Get('images/content')
+  async readImage(
+    @Query('url') url: string,
+    @CurrentUser() user: any,
+    @Res() response: Response,
+  ) {
+    const result = await this.uploads.readPrivateImage(
+      url,
+      user.companyId,
+      user.isSuperAdmin,
+    );
+    response.setHeader('Content-Type', result.blob.contentType || 'application/octet-stream');
+    response.setHeader('Cache-Control', 'private, max-age=300');
+    Readable.fromWeb(result.stream as any).pipe(response);
   }
 }

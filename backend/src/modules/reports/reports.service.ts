@@ -94,58 +94,104 @@ export class ReportsService {
   async runReport(
     db: any,
     reportId: string,
-    query: { startDate?: string; endDate?: string; entityId?: string },
+    query: { startDate?: string; endDate?: string; entityId?: string; projectId?: string },
   ) {
     const report = REPORTS.find((item) => item.id === reportId);
     if (!report) throw new NotFoundException('Report not found');
     const date = query.startDate || query.endDate
-      ? { gte: query.startDate ? new Date(query.startDate) : undefined, lte: query.endDate ? new Date(query.endDate) : undefined }
+      ? {
+          gte: query.startDate ? new Date(query.startDate) : undefined,
+          // A date input is inclusive: do not discard the rest of its final day.
+          lte: query.endDate ? new Date(`${query.endDate}T23:59:59.999`) : undefined,
+        }
       : undefined;
+    const projectId = query.projectId || (reportId.startsWith('construction-') ? query.entityId : undefined);
+    const transactionProjectWhere = projectId ? { projectId } : {};
     let rows: any[] = [];
+    let summary: Record<string, number> = {};
 
     if (['core-income', 'core-expense', 'core-transaction-detail'].includes(reportId)) {
       const type = reportId === 'core-income' ? 'INCOME' : reportId === 'core-expense' ? 'EXPENSE' : undefined;
-      rows = await db.transaction.findMany({
-        where: { deletedAt: null, ...(type ? { type } : {}), ...(date ? { date } : {}) },
-        include: { category: true, project: true, property: true, deal: true },
-        orderBy: { date: 'desc' },
+      const transactions = await db.transaction.findMany({
+        where: { deletedAt: null, ...(type ? { type } : {}), ...transactionProjectWhere, ...(date ? { date } : {}) },
+        include: { category: true, project: true, property: true, deal: true, user: { select: { name: true, email: true } } },
+        orderBy: { date: reportId === 'core-transaction-detail' ? 'asc' : 'desc' },
       });
+      let income = 0;
+      let expense = 0;
+      let balance = 0;
+      rows = transactions.map((transaction: any) => {
+        const amount = Number(transaction.amount);
+        if (transaction.type === 'INCOME') {
+          income += amount;
+          balance += amount;
+        } else {
+          expense += amount;
+          balance -= amount;
+        }
+        return {
+          reference: transaction.referenceId,
+          transactionId: transaction.id,
+          date: transaction.date,
+          type: transaction.type,
+          status: transaction.status,
+          project: transaction.project?.name || 'General',
+          property: transaction.property?.title || '—',
+          category: transaction.category?.name || 'Uncategorized',
+          description: transaction.description,
+          notes: transaction.notes || '—',
+          debit: transaction.type === 'EXPENSE' ? amount : 0,
+          credit: transaction.type === 'INCOME' ? amount : 0,
+          runningBalance: balance,
+          recordedBy: transaction.user?.name || transaction.user?.email || 'System',
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt,
+        };
+      });
+      summary = { rowCount: rows.length, income, expense, netProfit: income - expense };
     } else if (reportId === 'core-profit-summary') {
-      const transactions = await db.transaction.findMany({ where: { deletedAt: null, status: 'CLEARED', ...(date ? { date } : {}) } });
+      const transactions = await db.transaction.findMany({ where: { deletedAt: null, status: 'CLEARED', ...transactionProjectWhere, ...(date ? { date } : {}) } });
       const income = transactions.filter((row: any) => row.type === 'INCOME').reduce((sum: number, row: any) => sum + Number(row.amount), 0);
       const expense = transactions.filter((row: any) => row.type === 'EXPENSE').reduce((sum: number, row: any) => sum + Number(row.amount), 0);
       rows = [{ income, expense, netProfit: income - expense, margin: income ? ((income - expense) / income) * 100 : 0 }];
+      summary = { rowCount: rows.length, income, expense, netProfit: income - expense };
     } else if (reportId === 'construction-project-profit') {
-      const projects = await db.project.findMany({ where: { deletedAt: null, ...(query.entityId ? { id: query.entityId } : {}) } });
-      const transactions = await db.transaction.findMany({ where: { deletedAt: null, projectId: { in: projects.map((row: any) => row.id) }, ...(date ? { date } : {}) } });
+      const projects = await db.project.findMany({ where: { deletedAt: null, ...(projectId ? { id: projectId } : {}) } });
+      const transactions = await db.transaction.findMany({ where: { deletedAt: null, status: 'CLEARED', projectId: { in: projects.map((row: any) => row.id) }, ...(date ? { date } : {}) } });
       rows = projects.map((project: any) => {
         const linked = transactions.filter((row: any) => row.projectId === project.id);
         const income = linked.filter((row: any) => row.type === 'INCOME').reduce((sum: number, row: any) => sum + Number(row.amount), 0);
         const expenses = linked.filter((row: any) => row.type === 'EXPENSE').reduce((sum: number, row: any) => sum + Number(row.amount), 0);
         return { projectId: project.id, project: project.name, budget: project.budget, income, expenses, profit: income - expenses };
       });
+      summary = {
+        rowCount: rows.length,
+        income: rows.reduce((sum, row) => sum + Number(row.income), 0),
+        expense: rows.reduce((sum, row) => sum + Number(row.expenses), 0),
+        netProfit: rows.reduce((sum, row) => sum + Number(row.profit), 0),
+      };
     } else if (reportId === 'construction-material-usage') {
-      rows = await db.inventoryTransaction.findMany({ where: { type: 'USAGE', ...(query.entityId ? { projectId: query.entityId } : {}), ...(date ? { date } : {}) }, include: { material: true, project: true } });
+      rows = await db.inventoryTransaction.findMany({ where: { type: 'USAGE', ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) }, include: { material: true, project: true } });
     } else if (['construction-manpower-cost', 'construction-manpower-expenses'].includes(reportId)) {
-      rows = await db.workerLedgerEntry.findMany({ where: { ...(query.entityId ? { projectId: query.entityId } : {}), ...(date ? { date } : {}) }, include: { staff: true, project: true } });
+      rows = await db.workerLedgerEntry.findMany({ where: { ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) }, include: { staff: true, project: true } });
     } else if (reportId === 'construction-expenses') {
-      rows = await db.dailyOperationalExpense.findMany({ where: { deletedAt: null, ...(query.entityId ? { projectId: query.entityId } : {}), ...(date ? { date } : {}) }, include: { staff: true, project: true } });
+      rows = await db.dailyOperationalExpense.findMany({ where: { deletedAt: null, ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) }, include: { staff: true, project: true } });
     } else if (reportId === 'construction-progress') {
-      rows = await db.project.findMany({ where: { deletedAt: null, ...(query.entityId ? { id: query.entityId } : {}) }, include: { tasks: { where: { deletedAt: null } } } });
+      rows = await db.project.findMany({ where: { deletedAt: null, ...(projectId ? { id: projectId } : {}) }, include: { tasks: { where: { deletedAt: null } } } });
     } else if (reportId === 'construction-workforce-budget') {
-      rows = await db.workforceContract.findMany({ where: { deletedAt: null, ...(query.entityId ? { projectId: query.entityId } : {}) }, include: { project: true, payments: true, budgetAdjustments: true } });
+      rows = await db.workforceContract.findMany({ where: { deletedAt: null, ...(projectId ? { projectId } : {}), ...(date ? { createdAt: date } : {}) }, include: { project: true, payments: true, budgetAdjustments: true } });
     } else if (reportId === 'real-estate-rental-income') {
-      rows = await db.rentPayment.findMany({ where: { deletedAt: null, ...(date ? { dueDate: date } : {}) }, include: { tenant: true, contract: { include: { property: true } } } });
+      rows = await db.rentPayment.findMany({ where: { deletedAt: null, ...(query.entityId ? { contract: { is: { propertyId: query.entityId } } } : {}), ...(date ? { dueDate: date } : {}) }, include: { tenant: true, contract: { include: { property: true } } } });
     } else if (reportId === 'real-estate-occupancy') {
-      rows = await db.property.findMany({ where: { deletedAt: null } });
+      rows = await db.property.findMany({ where: { deletedAt: null, ...(query.entityId ? { id: query.entityId } : {}) } });
     } else if (reportId === 'real-estate-property-sales') {
-      rows = await db.deal.findMany({ where: { deletedAt: null, type: 'SALE', ...(date ? { createdAt: date } : {}) }, include: { property: true, client: true } });
+      rows = await db.deal.findMany({ where: { deletedAt: null, type: 'SALE', ...(query.entityId ? { propertyId: query.entityId } : {}), ...(date ? { createdAt: date } : {}) }, include: { property: true, client: true } });
     } else if (reportId === 'real-estate-due-payments') {
-      rows = await db.deal.findMany({ where: { deletedAt: null, paymentStatus: { in: ['PENDING', 'PARTIAL', 'OVERDUE'] } }, include: { property: true, client: true } });
+      rows = await db.deal.findMany({ where: { deletedAt: null, ...(query.entityId ? { propertyId: query.entityId } : {}), paymentStatus: { in: ['PENDING', 'PARTIAL', 'OVERDUE'] } }, include: { property: true, client: true } });
     } else if (reportId === 'real-estate-sales-performance') {
-      rows = await db.deal.findMany({ where: { deletedAt: null, ...(date ? { createdAt: date } : {}) }, include: { property: true, client: true, createdBy: true } });
+      rows = await db.deal.findMany({ where: { deletedAt: null, ...(query.entityId ? { propertyId: query.entityId } : {}), ...(date ? { createdAt: date } : {}) }, include: { property: true, client: true, createdBy: true } });
     } else if (reportId === 'material-stock-movement') {
-      rows = await db.inventoryTransaction.findMany({ where: { ...(date ? { date } : {}) }, include: { material: true, project: true, user: true } });
+      rows = await db.inventoryTransaction.findMany({ where: { ...(query.entityId ? { materialId: query.entityId } : {}), ...transactionProjectWhere, ...(date ? { date } : {}) }, include: { material: true, project: true, user: true } });
     } else if (reportId === 'material-purchases') {
       rows = await db.purchaseOrder.findMany({ where: { deletedAt: null, ...(date ? { createdAt: date } : {}) }, include: { supplier: true, items: { include: { material: true } } } });
     } else if (reportId === 'material-supplier-balances') {
@@ -174,7 +220,7 @@ export class ReportsService {
     return {
       report,
       generatedAt: new Date(),
-      summary: { rowCount: rows.length },
+      summary: { rowCount: rows.length, ...summary },
       rows,
     };
   }

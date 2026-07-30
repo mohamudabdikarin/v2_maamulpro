@@ -35,10 +35,9 @@ if (!token) throw new Error('Login response did not include an access token');
 
 for (const path of [
   '/api/superadmin/companies',
-  '/api/superadmin/plans',
-  '/api/superadmin/subscriptions',
   '/api/superadmin/metrics',
   '/api/superadmin/account',
+  '/api/superadmin/notifications',
 ]) {
   await request(path, { headers: { authorization: `Bearer ${token}` } });
 }

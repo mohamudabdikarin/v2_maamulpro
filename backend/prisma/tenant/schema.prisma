@@ -446,6 +446,8 @@ model Transaction {
   @@index([propertyId])
   @@index([deletedAt, date])
   @@index([deletedAt, type, date])
+  @@index([deletedAt, status, date])
+  @@index([deletedAt, projectId, date])
   @@map("transactions")
 }
 
@@ -503,6 +505,7 @@ model Project {
   workforceContracts   WorkforceContract[]
 
   @@index([status])
+  @@index([deletedAt, status])
   @@map("projects")
 }
 
@@ -591,6 +594,7 @@ model InventoryTransaction {
   @@index([materialId])
   @@index([projectId])
   @@index([date])
+  @@index([type, projectId, date])
   @@map("inventory_transactions")
 }
 
@@ -682,6 +686,7 @@ model RentPayment {
   @@index([dueDate])
   @@index([status])
   @@index([contractId])
+  @@index([deletedAt, dueDate])
   @@map("rent_payments")
 }
 
@@ -796,6 +801,7 @@ model MaterialSale {
 
   @@index([customerId])
   @@index([date])
+  @@index([deletedAt, date])
   @@map("material_sales")
 }
 
@@ -885,6 +891,7 @@ model DailyOperationalExpense {
   @@index([recordedByUserId])
   @@index([date])
   @@index([category])
+  @@index([deletedAt, projectId, date])
   @@map("daily_operational_expenses")
 }
 
@@ -991,6 +998,7 @@ model Deal {
   @@index([propertyId])
   @@index([clientId])
   @@index([paymentStatus])
+  @@index([deletedAt, paymentStatus])
   @@map("deals")
 }
 
@@ -1165,6 +1173,7 @@ model Payroll {
   @@unique([year, month, deletedAt])
   @@index([status])
   @@index([year, month])
+  @@index([deletedAt, createdAt])
   @@map("payrolls")
 }
 

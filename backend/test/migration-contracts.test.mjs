@@ -65,28 +65,42 @@ test('Vristo routes expose every migrated business workspace', async () => {
     '/app/report-schedules',
     '/app/roles',
     '/app/settings',
+    '/superadmin/dashboard',
     '/superadmin/companies',
-    '/superadmin/plans',
+    '/superadmin/companies/new',
+    '/superadmin/companies/:id',
     '/superadmin/billing',
+    '/superadmin/account',
   ];
   for (const path of paths) assert.ok(routes.includes(`path: '${path}'`), path);
 });
 
-test('subscription plans are enforced across billing, API access and tenant navigation', async () => {
-  const [schema, lifecycle, guard, middleware, sidebar, appShell] = await Promise.all([
+test('superadmin uses direct subscriptions and modules without a plans workflow', async () => {
+  const [routes, sidebar, controller, onboarding, billing, schema, guard, middleware, appShell] = await Promise.all([
+    read('../../frontend/src/router/routes.tsx'),
+    read('../../frontend/src/components/Layouts/Sidebar.tsx'),
+    read('../src/modules/superadmin/superadmin.controller.ts'),
+    read('../../frontend/src/pages/CompanyOnboardingPage.tsx'),
+    read('../../frontend/src/pages/SuperAdminBillingPage.tsx'),
     read('../prisma/central/schema.prisma'),
-    read('../src/common/subscriptions/subscription-lifecycle.service.ts'),
     read('../src/common/guards/tenant-access.guard.ts'),
     read('../src/common/middleware/tenant-resolver.middleware.ts'),
-    read('../../frontend/src/components/Layouts/Sidebar.tsx'),
     read('../../frontend/src/components/maamulpro/AppShell.tsx'),
   ]);
+  assert.doesNotMatch(routes, /\/superadmin\/plans/);
+  assert.doesNotMatch(sidebar, /\/superadmin\/plans/);
+  assert.doesNotMatch(controller, /@(?:Get|Post|Patch|Delete)\(['"]plans/);
+  assert.doesNotMatch(onboarding, /\bplanId\b/);
+  assert.doesNotMatch(billing, /\bplanId\b/);
+  assert.match(onboarding, /constructionEnabled/);
+  assert.match(onboarding, /realEstateEnabled/);
+  assert.match(onboarding, /materialManagementEnabled/);
+  assert.match(billing, /termDurationMonths/);
+  assert.match(controller, /companies\/:id\/modules/);
+  assert.match(controller, /companies\/:id\/subscription/);
   assert.match(schema, /entitlements\s+Json/);
   assert.match(schema, /entitlementSnapshot\s+Json/);
   assert.match(schema, /enum InvoiceStatus[\s\S]*OVERDUE[\s\S]*EXPIRED/);
-  assert.match(lifecycle, /assignSubscription[\s\S]*status:\s*'PENDING'/);
-  assert.match(lifecycle, /markInvoicePaid[\s\S]*status:\s*'ACTIVE'/);
-  assert.match(lifecycle, /reconcileBillingLifecycle/);
   assert.match(guard, /subscriptionExpiresAt/);
   assert.match(guard, /features\.payroll/);
   assert.match(guard, /features\.advancedReports/);

@@ -8,6 +8,7 @@ import {
   UpdateStaffDto,
 } from './dto/staff.dto';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
+import { assertStrongPassword } from '../../common/security/password-policy';
 
 @Injectable()
 export class StaffService {
@@ -82,6 +83,7 @@ export class StaffService {
         if (!data.email || !data.temporaryPassword) {
           throw new BadRequestException('Email and temporary password are required');
         }
+        assertStrongPassword(data.temporaryPassword);
         const existingCentral = await centralDb.companyUser.findUnique({
           where: { email: data.email },
         });
@@ -150,6 +152,7 @@ export class StaffService {
   }
 
   async createAccount(tenantDb: any, companyId: string, staffId: string, data: StaffAccountDto) {
+    assertStrongPassword(data.temporaryPassword);
     const staff = await this.getStaffById(tenantDb, staffId);
     if (staff.userId) throw new ConflictException('Staff member already has a user account');
     const email = data.email.toLowerCase();
@@ -206,12 +209,20 @@ export class StaffService {
   }
 
   async resetPassword(tenantDb: any, staffId: string, temporaryPassword: string) {
+    assertStrongPassword(temporaryPassword);
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
     const passwordHash = await argon2.hash(temporaryPassword);
     await Promise.all([
       tenantDb.user.update({ where: { id: staff.userId }, data: { passwordHash, passwordResetAt: new Date() } }),
-      this.central.companyUser.update({ where: { id: staff.userId }, data: { passwordHash, passwordResetAt: new Date() } }),
+      this.central.companyUser.update({
+        where: { id: staff.userId },
+        data: {
+          passwordHash,
+          passwordResetAt: new Date(),
+          sessionVersion: { increment: 1 },
+        },
+      }),
     ]);
     return { reset: true };
   }

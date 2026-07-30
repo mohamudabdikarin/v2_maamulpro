@@ -3,8 +3,6 @@ import { CentralPrismaService } from '../database/central-prisma.service';
 import {
   hasSubscriptionAccess,
   isAtLimit,
-  normalizePlanFeatures,
-  planEntitlements,
   PlanEntitlements,
   PlanFeatureKey,
 } from './entitlement-policy';
@@ -19,41 +17,69 @@ export class SubscriptionEntitlementService {
     return this.centralPrisma as any;
   }
 
-  fromCompany(company: any): PlanEntitlements {
-    const stored = company?.entitlements;
-    if (stored && typeof stored === 'object' && stored.features && stored.limits) {
+  tenantModulesFromCompany(company: any) {
+    const configured = company?.entitlements?.tenantModules;
+    if (configured && typeof configured === 'object') {
       return {
-        ...stored,
-        features: normalizePlanFeatures(stored.features),
-        limits: {
-          users: Number(stored.limits.users || 0),
-          constructionProjects: Number(stored.limits.constructionProjects || 0),
-          properties: Number(stored.limits.properties || 0),
-        },
+        construction: configured.construction !== false,
+        realEstate: configured.realEstate !== false,
+        materials: configured.materials !== false,
       };
     }
+    // Existing tenants predate tenant-level configuration. Their current flags are
+    // the safe migration baseline and must not be overwritten by plan synchronization.
     return {
-      planKey: company?.planKey,
+      construction: Boolean(company?.constructionEnabled),
+      realEstate: Boolean(company?.realEstateEnabled),
+      materials: Boolean(company?.materialManagementEnabled),
+    };
+  }
+
+  fromCompany(company: any): PlanEntitlements {
+    // MaamulPro tenants are configured directly by the platform administrator.
+    // Subscription records remain billing information and never decide which product
+    // modules the tenant may use.
+    return {
+      planKey: undefined,
       features: {
         construction: Boolean(company?.constructionEnabled),
         realEstate: Boolean(company?.realEstateEnabled),
         materials: Boolean(company?.materialManagementEnabled),
-        payroll: false,
-        advancedReports: false,
+        payroll: true,
+        advancedReports: true,
         prioritySupport: false,
       },
       limits: { users: 0, constructionProjects: 0, properties: 0 },
     };
   }
 
-  companyEntitlementData(plan: any) {
-    const entitlements = planEntitlements(plan);
+  companyEntitlementData(plan: any, tenantModules?: { construction: boolean; realEstate: boolean; materials: boolean }) {
+    const configured = tenantModules || {
+      construction: false,
+      realEstate: false,
+      materials: false,
+    };
+    const entitlements = {
+      planId: plan?.id,
+      planKey: undefined,
+      planName: undefined,
+      features: {
+        construction: configured.construction,
+        realEstate: configured.realEstate,
+        materials: configured.materials,
+        payroll: true,
+        advancedReports: true,
+        prioritySupport: false,
+      },
+      limits: { users: 0, constructionProjects: 0, properties: 0 },
+      tenantModules: configured,
+    };
     return {
-      planKey: plan.key,
+      planKey: null,
       entitlements,
-      constructionEnabled: entitlements.features.construction,
-      realEstateEnabled: entitlements.features.realEstate,
-      materialManagementEnabled: entitlements.features.materials,
+      constructionEnabled: configured.construction,
+      realEstateEnabled: configured.realEstate,
+      materialManagementEnabled: configured.materials,
     };
   }
 
@@ -119,7 +145,7 @@ export class SubscriptionEntitlementService {
     action: (tx: any) => Promise<T>,
   ): Promise<T> {
     return tenantDb.$transaction(async (tx: any) => {
-      await tx.$queryRawUnsafe(
+      await tx.$executeRawUnsafe(
         'SELECT pg_advisory_xact_lock(hashtext($1))',
         `maamulpro:${companyId}:${resource}`,
       );
@@ -133,7 +159,7 @@ export class SubscriptionEntitlementService {
     action: (centralTx: any) => Promise<T>,
   ): Promise<T> {
     return this.central.$transaction(async (tx: any) => {
-      await tx.$queryRawUnsafe(
+      await tx.$executeRawUnsafe(
         'SELECT pg_advisory_xact_lock(hashtext($1))',
         `maamulpro:${companyId}:users`,
       );

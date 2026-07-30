@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
   BadRequestException,
   NotFoundException,
+  ServiceUnavailableException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
@@ -14,9 +16,13 @@ import { revealDatabaseUrl } from '../../common/database/database-credentials';
 import { ResendEmailService } from '../../common/email/resend-email.service';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
+import { ENTERPRISE_CONFIG_KEY, parseEnterpriseModuleConfiguration } from '../../common/database/enterprise-config';
+import { assertStrongPassword } from '../../common/security/password-policy';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly centralPrisma: CentralPrismaService,
     private readonly tenantManager: TenantConnectionManager,
@@ -27,6 +33,17 @@ export class AuthService {
 
   private get central(): any {
     return this.centralPrisma as any;
+  }
+
+  private async enterpriseConfiguration(company: any) {
+    try {
+      const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+      const record = await tenantDb.systemConfig.findUnique({ where: { key: ENTERPRISE_CONFIG_KEY } });
+      return parseEnterpriseModuleConfiguration(record?.value);
+    } catch (err) {
+      this.logger.warn(`Enterprise config lookup failed for company "${company.name}" (${company.id}): ${err instanceof Error ? err.message : String(err)}`);
+      return parseEnterpriseModuleConfiguration(null);
+    }
   }
 
   async loginCompanyUser(email: string, passwordAttempt: string, tenantId?: string) {
@@ -99,7 +116,7 @@ export class AuthService {
           userPermissions = Array.from(permSet);
         }
       } catch (err) {
-        // Fallback if tenant DB connection is pending setup
+        this.logger.warn(`Tenant permissions resolution failed for company "${company.name}" (${company.id}): ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
@@ -112,6 +129,7 @@ export class AuthService {
     // 5. Generate JWT Token
     const companyEntitlements = this.entitlements.fromCompany(company);
     const accessGranted = hasSubscriptionAccess(company);
+    const enterpriseConfiguration = await this.enterpriseConfiguration(company);
     const payload = {
       sub: companyUser.id,
       email: companyUser.email,
@@ -128,7 +146,9 @@ export class AuthService {
       accessGranted,
       planKey: company.planKey,
       entitlements: companyEntitlements,
+      enterpriseConfiguration,
       isSuperAdmin: false,
+      sessionVersion: Number(companyUser.sessionVersion || 0),
     };
 
     const accessToken = this.jwtService.sign(payload);
@@ -152,6 +172,7 @@ export class AuthService {
         accessGranted,
         planKey: company.planKey,
         entitlements: companyEntitlements,
+        enterpriseConfiguration,
       },
     };
   }
@@ -187,6 +208,7 @@ export class AuthService {
       name: admin.name,
       role: 'SUPER_ADMIN',
       isSuperAdmin: true,
+      sessionVersion: Number(admin.sessionVersion || 0),
     };
 
     const accessToken = this.jwtService.sign(payload);
@@ -220,6 +242,7 @@ export class AuthService {
       throw new UnauthorizedException('User account is inactive');
     }
     const company = companyUser.company;
+    const enterpriseConfiguration = await this.enterpriseConfiguration(company);
     return {
       id: companyUser.id,
       email: companyUser.email,
@@ -237,8 +260,24 @@ export class AuthService {
       accessGranted: hasSubscriptionAccess(company),
       planKey: company.planKey,
       entitlements: this.entitlements.fromCompany(company),
+      enterpriseConfiguration,
       isSuperAdmin: false,
     };
+  }
+
+  async logout(user: any) {
+    if (user?.isSuperAdmin) {
+      await this.central.centralAdmin.update({
+        where: { id: user.id },
+        data: { sessionVersion: { increment: 1 } },
+      });
+    } else {
+      await this.central.companyUser.update({
+        where: { id: user?.id },
+        data: { sessionVersion: { increment: 1 } },
+      });
+    }
+    return { loggedOut: true };
   }
 
   async requestPasswordReset(email: string) {
@@ -256,40 +295,48 @@ export class AuthService {
     const code = String(randomInt(100000, 1000000));
     const hashedCode = await argon2.hash(code);
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-    await this.central.$transaction(async (tx: any) => {
-      await tx.emailVerification.updateMany({
-        where: { email: normalizedEmail, context: 'PASSWORD_RESET', status: 'PENDING' },
-        data: { status: 'EXPIRED' },
-      });
-      await tx.emailVerification.create({
-        data: {
+    await this.central.emailVerification.upsert({
+      where: {
+        email_context: {
           email: normalizedEmail,
           context: 'PASSWORD_RESET',
-          hashedCode,
-          expiresAt,
         },
-      });
+      },
+      create: {
+        email: normalizedEmail,
+        context: 'PASSWORD_RESET',
+        hashedCode,
+        expiresAt,
+      },
+      update: {
+        hashedCode,
+        expiresAt,
+        status: 'PENDING',
+        attempts: 0,
+        verifiedAt: null,
+      },
     });
 
-    if (this.email.isConfigured()) {
-      await this.email.send({
-        to: [normalizedEmail],
-        subject: 'MaamulPro password reset code',
-        text: `Your MaamulPro password reset code is ${code}. It expires in 15 minutes.`,
+    const delivery = await this.email.send({
+      to: [normalizedEmail],
+      subject: 'MaamulPro password reset code',
+      text: `Your MaamulPro password reset code is ${code}. It expires in 15 minutes.`,
+    });
+    if (!delivery.sent) {
+      await this.central.emailVerification.updateMany({
+        where: { email: normalizedEmail, context: 'PASSWORD_RESET', status: 'PENDING' },
+        data: { status: 'FAILED' },
       });
+      throw new ServiceUnavailableException(
+        'Password reset email could not be delivered. Please try again later.',
+      );
     }
 
-    return {
-      accepted: true,
-      expiresAt,
-      ...(process.env.NODE_ENV === 'production' ? {} : { previewCode: code }),
-    };
+    return { accepted: true, expiresAt };
   }
 
   async resetPassword(email: string, code: string, newPassword: string) {
-    if (newPassword.length < 10) {
-      throw new BadRequestException('Password must contain at least 10 characters');
-    }
+    assertStrongPassword(newPassword);
     const normalizedEmail = email.trim().toLowerCase();
     const verification = await this.central.emailVerification.findFirst({
       where: { email: normalizedEmail, context: 'PASSWORD_RESET', status: 'PENDING' },
@@ -319,8 +366,21 @@ export class AuthService {
     if (!user && !admin) throw new NotFoundException('Account not found');
     const passwordHash = await argon2.hash(newPassword);
     await this.central.$transaction(async (tx: any) => {
-      if (user) await tx.companyUser.update({ where: { id: user.id }, data: { passwordHash } });
-      else await tx.centralAdmin.update({ where: { id: admin.id }, data: { passwordHash, passwordResetAt: new Date() } });
+      if (user) {
+        await tx.companyUser.update({
+          where: { id: user.id },
+          data: { passwordHash, sessionVersion: { increment: 1 } },
+        });
+      } else {
+        await tx.centralAdmin.update({
+          where: { id: admin.id },
+          data: {
+            passwordHash,
+            passwordResetAt: new Date(),
+            sessionVersion: { increment: 1 },
+          },
+        });
+      }
       await tx.emailVerification.update({
         where: { id: verification.id },
         data: { status: 'VERIFIED', verifiedAt: new Date() },

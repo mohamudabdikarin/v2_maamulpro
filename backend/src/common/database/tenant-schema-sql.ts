@@ -906,6 +906,15 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_project_id_idx" ON "daily_operational_expenses"("project_id")`,
   `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_date_idx" ON "daily_operational_expenses"("date")`,
   `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_category_idx" ON "daily_operational_expenses"("category")`,
+  // Composite indexes are aligned with the dashboard and report filters.
+  `CREATE INDEX IF NOT EXISTS "transactions_deleted_at_status_date_idx" ON "transactions"("deleted_at", "status", "date")`,
+  `CREATE INDEX IF NOT EXISTS "transactions_deleted_at_project_id_date_idx" ON "transactions"("deleted_at", "project_id", "date")`,
+  `CREATE INDEX IF NOT EXISTS "projects_deleted_at_status_idx" ON "projects"("deleted_at", "status")`,
+  `CREATE INDEX IF NOT EXISTS "inventory_transactions_type_project_id_date_idx" ON "inventory_transactions"("type", "project_id", "date")`,
+  `CREATE INDEX IF NOT EXISTS "rent_payments_deleted_at_due_date_idx" ON "rent_payments"("deleted_at", "due_date")`,
+  `CREATE INDEX IF NOT EXISTS "material_sales_deleted_at_date_idx" ON "material_sales"("deleted_at", "date")`,
+  `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_deleted_at_project_id_date_idx" ON "daily_operational_expenses"("deleted_at", "project_id", "date")`,
+  `CREATE INDEX IF NOT EXISTS "deals_deleted_at_payment_status_idx" ON "deals"("deleted_at", "payment_status")`,
 
   // ── RBAC indexes ───────────────────────────────────────────────
   `CREATE INDEX IF NOT EXISTS "rbac_permissions_module_idx" ON "rbac_permissions"("module")`,
@@ -1174,6 +1183,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
 
   `CREATE INDEX IF NOT EXISTS "payrolls_status_idx" ON "payrolls"("status")`,
   `CREATE INDEX IF NOT EXISTS "payrolls_year_month_idx" ON "payrolls"("year", "month")`,
+  `CREATE INDEX IF NOT EXISTS "payrolls_deleted_at_created_at_idx" ON "payrolls"("deleted_at", "created_at")`,
   `CREATE INDEX IF NOT EXISTS "payroll_items_payroll_id_idx" ON "payroll_items"("payroll_id")`,
   `CREATE INDEX IF NOT EXISTS "payroll_items_staff_id_idx" ON "payroll_items"("staff_id")`,
   `CREATE INDEX IF NOT EXISTS "payroll_items_payslip_number_idx" ON "payroll_items"("payslip_number")`,

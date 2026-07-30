@@ -31,18 +31,26 @@ export class ResendEmailService {
       return { sent: false as const };
     }
 
-    const resend = new Resend(process.env.RESEND_API_KEY!.trim());
-    const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM!.trim(),
-      to: input.to,
-      subject: input.subject,
-      text: input.text,
-      ...(input.html ? { html: input.html } : {}),
-      ...(input.attachments?.length ? { attachments: input.attachments } : {}),
-    });
-    if (error) {
-      throw new Error(`Resend email delivery failed: ${error.message}`);
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY!.trim());
+      const { data, error } = await resend.emails.send({
+        from: process.env.RESEND_FROM!.trim(),
+        to: input.to,
+        subject: input.subject,
+        text: input.text,
+        ...(input.html ? { html: input.html } : {}),
+        ...(input.attachments?.length ? { attachments: input.attachments } : {}),
+      });
+      if (error) {
+        this.logger.error(`Email provider rejected delivery: ${error.message}`);
+        return { sent: false as const, reason: 'delivery_failed' as const };
+      }
+      return { sent: true as const, id: data?.id };
+    } catch (error) {
+      this.logger.error(
+        `Email provider request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return { sent: false as const, reason: 'delivery_failed' as const };
     }
-    return { sent: true as const, id: data?.id };
   }
 }

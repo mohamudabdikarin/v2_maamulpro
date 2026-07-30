@@ -1,0 +1,5 @@
+ALTER TABLE "company_users"
+  ADD COLUMN IF NOT EXISTS "session_version" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "central_admins"
+  ADD COLUMN IF NOT EXISTS "session_version" INTEGER NOT NULL DEFAULT 0;

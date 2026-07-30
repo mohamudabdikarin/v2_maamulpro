@@ -14,7 +14,7 @@ import { AuthController } from './auth.controller';
         }
         return {
           secret,
-          signOptions: { expiresIn: '8h' },
+          signOptions: { expiresIn: '30m' },
         };
       },
     }),

@@ -20,8 +20,18 @@ export type CentralAdminModel = runtime.Types.Result.DefaultSelection<Prisma.$Ce
 
 export type AggregateCentralAdmin = {
   _count: CentralAdminCountAggregateOutputType | null
+  _avg: CentralAdminAvgAggregateOutputType | null
+  _sum: CentralAdminSumAggregateOutputType | null
   _min: CentralAdminMinAggregateOutputType | null
   _max: CentralAdminMaxAggregateOutputType | null
+}
+
+export type CentralAdminAvgAggregateOutputType = {
+  sessionVersion: number | null
+}
+
+export type CentralAdminSumAggregateOutputType = {
+  sessionVersion: number | null
 }
 
 export type CentralAdminMinAggregateOutputType = {
@@ -29,6 +39,7 @@ export type CentralAdminMinAggregateOutputType = {
   email: string | null
   passwordHash: string | null
   name: string | null
+  sessionVersion: number | null
   resetTokenHash: string | null
   resetTokenExpiresAt: Date | null
   resetRequestedAt: Date | null
@@ -43,6 +54,7 @@ export type CentralAdminMaxAggregateOutputType = {
   email: string | null
   passwordHash: string | null
   name: string | null
+  sessionVersion: number | null
   resetTokenHash: string | null
   resetTokenExpiresAt: Date | null
   resetRequestedAt: Date | null
@@ -57,6 +69,7 @@ export type CentralAdminCountAggregateOutputType = {
   email: number
   passwordHash: number
   name: number
+  sessionVersion: number
   resetTokenHash: number
   resetTokenExpiresAt: number
   resetRequestedAt: number
@@ -68,11 +81,20 @@ export type CentralAdminCountAggregateOutputType = {
 }
 
 
+export type CentralAdminAvgAggregateInputType = {
+  sessionVersion?: true
+}
+
+export type CentralAdminSumAggregateInputType = {
+  sessionVersion?: true
+}
+
 export type CentralAdminMinAggregateInputType = {
   id?: true
   email?: true
   passwordHash?: true
   name?: true
+  sessionVersion?: true
   resetTokenHash?: true
   resetTokenExpiresAt?: true
   resetRequestedAt?: true
@@ -87,6 +109,7 @@ export type CentralAdminMaxAggregateInputType = {
   email?: true
   passwordHash?: true
   name?: true
+  sessionVersion?: true
   resetTokenHash?: true
   resetTokenExpiresAt?: true
   resetRequestedAt?: true
@@ -101,6 +124,7 @@ export type CentralAdminCountAggregateInputType = {
   email?: true
   passwordHash?: true
   name?: true
+  sessionVersion?: true
   resetTokenHash?: true
   resetTokenExpiresAt?: true
   resetRequestedAt?: true
@@ -149,6 +173,18 @@ export type CentralAdminAggregateArgs<ExtArgs extends runtime.Types.Extensions.I
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: CentralAdminAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: CentralAdminSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: CentralAdminMinAggregateInputType
@@ -179,6 +215,8 @@ export type CentralAdminGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   _count?: CentralAdminCountAggregateInputType | true
+  _avg?: CentralAdminAvgAggregateInputType
+  _sum?: CentralAdminSumAggregateInputType
   _min?: CentralAdminMinAggregateInputType
   _max?: CentralAdminMaxAggregateInputType
 }
@@ -188,6 +226,7 @@ export type CentralAdminGroupByOutputType = {
   email: string
   passwordHash: string
   name: string
+  sessionVersion: number
   resetTokenHash: string | null
   resetTokenExpiresAt: Date | null
   resetRequestedAt: Date | null
@@ -196,6 +235,8 @@ export type CentralAdminGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   _count: CentralAdminCountAggregateOutputType | null
+  _avg: CentralAdminAvgAggregateOutputType | null
+  _sum: CentralAdminSumAggregateOutputType | null
   _min: CentralAdminMinAggregateOutputType | null
   _max: CentralAdminMaxAggregateOutputType | null
 }
@@ -223,6 +264,7 @@ export type CentralAdminWhereInput = {
   email?: Prisma.StringFilter<"CentralAdmin"> | string
   passwordHash?: Prisma.StringFilter<"CentralAdmin"> | string
   name?: Prisma.StringFilter<"CentralAdmin"> | string
+  sessionVersion?: Prisma.IntFilter<"CentralAdmin"> | number
   resetTokenHash?: Prisma.StringNullableFilter<"CentralAdmin"> | string | null
   resetTokenExpiresAt?: Prisma.DateTimeNullableFilter<"CentralAdmin"> | Date | string | null
   resetRequestedAt?: Prisma.DateTimeNullableFilter<"CentralAdmin"> | Date | string | null
@@ -237,6 +279,7 @@ export type CentralAdminOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -254,6 +297,7 @@ export type CentralAdminWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.CentralAdminWhereInput | Prisma.CentralAdminWhereInput[]
   passwordHash?: Prisma.StringFilter<"CentralAdmin"> | string
   name?: Prisma.StringFilter<"CentralAdmin"> | string
+  sessionVersion?: Prisma.IntFilter<"CentralAdmin"> | number
   resetTokenHash?: Prisma.StringNullableFilter<"CentralAdmin"> | string | null
   resetTokenExpiresAt?: Prisma.DateTimeNullableFilter<"CentralAdmin"> | Date | string | null
   resetRequestedAt?: Prisma.DateTimeNullableFilter<"CentralAdmin"> | Date | string | null
@@ -268,6 +312,7 @@ export type CentralAdminOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -276,8 +321,10 @@ export type CentralAdminOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.CentralAdminCountOrderByAggregateInput
+  _avg?: Prisma.CentralAdminAvgOrderByAggregateInput
   _max?: Prisma.CentralAdminMaxOrderByAggregateInput
   _min?: Prisma.CentralAdminMinOrderByAggregateInput
+  _sum?: Prisma.CentralAdminSumOrderByAggregateInput
 }
 
 export type CentralAdminScalarWhereWithAggregatesInput = {
@@ -288,6 +335,7 @@ export type CentralAdminScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"CentralAdmin"> | string
   passwordHash?: Prisma.StringWithAggregatesFilter<"CentralAdmin"> | string
   name?: Prisma.StringWithAggregatesFilter<"CentralAdmin"> | string
+  sessionVersion?: Prisma.IntWithAggregatesFilter<"CentralAdmin"> | number
   resetTokenHash?: Prisma.StringNullableWithAggregatesFilter<"CentralAdmin"> | string | null
   resetTokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CentralAdmin"> | Date | string | null
   resetRequestedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CentralAdmin"> | Date | string | null
@@ -302,6 +350,7 @@ export type CentralAdminCreateInput = {
   email: string
   passwordHash: string
   name: string
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -316,6 +365,7 @@ export type CentralAdminUncheckedCreateInput = {
   email: string
   passwordHash: string
   name: string
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -330,6 +380,7 @@ export type CentralAdminUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -344,6 +395,7 @@ export type CentralAdminUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -358,6 +410,7 @@ export type CentralAdminCreateManyInput = {
   email: string
   passwordHash: string
   name: string
+  sessionVersion?: number
   resetTokenHash?: string | null
   resetTokenExpiresAt?: Date | string | null
   resetRequestedAt?: Date | string | null
@@ -372,6 +425,7 @@ export type CentralAdminUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -386,6 +440,7 @@ export type CentralAdminUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
   resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -400,6 +455,7 @@ export type CentralAdminCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrder
@@ -409,11 +465,16 @@ export type CentralAdminCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type CentralAdminAvgOrderByAggregateInput = {
+  sessionVersion?: Prisma.SortOrder
+}
+
 export type CentralAdminMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrder
@@ -428,6 +489,7 @@ export type CentralAdminMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  sessionVersion?: Prisma.SortOrder
   resetTokenHash?: Prisma.SortOrder
   resetTokenExpiresAt?: Prisma.SortOrder
   resetRequestedAt?: Prisma.SortOrder
@@ -437,6 +499,10 @@ export type CentralAdminMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type CentralAdminSumOrderByAggregateInput = {
+  sessionVersion?: Prisma.SortOrder
+}
+
 
 
 export type CentralAdminSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -444,6 +510,7 @@ export type CentralAdminSelect<ExtArgs extends runtime.Types.Extensions.Internal
   email?: boolean
   passwordHash?: boolean
   name?: boolean
+  sessionVersion?: boolean
   resetTokenHash?: boolean
   resetTokenExpiresAt?: boolean
   resetRequestedAt?: boolean
@@ -458,6 +525,7 @@ export type CentralAdminSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   email?: boolean
   passwordHash?: boolean
   name?: boolean
+  sessionVersion?: boolean
   resetTokenHash?: boolean
   resetTokenExpiresAt?: boolean
   resetRequestedAt?: boolean
@@ -472,6 +540,7 @@ export type CentralAdminSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   email?: boolean
   passwordHash?: boolean
   name?: boolean
+  sessionVersion?: boolean
   resetTokenHash?: boolean
   resetTokenExpiresAt?: boolean
   resetRequestedAt?: boolean
@@ -486,6 +555,7 @@ export type CentralAdminSelectScalar = {
   email?: boolean
   passwordHash?: boolean
   name?: boolean
+  sessionVersion?: boolean
   resetTokenHash?: boolean
   resetTokenExpiresAt?: boolean
   resetRequestedAt?: boolean
@@ -495,7 +565,7 @@ export type CentralAdminSelectScalar = {
   updatedAt?: boolean
 }
 
-export type CentralAdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "name" | "resetTokenHash" | "resetTokenExpiresAt" | "resetRequestedAt" | "passwordResetAt" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["centralAdmin"]>
+export type CentralAdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "name" | "sessionVersion" | "resetTokenHash" | "resetTokenExpiresAt" | "resetRequestedAt" | "passwordResetAt" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["centralAdmin"]>
 
 export type $CentralAdminPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "CentralAdmin"
@@ -505,6 +575,7 @@ export type $CentralAdminPayload<ExtArgs extends runtime.Types.Extensions.Intern
     email: string
     passwordHash: string
     name: string
+    sessionVersion: number
     resetTokenHash: string | null
     resetTokenExpiresAt: Date | null
     resetRequestedAt: Date | null
@@ -939,6 +1010,7 @@ export interface CentralAdminFieldRefs {
   readonly email: Prisma.FieldRef<"CentralAdmin", 'String'>
   readonly passwordHash: Prisma.FieldRef<"CentralAdmin", 'String'>
   readonly name: Prisma.FieldRef<"CentralAdmin", 'String'>
+  readonly sessionVersion: Prisma.FieldRef<"CentralAdmin", 'Int'>
   readonly resetTokenHash: Prisma.FieldRef<"CentralAdmin", 'String'>
   readonly resetTokenExpiresAt: Prisma.FieldRef<"CentralAdmin", 'DateTime'>
   readonly resetRequestedAt: Prisma.FieldRef<"CentralAdmin", 'DateTime'>

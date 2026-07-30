@@ -36,12 +36,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const resObj = exceptionResponse as Record<string, any>;
       message = resObj.message || message;
       errors = resObj.errors || (Array.isArray(resObj.message) ? resObj.message : null);
-    } else if (exception instanceof Error) {
-      message = exception.message;
     }
 
+    const logMessage = exception instanceof Error ? exception.message : String(message);
     this.logger.error(
-      `HTTP ${status} Error on ${request.method} ${request.url}: ${message}`,
+      `HTTP ${status} Error on ${request.method} ${request.url}: ${logMessage}`,
       exception instanceof Error ? exception.stack : '',
     );
 

@@ -7,12 +7,14 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { CentralPrismaService } from '../database/central-prisma.service';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly jwtService: JwtService,
+    private readonly centralPrisma: CentralPrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -32,6 +34,22 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync(token);
+      const principal = payload.isSuperAdmin
+        ? await (this.centralPrisma as any).centralAdmin.findUnique({
+            where: { id: payload.sub },
+            select: { sessionVersion: true },
+          })
+        : await (this.centralPrisma as any).companyUser.findUnique({
+            where: { id: payload.sub },
+            select: { isActive: true, deletedAt: true, sessionVersion: true },
+          });
+      if (
+        !principal
+        || (!payload.isSuperAdmin && (!principal.isActive || principal.deletedAt))
+        || Number(principal.sessionVersion || 0) !== Number(payload.sessionVersion || 0)
+      ) {
+        throw new UnauthorizedException('The session has been revoked');
+      }
       request.user = { ...payload, id: payload.sub };
       return true;
     } catch {

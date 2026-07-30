@@ -446,7 +446,7 @@ export class ConstructionService {
     const [workers, workerTypes, expenses, ledger, expenseTotals] = await Promise.all([
       tenantDb.staff.findMany({
         where: { deletedAt: null, department: 'CONSTRUCTION' },
-        include: { workerType: true, assignedProjects: true },
+        include: { workerType: true, assignedProject: true },
         orderBy: { firstName: 'asc' },
       }),
       this.listWorkerTypes(tenantDb),

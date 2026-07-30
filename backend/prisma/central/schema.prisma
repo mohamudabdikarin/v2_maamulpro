@@ -88,6 +88,8 @@ model Company {
   subscriptions TenantSubscription[]
   invoices      Invoice[]
 
+  @@index([status, createdAt])
+  @@index([subscriptionStatus, subscriptionExpiresAt])
   @@map("tenants")
 }
 
@@ -114,6 +116,8 @@ model SubscriptionTransaction {
 
   @@index([companyId])
   @@index([newStatus])
+  @@index([companyId, createdAt])
+  @@index([createdAt])
   @@map("subscription_transactions")
 }
 
@@ -130,6 +134,7 @@ model CompanyUser {
   companyId    String    @map("company_id")
   role         String    @default("STAFF")
   isActive     Boolean   @default(true) @map("is_active")
+  sessionVersion Int     @default(0) @map("session_version")
 
   resetTokenHash      String?   @map("reset_token_hash")
   resetTokenExpiresAt DateTime? @map("reset_token_expires_at")
@@ -158,6 +163,7 @@ model CentralAdmin {
   email        String   @unique
   passwordHash String   @map("password_hash")
   name         String
+  sessionVersion Int    @default(0) @map("session_version")
 
   resetTokenHash      String?   @map("reset_token_hash")
   resetTokenExpiresAt DateTime? @map("reset_token_expires_at")
@@ -205,6 +211,7 @@ model EmailVerification {
   @@unique([email, context])
   @@index([email])
   @@index([expiresAt])
+  @@index([email, context, status, createdAt])
   @@map("email_verifications")
 }
 
@@ -273,6 +280,7 @@ model TenantSubscription {
 
   @@index([companyId])
   @@index([status])
+  @@index([status, expiresAt])
   @@map("tenant_subscriptions")
 }
 
@@ -303,6 +311,7 @@ model Invoice {
   @@index([companyId])
   @@index([status])
   @@index([expiresAt])
+  @@index([status, updatedAt])
   @@map("invoices")
 }
 

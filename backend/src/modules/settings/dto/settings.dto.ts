@@ -3,9 +3,13 @@ import {
   IsIn,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
-  MinLength,
 } from 'class-validator';
+import {
+  STRONG_PASSWORD_MESSAGE,
+  STRONG_PASSWORD_PATTERN,
+} from '../../../common/security/password-policy';
 
 export class UpdateCompanySettingsDto {
   @IsOptional() @IsString() @MaxLength(160) companyName?: string;
@@ -24,7 +28,9 @@ export class UpdateProfileDto {
 
 export class ChangePasswordDto {
   @IsString() currentPassword: string;
-  @IsString() @MinLength(12) newPassword: string;
+  @IsString()
+  @Matches(STRONG_PASSWORD_PATTERN, { message: STRONG_PASSWORD_MESSAGE })
+  newPassword: string;
 }
 
 export class UpdateLanguageDto {

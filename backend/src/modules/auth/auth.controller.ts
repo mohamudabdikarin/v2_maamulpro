@@ -51,4 +51,10 @@ export class AuthController {
   currentSession(@CurrentUser() user: any) {
     return this.authService.currentSession(user);
   }
+
+  @Post('auth/logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@CurrentUser() user: any) {
+    return this.authService.logout(user);
+  }
 }

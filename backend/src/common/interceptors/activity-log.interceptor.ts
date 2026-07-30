@@ -19,22 +19,50 @@ export class ActivityLogInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
-        next: () => {
-          const segments = request.path.split('/').filter(Boolean);
-          const entity = segments[segments.length - 2] || segments.at(-1) || 'unknown';
+        next: (result: any) => {
+          const segments = request.path
+            .split('/')
+            .filter((segment: string) => segment && segment !== 'api');
           const entityId = request.params?.id || request.params?.code || null;
+          const entity = (
+            entityId ? segments[segments.length - 2] : segments.at(-1)
+          ) || 'unknown';
+          const action = ({
+            POST: 'CREATE',
+            PUT: 'UPDATE',
+            PATCH: 'UPDATE',
+            DELETE: 'DELETE',
+          } as Record<string, string>)[request.method] || request.method;
+          const row = result?.data || result;
+          const displayName = [
+            row?.name,
+            row?.title,
+            row?.reference,
+            request.body?.name,
+            request.body?.title,
+            request.body?.reference,
+          ].find((value) => typeof value === 'string' && value.trim());
+          const sensitiveFields = /password|secret|token|code|dburl/i;
+          const changedFields = Object.keys(request.body || {})
+            .filter((field) => !sensitiveFields.test(field))
+            .map((field) => field.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase());
+          const entityLabel = entity
+            .replace(/[-_]/g, ' ')
+            .replace(/\b\w/g, (letter: string) => letter.toUpperCase());
+          const details = [
+            `${action.charAt(0)}${action.slice(1).toLowerCase()} ${entityLabel}`,
+            displayName ? `"${displayName}"` : '',
+            changedFields.length ? `Fields: ${changedFields.join(', ')}` : '',
+          ].filter(Boolean).join(' · ');
           void request.tenantDb.activityLog
             .create({
               data: {
                 userId: request.user.id,
-                action: request.method,
+                action,
                 entity,
                 entityId,
                 resource: request.path,
-                details: JSON.stringify({
-                  params: request.params,
-                  query: request.query,
-                }),
+                details,
                 ipAddress: request.ip,
                 deviceInfo: request.headers['user-agent'],
               },

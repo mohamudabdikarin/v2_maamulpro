@@ -4,6 +4,7 @@ import {
   HttpException,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import { TenantConnectionManager } from '../../common/database/tenant-connection.manager';
@@ -13,11 +14,20 @@ import {
   NeonTenantDatabase,
 } from '../../common/database/neon-management.service';
 import { protectDatabaseUrl, revealDatabaseUrl } from '../../common/database/database-credentials';
-import { isNeonDatabaseUrl } from '../../common/database/database-url';
+import { getDatabaseConnectionPair, isNeonDatabaseUrl } from '../../common/database/database-url';
 import { CreateCompanyDto } from './superadmin.dto';
 import * as argon2 from 'argon2';
-import { normalizeLimit, normalizePlanFeatures } from '../../common/subscriptions/entitlement-policy';
 import { SubscriptionLifecycleService } from '../../common/subscriptions/subscription-lifecycle.service';
+import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
+import { syncPermissionsToDb } from '../../common/database/rbac-sync';
+import { ResendEmailService } from '../../common/email/resend-email.service';
+import { randomBytes, randomInt } from 'crypto';
+import {
+  EnterpriseModuleConfiguration,
+  ENTERPRISE_CONFIG_KEY,
+  parseEnterpriseModuleConfiguration,
+} from '../../common/database/enterprise-config';
+import { assertStrongPassword } from '../../common/security/password-policy';
 
 @Injectable()
 export class SuperAdminService {
@@ -27,6 +37,8 @@ export class SuperAdminService {
     private readonly tenantProvisioning: TenantProvisioningService,
     private readonly neonManagement: NeonManagementService,
     private readonly subscriptions: SubscriptionLifecycleService,
+    private readonly entitlements: SubscriptionEntitlementService,
+    private readonly email: ResendEmailService,
   ) {}
 
   private get central(): any {
@@ -42,7 +54,7 @@ export class SuperAdminService {
     return { ...account, role: 'SUPER_ADMIN' };
   }
 
-  async updateAccountEmail(adminId: string, email: string, currentPassword: string) {
+  async sendAccountEmailVerification(adminId: string, email: string, currentPassword: string) {
     const normalized = String(email || '').trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) throw new BadRequestException('A valid email address is required');
     const account = await this.central.centralAdmin.findUnique({ where: { id: adminId } });
@@ -51,19 +63,72 @@ export class SuperAdminService {
     }
     const duplicate = await this.central.centralAdmin.findFirst({ where: { email: normalized, NOT: { id: adminId } } });
     if (duplicate) throw new ConflictException('Email address is already in use');
-    return this.central.centralAdmin.update({ where: { id: adminId }, data: { email: normalized }, select: { id: true, email: true, name: true } });
+    const code = String(randomInt(100000, 1000000));
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await this.central.emailVerification.upsert({
+      where: { email_context: { email: normalized, context: 'EMAIL_CHANGE' } },
+      create: { email: normalized, context: 'EMAIL_CHANGE', hashedCode: await argon2.hash(code), expiresAt },
+      update: { hashedCode: await argon2.hash(code), expiresAt, status: 'PENDING', attempts: 0, verifiedAt: null },
+    });
+    const delivery = await this.email.send({
+      to: [normalized],
+      subject: 'MaamulPro administrator email verification code',
+      text: `Your MaamulPro administrator email verification code is ${code}. It expires in 10 minutes.`,
+    });
+    if (!delivery.sent) {
+      await this.central.emailVerification.updateMany({
+        where: { email: normalized, context: 'EMAIL_CHANGE', status: 'PENDING' },
+        data: { status: 'FAILED' },
+      });
+      throw new ServiceUnavailableException(
+        'Verification email could not be delivered. Please try again later.',
+      );
+    }
+    return { sent: true, expiresAt };
+  }
+
+  async updateAccountEmail(adminId: string, email: string, currentPassword: string, verificationCode: string) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) throw new BadRequestException('A valid email address is required');
+    const account = await this.central.centralAdmin.findUnique({ where: { id: adminId } });
+    if (!account || !(await argon2.verify(account.passwordHash, currentPassword || ''))) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+    const duplicate = await this.central.centralAdmin.findFirst({ where: { email: normalized, NOT: { id: adminId } } });
+    if (duplicate) throw new ConflictException('Email address is already in use');
+    const verification = await this.central.emailVerification.findUnique({
+      where: { email_context: { email: normalized, context: 'EMAIL_CHANGE' } },
+    });
+    if (!verification || verification.status !== 'PENDING' || verification.expiresAt < new Date()) {
+      throw new BadRequestException('Email verification code is invalid or expired');
+    }
+    if (!(await argon2.verify(verification.hashedCode, String(verificationCode || '')))) {
+      await this.central.emailVerification.update({ where: { id: verification.id }, data: { attempts: { increment: 1 } } });
+      throw new BadRequestException('Email verification code is incorrect');
+    }
+    const updated = await this.central.$transaction(async (tx: any) => {
+      const row = await tx.centralAdmin.update({ where: { id: adminId }, data: { email: normalized }, select: { id: true, email: true, name: true } });
+      await tx.emailVerification.update({ where: { id: verification.id }, data: { status: 'VERIFIED', verifiedAt: new Date() } });
+      return row;
+    });
+    return updated;
   }
 
   async updateAccountPassword(adminId: string, currentPassword: string, newPassword: string) {
-    if (String(newPassword || '').length < 10 || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
-      throw new BadRequestException('Password must have at least 10 characters, an uppercase letter, a number and a special character');
-    }
+    assertStrongPassword(newPassword);
     const account = await this.central.centralAdmin.findUnique({ where: { id: adminId } });
     if (!account || !(await argon2.verify(account.passwordHash, currentPassword || ''))) {
       throw new BadRequestException('Current password is incorrect');
     }
     if (await argon2.verify(account.passwordHash, newPassword)) throw new BadRequestException('New password must be different');
-    await this.central.centralAdmin.update({ where: { id: adminId }, data: { passwordHash: await argon2.hash(newPassword), passwordResetAt: new Date() } });
+    await this.central.centralAdmin.update({
+      where: { id: adminId },
+      data: {
+        passwordHash: await argon2.hash(newPassword),
+        passwordResetAt: new Date(),
+        sessionVersion: { increment: 1 },
+      },
+    });
     return { updated: true };
   }
 
@@ -75,9 +140,87 @@ export class SuperAdminService {
     return this.neonManagement.status();
   }
 
+  private moduleMode(modules: { construction: boolean; realEstate: boolean; materials: boolean }) {
+    if (modules.construction && modules.realEstate && modules.materials) return 'ENTERPRISE';
+    if (modules.construction && modules.realEstate) return 'HYBRID';
+    if (modules.construction && modules.materials) return 'CONSTRUCTION_MATERIAL';
+    if (modules.realEstate && modules.materials) return 'REAL_ESTATE_MATERIAL';
+    if (modules.construction) return 'CONSTRUCTION_ONLY';
+    if (modules.materials) return 'MATERIAL_MANAGEMENT_ONLY';
+    return 'REAL_ESTATE_ONLY';
+  }
+
+  private async synchronizeTenantConfiguration(company: any, runtimeUrl?: string) {
+    const tenantDb = this.tenantManager.getTenantDb(runtimeUrl || revealDatabaseUrl(company.dbUrl));
+    const moduleValues = {
+      construction: Boolean(company.constructionEnabled),
+      real_estate: Boolean(company.realEstateEnabled),
+      material_management: Boolean(company.materialManagementEnabled),
+    };
+    const values = [
+      ['company_name', company.name],
+      ['company_slug', company.subdomain],
+      ['company_type', company.companyType || 'general'],
+      ['construction_enabled', String(moduleValues.construction)],
+      ['real_estate_enabled', String(moduleValues.real_estate)],
+      ['material_management_enabled', String(moduleValues.material_management)],
+      ['modules_enabled', Object.entries(moduleValues).filter(([, enabled]) => enabled).map(([key]) => key).join(',')],
+    ];
+    for (const [key, value] of values) {
+      await tenantDb.systemConfig.upsert({ where: { key }, update: { value }, create: { key, value } });
+    }
+    await tenantDb.systemConfig.upsert({
+      where: { key: ENTERPRISE_CONFIG_KEY },
+      update: {},
+      create: {
+        key: ENTERPRISE_CONFIG_KEY,
+        value: JSON.stringify(parseEnterpriseModuleConfiguration(null)),
+      },
+    });
+    return tenantDb;
+  }
+
+  private async seedTenantDefaults(company: any, ownerId: string, runtimeUrl?: string) {
+    const tenantDb = await this.synchronizeTenantConfiguration(company, runtimeUrl);
+    const [firstName, ...rest] = String(company.adminName || '').trim().split(/\s+/);
+    await tenantDb.staff.upsert({
+      where: { userId: ownerId },
+      update: { firstName: firstName || company.adminName, lastName: rest.join(' ') },
+      create: {
+        userId: ownerId,
+        firstName: firstName || company.adminName,
+        lastName: rest.join(' '),
+        department: 'GENERAL',
+        position: 'Company Owner',
+      },
+    });
+    const categories = [
+      ['Salary', '#3b82f6'], ['Material', '#f59e0b'], ['Client Payment', '#10b981'],
+      ['Consulting', '#8b5cf6'], ['Rent', '#ef4444'], ['Utilities', '#06b6d4'],
+      ['Equipment', '#f97316'], ['Other', '#6b7280'],
+    ];
+    for (const [name, color] of categories) {
+      await tenantDb.category.upsert({ where: { name }, update: {}, create: { name, color } });
+    }
+    const setupLog = await tenantDb.activityLog.findFirst({ where: { action: 'company_setup_completed', entity: 'company_setup' } });
+    if (!setupLog) {
+      await tenantDb.activityLog.create({
+        data: { userId: ownerId, action: 'company_setup_completed', entity: 'company_setup', details: `Initial setup via platform administration for ${company.name}` },
+      });
+    }
+  }
+
   async createCompany(data: CreateCompanyDto, adminId?: string) {
     const subdomain = data.subdomain.trim().toLowerCase();
     const adminEmail = data.adminEmail.trim().toLowerCase();
+    const modules = {
+      construction: Boolean(data.constructionEnabled),
+      realEstate: Boolean(data.realEstateEnabled),
+      materials: Boolean(data.materialManagementEnabled),
+    };
+    if (!modules.construction && !modules.realEstate && !modules.materials) {
+      throw new BadRequestException('Select at least one tenant module during onboarding');
+    }
     const duplicate = await this.central.company.findFirst({
       where: {
         OR: [{ subdomain }, { adminEmail }],
@@ -86,6 +229,25 @@ export class SuperAdminService {
     if (duplicate) {
       throw new ConflictException('The subdomain or administrator email is already in use');
     }
+    const onboardingVerification = await this.central.emailVerification.findUnique({
+      where: {
+        email_context: {
+          email: adminEmail,
+          context: 'COMPANY_ONBOARDING',
+        },
+      },
+    });
+    if (
+      !onboardingVerification
+      || onboardingVerification.status !== 'VERIFIED'
+      || !onboardingVerification.verifiedAt
+      || onboardingVerification.expiresAt < new Date()
+    ) {
+      throw new BadRequestException(
+        'Verify the company administrator email before creating the company',
+      );
+    }
+    assertStrongPassword(data.adminPassword);
 
     let neonDatabase: NeonTenantDatabase | undefined;
     let companyId: string | undefined;
@@ -106,9 +268,15 @@ export class SuperAdminService {
             adminEmail,
             dbUrl: protectedRuntimeUrl,
             companyType: data.companyType?.trim() || null,
-            constructionEnabled: data.constructionEnabled ?? false,
-            realEstateEnabled: data.realEstateEnabled ?? false,
-            materialManagementEnabled: data.materialManagementEnabled ?? false,
+            mode: this.moduleMode(modules),
+            constructionEnabled: modules.construction,
+            realEstateEnabled: modules.realEstate,
+            materialManagementEnabled: modules.materials,
+            logoUrl: (data as any).logoUrl?.trim() || null,
+            phone: (data as any).phone?.trim() || null,
+            address: (data as any).address?.trim() || null,
+            description: (data as any).description?.trim() || null,
+            entitlements: { tenantModules: modules },
           },
         });
         await tx.companyUser.create({
@@ -135,16 +303,36 @@ export class SuperAdminService {
         },
       });
 
-      if (data.planId) {
-        await this.subscriptions.assignSubscription(
+      await this.seedTenantDefaults(company, companyUserId, connections.runtimeUrl);
+
+      if (data.subscriptionAmount !== undefined && data.subscriptionTermMonths) {
+        await this.configureCompanySubscription(
           company.id,
-          data.planId,
-          data.billingCycle || 'MONTHLY',
+          {
+            amount: data.subscriptionAmount,
+            termDurationMonths: data.subscriptionTermMonths,
+            autoRecur: data.autoRecur,
+            notes: 'Initial subscription configured during company onboarding',
+          },
           adminId,
         );
       }
 
-      return await this.getCompanyById(company.id);
+      const createdCompany = await this.getCompanyById(company.id);
+      await this.central.emailVerification.update({
+        where: { id: onboardingVerification.id },
+        data: { status: 'EXPIRED' },
+      });
+      return {
+        ...createdCompany,
+        onboarding: {
+          adminEmail,
+          dbName: `maamulpro_${subdomain.replace(/[^a-z0-9]/g, '_')}`,
+          loginUrl: `${String(process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '')}/sign-in?tenant=${encodeURIComponent(subdomain)}`,
+          modulesEnabled: Object.entries(modules).filter(([, enabled]) => enabled).map(([key]) => key),
+          emailVerified: true,
+        },
+      };
     } catch (error) {
       if (companyId) {
         await this.central.company.delete({ where: { id: companyId } }).catch(() => undefined);
@@ -155,6 +343,97 @@ export class SuperAdminService {
         'Company onboarding failed; provisioned records were rolled back',
       );
     }
+  }
+
+  async checkCompanyEmailAvailability(email: string) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+      throw new BadRequestException('Enter a valid email address');
+    }
+    const [company, user, admin] = await Promise.all([
+      this.central.company.findFirst({ where: { adminEmail: normalized } }),
+      this.central.companyUser.findFirst({ where: { email: normalized } }),
+      this.central.centralAdmin.findFirst({ where: { email: normalized } }),
+    ]);
+    return {
+      available: !company && !user && !admin,
+      ...((company || user || admin) ? { error: 'This email is already associated with an existing account.' } : {}),
+    };
+  }
+
+  async sendCompanyOnboardingVerification(email: string) {
+    const availability = await this.checkCompanyEmailAvailability(email);
+    if (!availability.available) throw new ConflictException(availability.error);
+    const normalized = email.trim().toLowerCase();
+    const existing = await this.central.emailVerification.findUnique({
+      where: { email_context: { email: normalized, context: 'COMPANY_ONBOARDING' } },
+    });
+    if (existing && Date.now() - new Date(existing.updatedAt).getTime() < 60_000) {
+      const cooldownRemaining = Math.ceil((60_000 - (Date.now() - new Date(existing.updatedAt).getTime())) / 1000);
+      throw new BadRequestException(`Please wait ${cooldownRemaining} seconds before requesting another code`);
+    }
+    const code = String(randomInt(100000, 1000000));
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await this.central.emailVerification.upsert({
+      where: { email_context: { email: normalized, context: 'COMPANY_ONBOARDING' } },
+      create: {
+        email: normalized,
+        context: 'COMPANY_ONBOARDING',
+        hashedCode: await argon2.hash(code),
+        expiresAt,
+      },
+      update: {
+        hashedCode: await argon2.hash(code),
+        expiresAt,
+        status: 'PENDING',
+        attempts: 0,
+        verifiedAt: null,
+      },
+    });
+    const delivery = await this.email.send({
+      to: [normalized],
+      subject: 'MaamulPro company onboarding verification code',
+      text: `Your MaamulPro company onboarding verification code is ${code}. It expires in 10 minutes.`,
+    });
+    if (!delivery.sent) {
+      await this.central.emailVerification.updateMany({
+        where: { email: normalized, context: 'COMPANY_ONBOARDING', status: 'PENDING' },
+        data: { status: 'FAILED' },
+      });
+      throw new ServiceUnavailableException(
+        'Verification email could not be delivered. Please try again later.',
+      );
+    }
+    return { sent: true, expiresAt, cooldownSeconds: 60 };
+  }
+
+  async verifyCompanyOnboardingEmail(email: string, code: string) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!/^\d{6}$/.test(String(code || ''))) {
+      throw new BadRequestException('Verification code must contain 6 digits');
+    }
+    const verification = await this.central.emailVerification.findUnique({
+      where: { email_context: { email: normalized, context: 'COMPANY_ONBOARDING' } },
+    });
+    if (!verification || verification.status !== 'PENDING' || verification.expiresAt < new Date()) {
+      throw new BadRequestException('Verification code is invalid or expired');
+    }
+    if (verification.attempts >= 5) {
+      await this.central.emailVerification.update({ where: { id: verification.id }, data: { status: 'FAILED' } });
+      throw new BadRequestException('Too many verification attempts; request a new code');
+    }
+    if (!(await argon2.verify(verification.hashedCode, code))) {
+      await this.central.emailVerification.update({
+        where: { id: verification.id },
+        data: { attempts: { increment: 1 } },
+      });
+      throw new BadRequestException('Incorrect verification code');
+    }
+    await this.central.emailVerification.update({
+      where: { id: verification.id },
+      data: { status: 'VERIFIED', verifiedAt: new Date() },
+    });
+    return { verified: true };
   }
 
   async getAllCompanies(query?: { search?: string; status?: string; page?: number; pageSize?: number }) {
@@ -256,7 +535,20 @@ export class SuperAdminService {
   }
 
   async updateCompanyStatus(id: string, status: 'ACTIVE' | 'SUSPENDED' | 'PENDING_SETUP') {
-    await this.getCompanyById(id);
+    const current = await this.central.company.findUnique({ where: { id } });
+    if (!current) throw new NotFoundException(`Company with ID '${id}' not found`);
+    if (status === 'ACTIVE') {
+      try {
+        const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(current.dbUrl));
+        const [owner, companyNameConfig] = await Promise.all([
+          tenantDb.user.findFirst({ where: { email: current.adminEmail.toLowerCase(), deletedAt: null } }),
+          tenantDb.systemConfig.findUnique({ where: { key: 'company_name' } }),
+        ]);
+        if (!owner || !companyNameConfig) throw new Error('Tenant setup is incomplete');
+      } catch {
+        throw new BadRequestException('Company setup is incomplete. Tenant schema, owner or configuration records are not ready.');
+      }
+    }
 
     const company = await this.central.company.update({
       where: { id },
@@ -272,152 +564,310 @@ export class SuperAdminService {
     id: string,
     modules: { constructionEnabled?: boolean; realEstateEnabled?: boolean; materialManagementEnabled?: boolean },
   ) {
-    const activeSubscription = await this.central.tenantSubscription.findFirst({
-      where: { companyId: id, status: { in: ['ACTIVE', 'SUSPENDED'] } },
-    });
-    if (activeSubscription) {
-      throw new BadRequestException(
-        'Workspace access is managed by the active subscription plan. Change the plan instead.',
-      );
+    const current = await this.central.company.findUnique({ where: { id } });
+    if (!current) throw new NotFoundException(`Company with ID '${id}' not found`);
+    if (current.status !== 'ACTIVE') {
+      throw new BadRequestException('Activate the company before changing its modules');
     }
+    const configured = {
+      construction: modules.constructionEnabled ?? this.entitlements.tenantModulesFromCompany(current).construction,
+      realEstate: modules.realEstateEnabled ?? this.entitlements.tenantModulesFromCompany(current).realEstate,
+      materials: modules.materialManagementEnabled ?? this.entitlements.tenantModulesFromCompany(current).materials,
+    };
+    if (!configured.construction && !configured.realEstate && !configured.materials) {
+      throw new BadRequestException('At least one tenant module must remain enabled');
+    }
+    const entitlementData = {
+      entitlements: { ...(current.entitlements as any), tenantModules: configured },
+      constructionEnabled: configured.construction,
+      realEstateEnabled: configured.realEstate,
+      materialManagementEnabled: configured.materials,
+    };
     const company = await this.central.company.update({
       where: { id },
       data: {
-        ...modules,
+        ...entitlementData,
+        mode: this.moduleMode(configured),
         version: { increment: 1 },
       },
     });
+    await this.synchronizeTenantConfiguration(company).catch(() => undefined);
     return this.sanitizeCompany(company);
   }
 
-  // -----------------------------------------------------------
-  // Customizable Subscription Plans
-  // -----------------------------------------------------------
-
-  async getAllPlans() {
-    return this.central.subscriptionPlan.findMany({
-      orderBy: { priceMonthly: 'asc' },
-    });
+  async syncCompanyRbac(id: string) {
+    const company = await this.central.company.findUnique({ where: { id } });
+    if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
+    const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+    return syncPermissionsToDb(tenantDb as any);
   }
 
-  async createPlan(data: {
-    key: string;
-    name: string;
-    description?: string;
-    priceMonthly: number;
-    priceYearly: number;
-    constructionMax?: number;
-    propertiesMax?: number;
-    usersMax?: number;
-    features?: any;
-    isActive?: boolean;
-  }) {
-    const key = String(data.key || '').trim().toLowerCase();
-    if (!/^[a-z0-9][a-z0-9_-]{1,49}$/.test(key)) {
-      throw new BadRequestException('Plan key must contain 2-50 lowercase letters, numbers, dashes or underscores');
-    }
-    const existing = await this.central.subscriptionPlan.findUnique({
-      where: { key },
+  async generateCompanyOwnerTemporaryPassword(id: string) {
+    const company = await this.central.company.findUnique({
+      where: { id },
+      include: { users: { where: { isActive: true, deletedAt: null }, orderBy: { createdAt: 'asc' } } },
     });
-
-    if (existing) {
-      throw new ConflictException(`Subscription plan key '${key}' already exists`);
-    }
-    this.validatePlanPrices(data.priceMonthly, data.priceYearly);
-    return this.central.subscriptionPlan.create({
+    if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
+    const owner = company.users.find((user: any) => user.email.toLowerCase() === company.adminEmail.toLowerCase())
+      || company.users.find((user: any) => ['COMPANY_OWNER', 'SUPER_ADMIN'].includes(user.role))
+      || company.users[0];
+    if (!owner) throw new NotFoundException('Company owner account was not found');
+    const temporaryPassword = `${randomBytes(6).toString('base64url')}A9!`;
+    const passwordHash = await argon2.hash(temporaryPassword);
+    const passwordResetAt = new Date();
+    const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+    await tenantDb.user.update({
+      where: { id: owner.id },
+      data: { passwordHash, passwordResetAt, deletedAt: null },
+    });
+    await this.central.companyUser.update({
+      where: { id: owner.id },
       data: {
-        key,
-        name: String(data.name || '').trim(),
-        description: data.description?.trim() || null,
-        priceMonthly: Number(data.priceMonthly),
-        priceYearly: Number(data.priceYearly),
-        constructionMax: normalizeLimit(data.constructionMax),
-        propertiesMax: normalizeLimit(data.propertiesMax),
-        usersMax: normalizeLimit(data.usersMax, 5),
-        features: normalizePlanFeatures(data.features),
-        isActive: data.isActive ?? true,
+        passwordHash,
+        passwordResetAt,
+        resetTokenHash: null,
+        resetTokenExpiresAt: null,
+        resetRequestedAt: null,
       },
     });
+    return { password: temporaryPassword, adminEmail: owner.email, passwordResetAt };
   }
 
-  async updatePlan(id: string, data: Partial<{
-    name: string;
-    description: string;
-    priceMonthly: number;
-    priceYearly: number;
-    constructionMax: number;
-    propertiesMax: number;
-    usersMax: number;
-    features: any;
-    isActive: boolean;
-  }>) {
-    if (data.priceMonthly !== undefined || data.priceYearly !== undefined) {
-      const current = await this.central.subscriptionPlan.findUnique({ where: { id } });
-      if (!current) throw new NotFoundException('Subscription plan not found');
-      this.validatePlanPrices(
-        data.priceMonthly ?? current.priceMonthly,
-        data.priceYearly ?? current.priceYearly,
-      );
+  async getCompanyEnterpriseConfiguration(id: string) {
+    const company = await this.central.company.findUnique({ where: { id } });
+    if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
+    const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+    const record = await tenantDb.systemConfig.findUnique({ where: { key: ENTERPRISE_CONFIG_KEY } });
+    return parseEnterpriseModuleConfiguration(record?.value);
+  }
+
+  async updateCompanyEnterpriseConfiguration(id: string, configuration: EnterpriseModuleConfiguration) {
+    const company = await this.central.company.findUnique({ where: { id } });
+    if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
+    if (!configuration || typeof configuration !== 'object') {
+      throw new BadRequestException('Enterprise configuration is required');
     }
-    const normalized: any = {
-      ...data,
-      ...(data.name !== undefined ? { name: data.name.trim() } : {}),
-      ...(data.description !== undefined ? { description: data.description.trim() || null } : {}),
-      ...(data.features !== undefined ? { features: normalizePlanFeatures(data.features) } : {}),
-      ...(data.constructionMax !== undefined ? { constructionMax: normalizeLimit(data.constructionMax) } : {}),
-      ...(data.propertiesMax !== undefined ? { propertiesMax: normalizeLimit(data.propertiesMax) } : {}),
-      ...(data.usersMax !== undefined ? { usersMax: normalizeLimit(data.usersMax) } : {}),
-    };
-    const plan = await this.central.subscriptionPlan.update({
-      where: { id },
-      data: normalized,
+    const normalized = parseEnterpriseModuleConfiguration(JSON.stringify(configuration));
+    normalized.workspaceControls.construction = Boolean(company.constructionEnabled)
+      && normalized.workspaceControls.construction !== false;
+    normalized.workspaceControls.real_estate = Boolean(company.realEstateEnabled)
+      && normalized.workspaceControls.real_estate !== false;
+    normalized.workspaceControls.material_management = Boolean(company.materialManagementEnabled)
+      && normalized.workspaceControls.material_management !== false;
+    const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+    await tenantDb.systemConfig.upsert({
+      where: { key: ENTERPRISE_CONFIG_KEY },
+      update: { value: JSON.stringify(normalized) },
+      create: { key: ENTERPRISE_CONFIG_KEY, value: JSON.stringify(normalized) },
     });
-    const synchronization = await this.subscriptions.syncPlanSubscribers(id);
-    return { ...plan, subscriberSynchronization: synchronization };
-  }
-
-  private validatePlanPrices(monthly: number, yearly: number) {
-    if (!Number.isFinite(Number(monthly)) || Number(monthly) < 0 ||
-        !Number.isFinite(Number(yearly)) || Number(yearly) < 0) {
-      throw new BadRequestException('Plan prices must be valid non-negative numbers');
-    }
+    const synchronization = await syncPermissionsToDb(tenantDb as any);
+    return { configuration: normalized, synchronization };
   }
 
   // -----------------------------------------------------------
   // Tenant Subscriptions & Invoicing
   // -----------------------------------------------------------
 
-  assignSubscription(
-    companyId: string,
-    planId: string,
-    billingCycle: 'MONTHLY' | 'YEARLY' = 'MONTHLY',
-    adminId?: string,
-  ) {
-    return this.subscriptions.assignSubscription(companyId, planId, billingCycle, adminId);
-  }
-
   markInvoicePaid(invoiceId: string, paymentMethod = 'MANUAL_BANK_TRANSFER', adminId?: string) {
     return this.subscriptions.markInvoicePaid(invoiceId, paymentMethod, adminId);
   }
 
+  async configureCompanySubscription(
+    companyId: string,
+    data: { amount: number; termDurationMonths: number; autoRecur?: boolean; notes?: string },
+    adminId?: string,
+  ) {
+    const company = await this.central.company.findUnique({ where: { id: companyId } });
+    if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
+    const amount = Number(data.amount);
+    const termDurationMonths = Number(data.termDurationMonths);
+    if (company.subscriptionStatus === 'ACTIVE' && company.accessGranted) {
+      await this.central.$transaction(async (tx: any) => {
+        await tx.company.update({
+          where: { id: companyId },
+          data: {
+            subscriptionAmount: amount,
+            termDurationMonths,
+            autoRecur: data.autoRecur ?? false,
+            version: { increment: 1 },
+          },
+        });
+        await tx.subscriptionTransaction.create({
+          data: {
+            companyId,
+            transactionType: 'UPDATE',
+            amount,
+            termDurationMonths,
+            previousStatus: company.subscriptionStatus,
+            newStatus: company.subscriptionStatus,
+            approvedBy: adminId,
+            notes: data.notes,
+          },
+        });
+      });
+      return this.getCompanyById(companyId);
+    }
+    const startAt = new Date();
+    const expiresAt = new Date(startAt);
+    expiresAt.setMonth(expiresAt.getMonth() + termDurationMonths);
+    const invoiceNumber = `INV-${startAt.toISOString().replace(/\D/g, '').slice(0, 14)}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    await this.central.$transaction(async (tx: any) => {
+      await tx.company.update({
+        where: { id: companyId },
+        data: {
+          subscriptionStatus: 'ACTIVE',
+          subscriptionAmount: amount,
+          termDurationMonths,
+          subscriptionStartAt: startAt,
+          subscriptionExpiresAt: expiresAt,
+          autoRecur: data.autoRecur ?? false,
+          accessGranted: true,
+          ...(company.status === 'PENDING_SETUP' ? { status: 'ACTIVE' } : {}),
+          version: { increment: 1 },
+        },
+      });
+      await tx.invoice.create({
+        data: {
+          invoiceNumber,
+          companyId,
+          amount,
+          kind: 'INITIAL',
+          status: 'PAID',
+          dueDate: startAt,
+          expiresAt,
+          periodStart: startAt,
+          periodEnd: expiresAt,
+          paidAt: startAt,
+          paymentMethod: 'MANUAL_PLATFORM_APPROVAL',
+          notes: data.notes || 'Subscription configured by platform administration',
+        },
+      });
+      await tx.subscriptionTransaction.create({
+        data: {
+          companyId,
+          transactionType: 'APPROVAL',
+          amount,
+          termDurationMonths,
+          previousStatus: company.subscriptionStatus,
+          newStatus: 'ACTIVE',
+          startAt,
+          expiresAt,
+          approvedBy: adminId,
+          notes: data.notes,
+        },
+      });
+    });
+    return this.getCompanyById(companyId);
+  }
+
   createRenewalInvoice(companyId: string, adminId?: string) {
-    return this.subscriptions.createRenewalInvoice(companyId, adminId);
+    return this.renewCompanySubscription(companyId, adminId);
   }
 
   suspendSubscription(companyId: string, adminId?: string, notes?: string) {
-    return this.subscriptions.suspendSubscription(companyId, adminId, notes);
+    return this.changeCompanySubscriptionStatus(companyId, 'SUSPENDED', false, 'SUSPENSION', adminId, notes);
   }
 
   resumeSubscription(companyId: string, adminId?: string, notes?: string) {
-    return this.subscriptions.resumeSubscription(companyId, adminId, notes);
+    return this.changeCompanySubscriptionStatus(companyId, 'ACTIVE', true, 'RESUMPTION', adminId, notes);
   }
 
   cancelSubscription(companyId: string, adminId?: string, notes?: string) {
-    return this.subscriptions.cancelSubscription(companyId, adminId, notes);
+    return this.changeCompanySubscriptionStatus(companyId, 'CANCELLED', false, 'CANCELLATION', adminId, notes);
   }
 
-  setSubscriptionAutoRenew(companyId: string, autoRenew: boolean, adminId?: string) {
-    return this.subscriptions.setAutoRenew(companyId, autoRenew, adminId);
+  async setSubscriptionAutoRenew(companyId: string, autoRenew: boolean, adminId?: string) {
+    const company = await this.central.company.findUnique({ where: { id: companyId } });
+    if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
+    await this.central.$transaction(async (tx: any) => {
+      await tx.company.update({
+        where: { id: companyId },
+        data: { autoRecur: autoRenew, version: { increment: 1 } },
+      });
+      await tx.subscriptionTransaction.create({
+        data: {
+          companyId,
+          transactionType: 'AUTO_RENEW_UPDATED',
+          previousStatus: company.subscriptionStatus,
+          newStatus: company.subscriptionStatus,
+          approvedBy: adminId,
+          notes: `Automatic renewal ${autoRenew ? 'enabled' : 'disabled'}`,
+        },
+      });
+    });
+    return { autoRenew };
+  }
+
+  private async renewCompanySubscription(companyId: string, adminId?: string, notes?: string) {
+    const company = await this.central.company.findUnique({ where: { id: companyId } });
+    if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
+    if (!company.termDurationMonths) throw new BadRequestException('No term duration is configured for this company');
+    const now = new Date();
+    const startAt = company.subscriptionExpiresAt && new Date(company.subscriptionExpiresAt) > now
+      ? new Date(company.subscriptionExpiresAt)
+      : now;
+    const expiresAt = new Date(startAt);
+    expiresAt.setMonth(expiresAt.getMonth() + company.termDurationMonths);
+    await this.central.$transaction(async (tx: any) => {
+      await tx.company.update({
+        where: { id: companyId },
+        data: {
+          subscriptionStatus: 'ACTIVE',
+          subscriptionStartAt: startAt,
+          subscriptionExpiresAt: expiresAt,
+          accessGranted: true,
+          status: 'ACTIVE',
+          version: { increment: 1 },
+        },
+      });
+      await tx.subscriptionTransaction.create({
+        data: {
+          companyId,
+          transactionType: 'RENEWAL',
+          amount: company.subscriptionAmount,
+          termDurationMonths: company.termDurationMonths,
+          previousStatus: company.subscriptionStatus,
+          newStatus: 'ACTIVE',
+          startAt,
+          expiresAt,
+          approvedBy: adminId,
+          notes,
+        },
+      });
+    });
+    return this.getCompanyById(companyId);
+  }
+
+  private async changeCompanySubscriptionStatus(
+    companyId: string,
+    status: 'ACTIVE' | 'SUSPENDED' | 'CANCELLED',
+    accessGranted: boolean,
+    transactionType: string,
+    adminId?: string,
+    notes?: string,
+  ) {
+    const company = await this.central.company.findUnique({ where: { id: companyId } });
+    if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
+    if (status === 'ACTIVE' && company.subscriptionExpiresAt && new Date(company.subscriptionExpiresAt) <= new Date()) {
+      throw new BadRequestException('Expired subscriptions must be renewed before access is restored');
+    }
+    await this.central.$transaction(async (tx: any) => {
+      await tx.company.update({
+        where: { id: companyId },
+        data: { subscriptionStatus: status, accessGranted, version: { increment: 1 } },
+      });
+      await tx.subscriptionTransaction.create({
+        data: {
+          companyId,
+          transactionType,
+          previousStatus: company.subscriptionStatus,
+          newStatus: status,
+          approvedBy: adminId,
+          notes,
+        },
+      });
+    });
+    return this.getCompanyById(companyId);
   }
 
   cancelInvoice(invoiceId: string, adminId?: string, notes?: string) {
@@ -475,6 +925,12 @@ export class SuperAdminService {
         where: { subscriptionStatus: 'ACTIVE', subscriptionExpiresAt: { gte: now, lte: new Date(now.getTime() + 7 * 86400000) } },
       }),
     ]);
+    const [pendingCompanies, suspendedCompanies, pendingSubscriptions, modeRows] = await Promise.all([
+      this.central.company.count({ where: { status: 'PENDING_SETUP' } }),
+      this.central.company.count({ where: { status: 'SUSPENDED' } }),
+      this.central.company.count({ where: { subscriptionStatus: 'PENDING' } }),
+      this.central.company.groupBy({ by: ['mode'], _count: { id: true } }),
+    ]);
 
     const months = Array.from({ length: 6 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - 5 + index, 1));
     const monthKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}`;
@@ -493,6 +949,9 @@ export class SuperAdminService {
     return {
       totalCompanies,
       activeCompanies,
+      pendingCompanies,
+      suspendedCompanies,
+      pendingSubscriptions,
       expiredCompanies,
       trialCompanies,
       totalUsers,
@@ -502,6 +961,12 @@ export class SuperAdminService {
       latestRegistrations,
       recentTransactions,
       subscriptionStatusDistribution: statusRows.map((row: any) => ({ status: row.subscriptionStatus, count: row._count.id })),
+      companyStatusDistribution: [
+        { status: 'ACTIVE', count: activeCompanies },
+        { status: 'PENDING_SETUP', count: pendingCompanies },
+        { status: 'SUSPENDED', count: suspendedCompanies },
+      ],
+      moduleDistribution: modeRows.map((row: any) => ({ mode: row.mode, count: row._count.id })),
       growthTrend: months.map((month) => ({ label: month.toLocaleString('en-US', { month: 'short' }), value: growthMap.get(monthKey(month)) || 0 })),
       revenueTrend: months.map((month) => ({ label: month.toLocaleString('en-US', { month: 'short' }), value: revenueMap.get(monthKey(month)) || 0 })),
       systemHealth: { database: 'OPERATIONAL', expiringSoon },
@@ -515,17 +980,17 @@ export class SuperAdminService {
       || data.realEstateEnabled !== undefined
       || data.materialManagementEnabled !== undefined;
     if (moduleChangeRequested) {
-      const managedSubscription = await this.central.tenantSubscription.findFirst({
-        where: { companyId: id, status: { in: ['ACTIVE', 'SUSPENDED'] } },
+      await this.updateCompanyModules(id, {
+        constructionEnabled: data.constructionEnabled,
+        realEstateEnabled: data.realEstateEnabled,
+        materialManagementEnabled: data.materialManagementEnabled,
       });
-      if (managedSubscription) {
-        const changed = (data.constructionEnabled !== undefined && data.constructionEnabled !== current.constructionEnabled)
-          || (data.realEstateEnabled !== undefined && data.realEstateEnabled !== current.realEstateEnabled)
-          || (data.materialManagementEnabled !== undefined && data.materialManagementEnabled !== current.materialManagementEnabled);
-        if (changed) {
-          throw new BadRequestException('Workspace access is controlled by the active subscription plan');
-        }
-      }
+      data = {
+        ...data,
+        constructionEnabled: undefined,
+        realEstateEnabled: undefined,
+        materialManagementEnabled: undefined,
+      };
     }
     const adminEmail = data.adminEmail?.trim().toLowerCase();
     if (adminEmail && adminEmail !== current.adminEmail) {
@@ -541,44 +1006,71 @@ export class SuperAdminService {
       ...(data.address !== undefined ? { address: data.address.trim() || null } : {}),
       ...(data.description !== undefined ? { description: data.description.trim() || null } : {}),
       ...(data.logoUrl !== undefined ? { logoUrl: data.logoUrl.trim() || null } : {}),
-      ...(data.constructionEnabled !== undefined ? { constructionEnabled: data.constructionEnabled } : {}),
-      ...(data.realEstateEnabled !== undefined ? { realEstateEnabled: data.realEstateEnabled } : {}),
-      ...(data.materialManagementEnabled !== undefined ? { materialManagementEnabled: data.materialManagementEnabled } : {}),
       version: { increment: 1 },
     };
-    const updated = await this.central.$transaction(async (tx: any) => {
-      if (adminEmail && current.users[0]) await tx.companyUser.update({ where: { id: current.users[0].id }, data: { email: adminEmail } });
-      return tx.company.update({ where: { id }, data: update });
-    });
-    let synchronizationWarning: string | undefined;
     if ((adminEmail || data.adminName !== undefined) && current.users[0]) {
       try {
         const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(current.dbUrl));
         await tenantDb.user.update({ where: { id: current.users[0].id }, data: { ...(adminEmail ? { email: adminEmail } : {}), ...(data.adminName !== undefined ? { name: data.adminName.trim() } : {}) } });
       } catch {
-        synchronizationWarning = 'The platform profile was saved, but the tenant owner account could not be synchronized. Retry after restoring the tenant database connection.';
+        throw new BadRequestException('The tenant owner account could not be updated. No platform identity changes were saved.');
       }
+    }
+    const updated = await this.central.$transaction(async (tx: any) => {
+      if (adminEmail && current.users[0]) await tx.companyUser.update({ where: { id: current.users[0].id }, data: { email: adminEmail } });
+      return tx.company.update({ where: { id }, data: update });
+    });
+    let synchronizationWarning: string | undefined;
+    try {
+      await this.synchronizeTenantConfiguration(updated);
+    } catch {
+      synchronizationWarning = synchronizationWarning || 'The platform profile was saved, but tenant configuration could not be synchronized. Retry after restoring the tenant database connection.';
     }
     return { ...(await this.getCompanyById(updated.id)), ...(synchronizationWarning ? { synchronizationWarning } : {}) };
   }
 
   async deleteCompany(id: string) {
-    const company = await this.central.company.findUnique({ where: { id }, select: { id: true, name: true, status: true } });
+    const company = await this.central.company.findUnique({ where: { id } });
     if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
-    if (company.status === 'ACTIVE') throw new BadRequestException('Suspend an active company before deleting its platform registry record');
+    const revealedUrl = revealDatabaseUrl(company.dbUrl);
+    await this.tenantManager.disconnectTenant(revealedUrl).catch(() => undefined);
+    const pair = getDatabaseConnectionPair(revealedUrl);
+    const databaseName = decodeURIComponent(new URL(pair.directUrl).pathname.replace(/^\/+/, ''));
+    let tenantDatabaseDeleted = false;
+    if (databaseName) {
+      await this.neonManagement.deleteCreatedDatabase({
+        ...pair,
+        databaseName,
+        createdByMaamulPro: true,
+      });
+      tenantDatabaseDeleted = true;
+    }
     await this.central.company.delete({ where: { id } });
-    return { deleted: true, id, name: company.name, tenantDatabaseRetained: true };
+    return { deleted: true, id, name: company.name, tenantDatabaseDeleted };
   }
 
   async getPlatformNotifications() {
     const now = new Date();
-    const [registrations, invoices, transactions, expiredCompanies, expiringCompanies] = await Promise.all([
+    const [registrations, invoices, transactions, expiredCompanies, expiringCompanies, passwordResetRequests] = await Promise.all([
       this.central.company.findMany({ take: 5, orderBy: { createdAt: 'desc' }, select: { id: true, name: true, createdAt: true } }),
       this.central.invoice.findMany({ where: { status: { in: ['UNPAID', 'OVERDUE', 'EXPIRED'] } }, take: 5, orderBy: { updatedAt: 'desc' }, include: { company: { select: { id: true, name: true } } } }),
       this.central.subscriptionTransaction.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { company: { select: { id: true, name: true } } } }),
       this.central.company.findMany({ where: { subscriptionStatus: 'EXPIRED' }, take: 5, orderBy: { subscriptionExpiresAt: 'desc' }, select: { id: true, name: true, subscriptionExpiresAt: true } }),
       this.central.company.findMany({ where: { subscriptionStatus: 'ACTIVE', subscriptionExpiresAt: { gte: now, lte: new Date(now.getTime() + 7 * 86400000) } }, take: 5, orderBy: { subscriptionExpiresAt: 'asc' }, select: { id: true, name: true, subscriptionExpiresAt: true } }),
+      this.central.emailVerification.findMany({
+        where: { context: 'PASSWORD_RESET', status: 'PENDING' },
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, email: true, createdAt: true, expiresAt: true },
+      }),
     ]);
+    const resetEmails = [...new Set(passwordResetRequests.map((request: any) => request.email))];
+    const resetCompanies = resetEmails.length
+      ? await this.central.company.findMany({ where: { adminEmail: { in: resetEmails } }, select: { id: true, name: true, adminEmail: true } })
+      : [];
+    const resetCompanyByEmail = new Map<string, { id: string; name: string; adminEmail: string }>(
+      resetCompanies.map((company: any) => [company.adminEmail.toLowerCase(), company]),
+    );
     const notifications = [
       ...registrations.map((row: any) => ({ id: `company-${row.id}`, category: 'REGISTRATION', title: 'New company registration', details: `${row.name} registered on the platform.`, createdAt: row.createdAt, companyId: row.id })),
       ...invoices.map((row: any) => ({
@@ -592,6 +1084,17 @@ export class SuperAdminService {
       ...transactions.map((row: any) => ({ id: `subscription-${row.id}`, category: 'SUBSCRIPTION', title: row.transactionType.replace(/_/g, ' '), details: `${row.company.name}: subscription status changed to ${row.newStatus}.`, createdAt: row.createdAt, companyId: row.companyId })),
       ...expiredCompanies.map((row: any) => ({ id: `expired-${row.id}`, category: 'EXPIRED_SUBSCRIPTION', title: 'Subscription expired', details: `${row.name}'s subscription has expired.`, createdAt: row.subscriptionExpiresAt || now, companyId: row.id })),
       ...expiringCompanies.map((row: any) => ({ id: `expiring-${row.id}`, category: 'SUBSCRIPTION_RENEWAL', title: 'Subscription expiring soon', details: `${row.name}'s subscription expires soon.`, createdAt: row.subscriptionExpiresAt || now, companyId: row.id })),
+      ...passwordResetRequests.map((request: any) => {
+        const company = resetCompanyByEmail.get(request.email.toLowerCase());
+        return company ? {
+          id: `password-reset-${request.id}`,
+          category: 'PASSWORD_RESET',
+          title: 'Admin password reset requested',
+          details: `${company.name}: a reset code was sent to ${company.adminEmail}.`,
+          createdAt: request.createdAt,
+          companyId: company.id,
+        } : null;
+      }).filter(Boolean),
     ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 12);
     return { notifications };
   }

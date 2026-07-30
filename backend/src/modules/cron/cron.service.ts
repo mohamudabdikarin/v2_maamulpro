@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import { TenantConnectionManager } from '../../common/database/tenant-connection.manager';
@@ -7,12 +7,14 @@ import { revealDatabaseUrl } from '../../common/database/database-credentials';
 import { ResendEmailService } from '../../common/email/resend-email.service';
 import { SubscriptionLifecycleService } from '../../common/subscriptions/subscription-lifecycle.service';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
+import { syncPermissionsToDb } from '../../common/database/rbac-sync';
 
 @Injectable()
-export class ScheduledJobsService {
+export class ScheduledJobsService implements OnApplicationBootstrap {
   private readonly logger = new Logger(ScheduledJobsService.name);
 
   private reportDeliveryRunning = false;
+  private rbacSyncRunning = false;
 
   constructor(
     private readonly centralPrisma: CentralPrismaService,
@@ -25,6 +27,39 @@ export class ScheduledJobsService {
 
   private get central(): any {
     return this.centralPrisma as any;
+  }
+
+  onApplicationBootstrap() {
+    void this.synchronizeTenantRbacRegistries();
+  }
+
+  @Cron('0 15 1 * * *')
+  async synchronizeTenantRbacRegistries() {
+    if (this.rbacSyncRunning) return;
+    this.rbacSyncRunning = true;
+    let synchronized = 0;
+    let failed = 0;
+    try {
+      const companies = await this.central.company.findMany({
+        where: { dbUrl: { not: '' } },
+        select: { id: true, name: true, dbUrl: true },
+      });
+      for (const company of companies) {
+        try {
+          const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+          await syncPermissionsToDb(tenantDb as any);
+          synchronized++;
+        } catch (error: any) {
+          failed++;
+          this.logger.error(`RBAC registry synchronization failed for '${company.name}' (${company.id}): ${error.message}`);
+        }
+      }
+      this.logger.log(`Tenant RBAC registries synchronized automatically: ${synchronized} succeeded, ${failed} failed`);
+    } catch (error: any) {
+      this.logger.error(`Automatic tenant RBAC synchronization failed: ${error.message}`, error.stack);
+    } finally {
+      this.rbacSyncRunning = false;
+    }
   }
 
   /**

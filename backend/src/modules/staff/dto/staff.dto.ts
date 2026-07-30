@@ -7,10 +7,14 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   Min,
-  MinLength,
 } from 'class-validator';
+import {
+  STRONG_PASSWORD_MESSAGE,
+  STRONG_PASSWORD_PATTERN,
+} from '../../../common/security/password-policy';
 
 export class CreateStaffDto {
   @IsString() @MaxLength(100) firstName: string;
@@ -28,7 +32,10 @@ export class CreateStaffDto {
   @IsOptional() @IsBoolean() createAccount?: boolean;
   @IsOptional() @IsEmail() email?: string;
   @IsOptional() @IsString() role?: string;
-  @IsOptional() @IsString() @MinLength(12) temporaryPassword?: string;
+  @IsOptional()
+  @IsString()
+  @Matches(STRONG_PASSWORD_PATTERN, { message: STRONG_PASSWORD_MESSAGE })
+  temporaryPassword?: string;
 }
 
 export class UpdateStaffDto {
@@ -49,7 +56,9 @@ export class UpdateStaffDto {
 export class StaffAccountDto {
   @IsEmail() email: string;
   @IsString() role: string;
-  @IsString() @MinLength(12) temporaryPassword: string;
+  @IsString()
+  @Matches(STRONG_PASSWORD_PATTERN, { message: STRONG_PASSWORD_MESSAGE })
+  temporaryPassword: string;
 }
 
 export class StaffEmailDto {
@@ -57,7 +66,9 @@ export class StaffEmailDto {
 }
 
 export class StaffPasswordDto {
-  @IsString() @MinLength(12) temporaryPassword: string;
+  @IsString()
+  @Matches(STRONG_PASSWORD_PATTERN, { message: STRONG_PASSWORD_MESSAGE })
+  temporaryPassword: string;
 }
 
 export class AccountStatusDto {
