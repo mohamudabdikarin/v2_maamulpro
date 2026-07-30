@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
-import { Modal } from '../components/maamulpro/PageKit';
+import { Field, FormActions, Modal } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 
 type Project = { id: string; name: string };
@@ -163,14 +163,14 @@ const WorkforceContractsPage = () => {
             </div>
         </div>}
         <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Edit contract' : 'Create contract'}><form className="grid gap-4 sm:grid-cols-2" onSubmit={saveContract}>
-            <div><label>Project</label><select className="form-select mt-1" required value={contractForm.projectId} onChange={(e) => setContractForm({ ...contractForm, projectId: e.target.value })}><option value="">Select project…</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></div>
-            <div><label>Title</label><input className="form-input mt-1" required value={contractForm.title} onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })} /></div>
-            <div><label>Original budget</label><input className="form-input mt-1" type="number" min="0" step="0.01" required value={contractForm.originalBudget} onChange={(e) => setContractForm({ ...contractForm, originalBudget: e.target.value })} /></div>
-            <div><label>Start date</label><input className="form-input mt-1" type="date" value={contractForm.startDate} onChange={(e) => setContractForm({ ...contractForm, startDate: e.target.value })} /></div>
-            <div><label>End date</label><input className="form-input mt-1" type="date" value={contractForm.endDate} onChange={(e) => setContractForm({ ...contractForm, endDate: e.target.value })} /></div>
-            <div className="sm:col-span-2"><label>Description</label><textarea className="form-textarea mt-1" value={contractForm.description} onChange={(e) => setContractForm({ ...contractForm, description: e.target.value })} /></div>
-            <div className="sm:col-span-2"><label>Notes</label><textarea className="form-textarea mt-1" value={contractForm.notes} onChange={(e) => setContractForm({ ...contractForm, notes: e.target.value })} /></div>
-            <button className="btn btn-primary w-full sm:col-span-2">Save contract</button>
+            <Field label="Project" required><select className="form-select mt-1" required value={contractForm.projectId} onChange={(e) => setContractForm({ ...contractForm, projectId: e.target.value })}><option value="">Select project…</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></Field>
+            <Field label="Title" required><input className="form-input mt-1" required value={contractForm.title} onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })} /></Field>
+            <Field label="Original budget" required><input className="form-input mt-1" type="number" min="0" step="0.01" required value={contractForm.originalBudget} onChange={(e) => setContractForm({ ...contractForm, originalBudget: e.target.value })} /></Field>
+            <Field label="Start date"><input className="form-input mt-1" type="date" value={contractForm.startDate} onChange={(e) => setContractForm({ ...contractForm, startDate: e.target.value })} /></Field>
+            <Field label="End date"><input className="form-input mt-1" type="date" value={contractForm.endDate} onChange={(e) => setContractForm({ ...contractForm, endDate: e.target.value })} /></Field>
+            <div className="sm:col-span-2"><Field label="Description"><textarea className="form-textarea mt-1" value={contractForm.description} onChange={(e) => setContractForm({ ...contractForm, description: e.target.value })} /></Field></div>
+            <div className="sm:col-span-2"><Field label="Notes"><textarea className="form-textarea mt-1" value={contractForm.notes} onChange={(e) => setContractForm({ ...contractForm, notes: e.target.value })} /></Field></div>
+            <FormActions onCancel={() => setModal(false)} saveLabel="Save contract" />
         </form></Modal>
         <Modal open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete contract">
             <div className="space-y-4">

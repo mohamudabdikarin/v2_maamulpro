@@ -1,9 +1,10 @@
+import { X } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { api } from '../lib/api';
 import LineItemsEditor, { LineItemConfig } from '../components/maamulpro/LineItemsEditor';
-import { EmptyState, ErrorAlert, LoadingState, Modal, PageHeader, StatGrid, StatusPill, SuccessAlert, fieldHint, humanize as titleize, money, shortDate, somaliExample } from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, SuccessAlert, fieldHint, humanize as titleize, money, shortDate, somaliExample } from '../components/maamulpro/PageKit';
 
 export type CrudField = {
     name: string;
@@ -246,7 +247,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         </Modal>
         {open && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4" onMouseDown={(e) => { if (e.currentTarget === e.target) returnTo ? navigate(returnTo) : setOpen(false); }}>
             <form className="panel max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto" noValidate onSubmit={submit}>
-                <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${title}` : `Add ${title}`}</h2><button type="button" className="btn btn-outline-dark btn-sm" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)}>Close</button></div>
+                <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${title}` : `Add ${title}`}</h2><button aria-label="Close" className="btn btn-outline-dark btn-sm p-1.5" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)} type="button"><X size={16} /></button></div>
                 {error && <ErrorAlert message={error} />}
                 <div className="grid gap-4 sm:grid-cols-2">{fields.map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
                     <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
@@ -258,7 +259,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                         : <input id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} type={field.type || 'text'} placeholder={field.placeholder || somaliExample(field.name, field.type)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />}
                     {fieldErrors[field.name] ? <p className="mt-1 text-xs text-danger" role="alert">{fieldErrors[field.name]}</p> : fieldHint(field.name, field.type, field.hint) && <p className="mt-1 text-xs text-white-dark">{fieldHint(field.name, field.type, field.hint)}</p>}
                 </div>)}</div>
-                <button className="btn btn-primary w-full" disabled={saving}>{saving ? 'Saving…' : 'Save record'}</button>
+                <FormActions onCancel={() => returnTo ? navigate(returnTo) : setOpen(false)} loading={saving} saveLabel="Save record" savingLabel="Saving…" />
             </form>
         </div>}
         <Modal open={Boolean(confirmation)} onClose={() => !confirming && setConfirmation(null)} title={confirmation?.transition ? `${humanize(confirmation.transition.action)} record` : `Delete ${title}`}>

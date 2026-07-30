@@ -248,4 +248,10 @@ export class SuperAdminController {
   async getPlatformNotifications() {
     return this.superAdminService.getPlatformNotifications();
   }
+
+  @Post('sync-schemas')
+  @HttpCode(HttpStatus.OK)
+  async syncTenantSchemas() {
+    return this.superAdminService.syncTenantSchemas();
+  }
 }
