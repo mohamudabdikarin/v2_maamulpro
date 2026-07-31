@@ -127,32 +127,36 @@ const SuperAdminCompaniesPage = () => {
         {loading ? <div className="panel"><LoadingState /></div> : !rows.length ? <div className="panel"><EmptyState title="No companies found" description={status ? `No companies have ${status.replace(/_/g, ' ').toLowerCase()} status.` : 'Onboard the first company to begin.'} action={!status ? <Link className="btn btn-primary" to="/superadmin/companies/new">Onboard company</Link> : undefined} /></div> : <div className="panel overflow-hidden p-0">
             <div className="overflow-x-auto">
                 <table className="table-hover w-full">
-                    <thead><tr><th>Company</th><th>Slug</th><th>Active modules</th><th>Admin email</th><th>Status</th><th>Created</th><th className="text-right">Actions</th></tr></thead>
+                    <thead><tr><th>Company</th><th>Owner & Email</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                     <tbody>{rows.map((row) => <tr className="cursor-pointer" key={row.id} onClick={(event) => {
                         if (!(event.target as HTMLElement).closest('button, a')) navigate(`/superadmin/companies/${row.id}`);
                     }}>
-                        <td><div className="flex items-center gap-2.5">
-                            {row.logoUrl ? <img className="h-8 w-8 rounded-md border object-contain" src={row.logoUrl} alt={`${row.name} logo`} /> : <span className="grid h-8 w-8 place-items-center rounded-md bg-primary-light text-primary"><Building2 size={16} /></span>}
-                            <strong>{row.name}</strong>
-                        </div></td>
-                        <td><code className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-dark">{row.subdomain}</code></td>
-                        <td><div className="flex max-w-xs flex-wrap gap-1">
-                            {row.constructionEnabled && <span className="badge bg-primary-light text-primary">Construction</span>}
-                            {row.realEstateEnabled && <span className="badge bg-success-light text-success">Real estate</span>}
-                            {row.materialManagementEnabled && <span className="badge bg-warning-light text-warning">Materials</span>}
-                        </div></td>
-                        <td className="text-sm">{row.adminEmail}</td>
+                        <td>
+                            <div className="flex items-center gap-3">
+                                {row.logoUrl ? <img className="h-9 w-9 rounded-md border object-contain p-0.5" src={row.logoUrl} alt={`${row.name} logo`} /> : <span className="grid h-9 w-9 place-items-center rounded-md bg-primary-light text-primary"><Building2 size={18} /></span>}
+                                <div>
+                                    <strong className="block font-bold text-black dark:text-white">{row.name}</strong>
+                                    <code className="text-xs font-semibold text-primary">{row.subdomain}.maamulpro.site</code>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div className="text-sm">
+                                <span className="block font-medium text-secondary dark:text-white">{row.adminName || 'Admin'}</span>
+                                <span className="text-xs text-white-dark">{row.adminEmail}</span>
+                            </div>
+                        </td>
                         <td><StatusPill value={row.status} /></td>
-                        <td>{shortDate(row.createdAt)}</td>
-                        <td><div className="flex min-w-[430px] flex-wrap justify-end gap-2">
-                            <button className={`btn btn-sm ${row.status === 'ACTIVE' ? 'btn-outline-warning' : 'btn-success'}`} disabled={Boolean(working)} onClick={() => run(`status-${row.id}`, `/api/superadmin/companies/${row.id}/status`, 'PATCH', { status: row.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE' })}>{row.status === 'ACTIVE' ? 'Suspend' : 'Activate'}</button>
-                            <button className="btn btn-sm btn-outline-primary" disabled={Boolean(working)} onClick={() => openModules(row)}>Modules</button>
-                            <button className="btn btn-sm btn-outline-primary" disabled={Boolean(working)} onClick={() => sendAdminResetCode(row)}>Send reset code</button>
-                            <button className="btn btn-sm btn-outline-danger" disabled={Boolean(working)} onClick={() => setDeleteTarget(row)}>Delete</button>
-                            <Link className="btn btn-sm btn-outline-dark" to={`/superadmin/companies/${row.id}`}>Open</Link>
-                        </div></td>
+                        <td>
+                            <div className="flex items-center justify-end gap-2">
+                                <button className={`btn btn-sm ${row.status === 'ACTIVE' ? 'btn-outline-warning' : 'btn-success'}`} disabled={Boolean(working)} onClick={() => run(`status-${row.id}`, `/api/superadmin/companies/${row.id}/status`, 'PATCH', { status: row.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE' })}>{row.status === 'ACTIVE' ? 'Suspend' : 'Activate'}</button>
+                                <button className="btn btn-sm btn-outline-primary" disabled={Boolean(working)} onClick={() => openModules(row)}>Modules</button>
+                                <Link className="btn btn-sm btn-primary" to={`/superadmin/companies/${row.id}`}>Open</Link>
+                            </div>
+                        </td>
                     </tr>)}</tbody>
                 </table>
+
             </div>
             {meta && <div className="flex items-center justify-between border-t border-white-light px-5 py-4 text-sm dark:border-dark">
                 <span className="text-white-dark">Page {meta.page} of {meta.totalPages} · {meta.total} companies</span>

@@ -19,7 +19,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/main.js",
     "test:contracts": "node --test test/*.test.mjs",
     "test:e2e:db": "node scripts/run-database-e2e.mjs",
     "test:e2e:api": "node -r dotenv/config scripts/probe-live-api.mjs",

@@ -1,11 +1,13 @@
-import { Body, Controller, Delete, Get, Post, Query, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { Readable } from 'node:stream';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import { DeleteUploadDto } from './dto/delete-upload.dto';
 import { UploadsService } from './uploads.service';
 
+@UseGuards(TenantAccessGuard)
 @Controller('api/uploads')
 export class UploadsController {
   constructor(private readonly uploads: UploadsService) {}

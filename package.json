@@ -2,13 +2,10 @@
   "name": "maamulpro-v2",
   "private": true,
   "scripts": {
-    "build": "npm run build:api && npm run build:ui",
-    "build:api": "pnpm --dir backend run build",
-    "build:ui": "pnpm --dir vristo-react-starter run build",
-    "test:contracts": "pnpm --dir backend run test:contracts",
-    "test:e2e:db": "pnpm --dir backend run test:e2e:db",
-    "test:e2e:api": "pnpm --dir backend run test:e2e:api",
-    "dev:api": "pnpm --dir backend run start:dev",
-    "dev:ui": "pnpm --dir vristo-react-starter run dev"
+    "heroku-postbuild": "cd backend && npm install && npm run prisma:generate && npm run build",
+    "start": "cd backend && npm run start:prod",
+    "build": "cd backend && npm run build",
+    "dev:api": "npm --prefix backend run start:dev",
+    "dev:ui": "npm --prefix frontend run dev"
   }
 }

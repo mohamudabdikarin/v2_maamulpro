@@ -39,8 +39,10 @@ export class CreateCompanyDto {
 
 export class UpdateCompanyDto {
   @IsOptional() @IsString() @MinLength(2) @MaxLength(120) name?: string;
+  @IsOptional() @IsString() @Matches(/^[a-z0-9-]+$/, { message: 'Subdomain must contain only lowercase letters, numbers, and hyphens' }) @MaxLength(30) subdomain?: string;
   @IsOptional() @IsString() @MinLength(2) @MaxLength(120) adminName?: string;
   @IsOptional() @IsEmail() adminEmail?: string;
+
   @IsOptional() @IsString() @MaxLength(80) companyType?: string;
   @IsOptional() @IsString() @MaxLength(500) phone?: string;
   @IsOptional() @IsString() @MaxLength(500) address?: string;

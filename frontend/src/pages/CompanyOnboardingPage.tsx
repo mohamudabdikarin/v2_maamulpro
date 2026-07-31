@@ -126,8 +126,8 @@ const validate = (form: FormState, modules: ModuleState, requiresDatabaseUrl: bo
     if (!Object.values(modules).some(Boolean)) errors.modules = 'Select at least one module.';
     if (form.adminName.trim().length < 2) errors.adminName = 'Enter the owner’s full name.';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.adminEmail.trim())) errors.adminEmail = 'Enter a valid email address.';
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,200}$/.test(form.adminPassword)) {
-        errors.adminPassword = 'Use 12+ characters with uppercase, lowercase, number, and symbol.';
+    if (form.adminPassword.length < 6) {
+        errors.adminPassword = 'Must be at least 6 characters.';
     }
     if (requiresDatabaseUrl && !/^postgres(?:ql)?:\/\//.test(form.dbUrl.trim())) {
         errors.dbUrl = 'Enter a valid PostgreSQL database URL.';
@@ -466,13 +466,12 @@ const CompanyOnboardingPage = () => {
                             {verifiedEmail && <p className="mt-1 text-xs text-success">Email verified</p>}
                         </Field>
                         <div className="sm:col-span-2">
-                            <Field label="Temporary password" required hint="12+ characters with uppercase, lowercase, number, and symbol.">
+                            <Field label="Temporary password" required hint="Minimum 6 characters.">
                                 <div className="relative mt-1">
                                     <KeyRound className="absolute left-3 top-3 text-white-dark" size={17} />
                                     <input
                                         className={`form-input px-10 ${errors.adminPassword ? 'border-danger' : ''}`}
-                                        minLength={12}
-                                        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,200}"
+                                        minLength={6}
                                         type={showPassword ? 'text' : 'password'}
                                         value={form.adminPassword}
                                         onChange={(event) => setField('adminPassword', event.target.value)}

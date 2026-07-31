@@ -118,11 +118,11 @@ const SuperAdminAccountPage = () => {
             </form>
 
             <form className="panel space-y-4 xl:col-span-2" onSubmit={updatePassword}>
-                <div className="flex items-start justify-between gap-4"><div><h2 className="text-lg font-bold">Change password</h2><p className="mt-1 text-sm text-white-dark">Use 12+ characters with uppercase, lowercase, a number, and a symbol.</p></div><button className="text-white-dark hover:text-primary" type="button" onClick={() => setShowPasswords((value) => !value)}>{showPasswords ? <EyeOff size={19} /> : <Eye size={19} />}</button></div>
+                <div className="flex items-start justify-between gap-4"><div><h2 className="text-lg font-bold">Change password</h2><p className="mt-1 text-sm text-white-dark">Minimum 6 characters.</p></div><button className="text-white-dark hover:text-primary" type="button" onClick={() => setShowPasswords((value) => !value)}>{showPasswords ? <EyeOff size={19} /> : <Eye size={19} />}</button></div>
                 <div className="grid gap-4 md:grid-cols-3">
                     <Field label="Current password" required><input className="form-input mt-1" type={showPasswords ? 'text' : 'password'} required value={password.currentPassword} onChange={(event) => setPassword({ ...password, currentPassword: event.target.value })} /></Field>
-                    <Field label="New password" required><input className="form-input mt-1" type={showPasswords ? 'text' : 'password'} minLength={12} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,200}" required value={password.newPassword} onChange={(event) => setPassword({ ...password, newPassword: event.target.value })} /></Field>
-                    <Field label="Confirm password" required><input className="form-input mt-1" type={showPasswords ? 'text' : 'password'} minLength={12} required value={password.confirmPassword} onChange={(event) => setPassword({ ...password, confirmPassword: event.target.value })} /></Field>
+                    <Field label="New password" required><input className="form-input mt-1" type={showPasswords ? 'text' : 'password'} minLength={6} required value={password.newPassword} onChange={(event) => setPassword({ ...password, newPassword: event.target.value })} /></Field>
+                    <Field label="Confirm password" required><input className="form-input mt-1" type={showPasswords ? 'text' : 'password'} minLength={6} required value={password.confirmPassword} onChange={(event) => setPassword({ ...password, confirmPassword: event.target.value })} /></Field>
                 </div>
                 <button className="btn btn-primary" disabled={working === 'password'}>{working === 'password' ? 'Updating…' : 'Update password'}</button>
             </form>

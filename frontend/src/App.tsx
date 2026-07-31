@@ -9,6 +9,7 @@ function App({ children }: PropsWithChildren) {
     const dispatch = useDispatch();
 
     useEffect(() => {
+        ['token', 'user', 'admin'].forEach((key) => localStorage.removeItem(key));
         dispatch(toggleTheme(localStorage.getItem('theme') || themeConfig.theme));
         dispatch(toggleMenu(localStorage.getItem('menu') || themeConfig.menu));
         dispatch(toggleLayout(localStorage.getItem('layout') || themeConfig.layout));

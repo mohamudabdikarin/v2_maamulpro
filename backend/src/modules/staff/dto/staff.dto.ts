@@ -31,7 +31,13 @@ export class CreateStaffDto {
   @IsOptional() @IsString() assignedProjectId?: string;
   @IsOptional() @IsBoolean() createAccount?: boolean;
   @IsOptional() @IsEmail() email?: string;
-  @IsOptional() @IsString() role?: string;
+  @IsOptional() @IsIn([
+    'GENERAL_MANAGER', 'ADMIN', 'MANAGER', 'STAFF',
+    'CONSTRUCTION_MANAGER', 'SITE_ENGINEER', 'PROJECT_SUPERVISOR',
+    'PROCUREMENT_OFFICER', 'STOREKEEPER', 'MANPOWER_SUPERVISOR',
+    'REAL_ESTATE_MANAGER', 'SALES_AGENT', 'RENTAL_OFFICER', 'PROPERTY_SUPERVISOR',
+    'MATERIAL_MANAGER', 'SALES_STAFF', 'INVENTORY_OFFICER', 'SUPPLIER_OFFICER', 'DELIVERY_OFFICER',
+  ]) role?: string;
   @IsOptional()
   @IsString()
   @Matches(STRONG_PASSWORD_PATTERN, { message: STRONG_PASSWORD_MESSAGE })
@@ -55,7 +61,13 @@ export class UpdateStaffDto {
 
 export class StaffAccountDto {
   @IsEmail() email: string;
-  @IsString() role: string;
+  @IsIn([
+    'GENERAL_MANAGER', 'ADMIN', 'MANAGER', 'STAFF',
+    'CONSTRUCTION_MANAGER', 'SITE_ENGINEER', 'PROJECT_SUPERVISOR',
+    'PROCUREMENT_OFFICER', 'STOREKEEPER', 'MANPOWER_SUPERVISOR',
+    'REAL_ESTATE_MANAGER', 'SALES_AGENT', 'RENTAL_OFFICER', 'PROPERTY_SUPERVISOR',
+    'MATERIAL_MANAGER', 'SALES_STAFF', 'INVENTORY_OFFICER', 'SUPPLIER_OFFICER', 'DELIVERY_OFFICER',
+  ]) role: string;
   @IsString()
   @Matches(STRONG_PASSWORD_PATTERN, { message: STRONG_PASSWORD_MESSAGE })
   temporaryPassword: string;

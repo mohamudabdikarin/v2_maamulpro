@@ -9,7 +9,7 @@ const MaterialsOverviewPage = () => {
     const [data, setData] = useState<{ products: any[]; purchases: any[]; sales: any[]; transport: any[] } | null>(null); const [error, setError] = useState('');
     const load = () => Promise.all(['/api/materials/products', '/api/materials/purchases', '/api/materials/sales', '/api/materials/transportation'].map((url) => api<unknown>(url))).then(([a, b, c, d]) => setData({ products: unwrapRows(a), purchases: unwrapRows(b), sales: unwrapRows(c), transport: unwrapRows(d) })).catch((reason) => setError(reason.message));
     useEffect(() => { load(); }, []);
-    return <AppShell><PageHeader eyebrow="Materials workspace" title="Materials overview" description="Inventory valuation, low-stock exposure, purchasing, sales and deliveries." actions={<><Link className="btn btn-outline-primary" to="/app/materials/reports">Reports</Link><Link className="btn btn-primary" to="/app/materials/inventory">Add material</Link></>} />
+    return <AppShell><PageHeader eyebrow="Materials workspace" title="Materials overview" description="Inventory valuation, low-stock exposure, purchasing, sales and deliveries." actions={<><Link className="btn btn-outline-primary" to="/app/materials/reports">Reports</Link><Link className="btn btn-primary" to="/app/materials/inventory/manage/new">Add material</Link></>} />
         {error && <ErrorAlert message={error} onRetry={load} />}{!data ? <div className="panel"><LoadingState /></div> : <>
             <StatGrid items={[
                 { label: 'Products', value: data.products.length },

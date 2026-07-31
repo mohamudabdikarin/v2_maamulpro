@@ -59,6 +59,7 @@ const printableValue = (value: any): string => {
 
 const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, transitions = [], initialMode, recordId, returnTo, printable = false }: CrudPageProps) => {
     const navigate = useNavigate();
+    const noun = title.replace(/^(Add|Edit|New|Record|Create)\s+/i, '');
     const openedInitial = useRef(false);
     const [rows, setRows] = useState<Record<string, any>[]>([]);
     const [form, setForm] = useState<Record<string, any>>(() => emptyForm(fields));
@@ -85,13 +86,18 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     useEffect(() => {
         const lookupFields = fields.filter((field) => field.lookup);
         if (!lookupFields.length) return;
-        Promise.all(lookupFields.map(async (field) => {
+        Promise.allSettled(lookupFields.map(async (field) => {
             const rows = unwrap(await api<unknown>(field.lookup!.endpoint));
             return [field.name, rows.map((row) => ({
                 value: String(row[field.lookup!.valueKey || 'id']),
                 label: lookupLabel(row, field.lookup!.labelKeys),
             }))] as const;
-        })).then((entries) => setLookups(Object.fromEntries(entries))).catch((reason) => setError(reason.message));
+        })).then((results) => {
+            const entries = results
+                .filter((r): r is PromiseFulfilledResult<readonly [string, { value: string; label: string }[]]> => r.status === 'fulfilled')
+                .map((r) => r.value);
+            if (entries.length) setLookups(Object.fromEntries(entries));
+        });
     }, [fields]);
     const filterKey = useMemo(() => ['status', 'type', 'priority', 'category'].find((key) => new Set(rows.map((row) => row[key]).filter(Boolean)).size > 1), [rows]);
     const filterOptions = useMemo(() => filterKey ? Array.from(new Set(rows.map((row) => String(row[filterKey])).filter(Boolean))) : [], [rows, filterKey]);
@@ -106,6 +112,10 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const displayCell = (key: string, value: any) => {
         if (value == null || value === '') return '—';
         if (typeof value === 'object') return Array.isArray(value) ? `${value.length} items` : labelOf(value);
+        if (lookups[key]?.length) {
+            const match = lookups[key].find((opt) => opt.value === String(value));
+            if (match) return match.label;
+        }
         if (/date|At$/.test(key) && !Number.isNaN(Date.parse(String(value)))) return shortDate(value);
         if (typeof value === 'number' && /(amount|price|cost|balance|budget|rent|salary|paid|total)/i.test(key)) return money(value);
         if (key === 'status' || key === 'paymentStatus') return <StatusPill value={String(value)} />;
@@ -169,7 +179,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                     .map((field) => api('/api/uploads/images', { method: 'DELETE', body: JSON.stringify({ url: editing[field.name] }) }).catch(() => undefined)));
             }
             setOpen(false); await load();
-            setSuccess(editing ? `${title} was updated successfully.` : `${title} was created successfully.`);
+            setSuccess(editing ? `${noun} updated successfully.` : `${noun} created successfully.`);
             if (returnTo) navigate(returnTo);
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to save record'); }
         finally { setSaving(false); }
@@ -188,7 +198,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                 await api(`${endpoint}/${row.id}${suffix}`, { method: item.method || 'POST', body: JSON.stringify(item.body || { action: item.action, reason: confirmationReason.trim() || undefined }) });
             }
             await load();
-            setSuccess(item ? `${humanize(item.action)} completed successfully.` : `${title} was deleted successfully.`);
+            setSuccess(item ? `${humanize(item.action)} completed successfully.` : `${noun} deleted successfully.`);
             setConfirmation(null);
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : item ? 'Unable to change record status' : 'Unable to delete record');
@@ -247,7 +257,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         </Modal>
         {open && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4" onMouseDown={(e) => { if (e.currentTarget === e.target) returnTo ? navigate(returnTo) : setOpen(false); }}>
             <form className="panel max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto" noValidate onSubmit={submit}>
-                <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${title}` : `Add ${title}`}</h2><button aria-label="Close" className="btn btn-outline-dark btn-sm p-1.5" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)} type="button"><X size={16} /></button></div>
+                <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${noun}` : `Add ${noun}`}</h2><button aria-label="Close" className="btn btn-outline-dark btn-sm p-1.5" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)} type="button"><X size={16} /></button></div>
                 {error && <ErrorAlert message={error} />}
                 <div className="grid gap-4 sm:grid-cols-2">{fields.map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
                     <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
@@ -262,7 +272,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                 <FormActions onCancel={() => returnTo ? navigate(returnTo) : setOpen(false)} loading={saving} saveLabel="Save record" savingLabel="Saving…" />
             </form>
         </div>}
-        <Modal open={Boolean(confirmation)} onClose={() => !confirming && setConfirmation(null)} title={confirmation?.transition ? `${humanize(confirmation.transition.action)} record` : `Delete ${title}`}>
+        <Modal open={Boolean(confirmation)} onClose={() => !confirming && setConfirmation(null)} title={confirmation?.transition ? `${humanize(confirmation.transition.action)} record` : `Delete ${noun}`}>
             {confirmation && <div className="space-y-4"><p className="text-white-dark">{confirmation.transition ? `Are you sure you want to ${confirmation.transition.action} this record?` : 'This action permanently removes the record and cannot be undone.'}</p>{confirmation.transition?.action === 'reject' && <div><label className="font-semibold" htmlFor="rejection-reason">Rejection reason <span className="text-danger">*</span></label><textarea id="rejection-reason" className="form-textarea mt-1" placeholder="Sharax sababta diidmada" value={confirmationReason} onChange={(event) => setConfirmationReason(event.target.value)} /></div>}<div className="flex justify-end gap-2"><button className="btn btn-outline-dark" disabled={confirming} onClick={() => setConfirmation(null)}>Cancel</button><button className={`btn ${confirmation.transition?.tone === 'danger' || !confirmation.transition ? 'btn-danger' : 'btn-primary'}`} disabled={confirming} onClick={confirmAction}>{confirming ? 'Please wait…' : confirmation.transition ? humanize(confirmation.transition.action) : 'Delete record'}</button></div></div>}
         </Modal>
     </AppShell>;

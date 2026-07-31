@@ -270,6 +270,9 @@ export class SuperAdminService {
             dbUrl: protectedRuntimeUrl,
             companyType: data.companyType?.trim() || null,
             mode: this.moduleMode(modules),
+            status: 'ACTIVE',
+            subscriptionStatus: 'ACTIVE',
+            accessGranted: true,
             constructionEnabled: modules.construction,
             realEstateEnabled: modules.realEstate,
             materialManagementEnabled: modules.materials,
@@ -280,6 +283,7 @@ export class SuperAdminService {
             entitlements: { tenantModules: modules },
           },
         });
+
         await tx.companyUser.create({
           data: {
             id: companyUserId,
@@ -673,6 +677,11 @@ export class SuperAdminService {
     return this.subscriptions.markInvoicePaid(invoiceId, paymentMethod, adminId);
   }
 
+  extendInvoiceDueDate(invoiceId: string, extendDays = 7, newDueDate?: string) {
+    return this.subscriptions.extendInvoiceDueDate(invoiceId, extendDays, newDueDate);
+  }
+
+
   async configureCompanySubscription(
     companyId: string,
     data: { amount: number; termDurationMonths: number; autoRecur?: boolean; notes?: string },
@@ -998,8 +1007,17 @@ export class SuperAdminService {
       const duplicate = await this.central.company.findFirst({ where: { adminEmail, NOT: { id } } });
       if (duplicate) throw new ConflictException('The administrator email is already in use');
     }
+    const subdomain = data.subdomain?.trim().toLowerCase();
+    if (subdomain && subdomain !== current.subdomain) {
+      if (!/^[a-z0-9-]+$/.test(subdomain) || subdomain.length < 2 || subdomain.length > 30) {
+        throw new BadRequestException('Subdomain must contain 2-30 characters of lowercase letters, numbers, and hyphens');
+      }
+      const duplicate = await this.central.company.findFirst({ where: { subdomain, NOT: { id } } });
+      if (duplicate) throw new ConflictException('Subdomain is already in use by another company');
+    }
     const update: any = {
       ...(data.name !== undefined ? { name: data.name.trim() } : {}),
+      ...(subdomain ? { subdomain } : {}),
       ...(data.adminName !== undefined ? { adminName: data.adminName.trim() } : {}),
       ...(adminEmail ? { adminEmail } : {}),
       ...(data.companyType !== undefined ? { companyType: data.companyType.trim() || null } : {}),
@@ -1009,6 +1027,7 @@ export class SuperAdminService {
       ...(data.logoUrl !== undefined ? { logoUrl: data.logoUrl.trim() || null } : {}),
       version: { increment: 1 },
     };
+
     if ((adminEmail || data.adminName !== undefined) && current.users[0]) {
       try {
         const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(current.dbUrl));

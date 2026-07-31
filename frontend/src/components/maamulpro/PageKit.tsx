@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { AlertTriangle, BarChart3, Building2, CheckCircle2, Clock, CreditCard, Package, TrendingUp, Users, X } from 'lucide-react';
 import { Children, cloneElement, isValidElement, ReactElement, ReactNode } from 'react';
 import DotLoader from './DotLoader';
 
@@ -14,18 +14,59 @@ export const StatusPill = ({ value }: { value?: string | null }) => {
     return <span className={`badge bg-${tone}-light text-${tone}`}>{humanize(normalized)}</span>;
 };
 
-export const PageHeader = ({ title, description, actions, eyebrow }: { title: string; description?: string; actions?: ReactNode; eyebrow?: string }) => <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end"><div>{eyebrow && <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">{eyebrow}</p>}<h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">{title}</h1>{description && <p className="mt-1 max-w-3xl text-white-dark">{description}</p>}</div>{actions && <div className="flex flex-wrap gap-2">{actions}</div>}</div>;
+export const PageHeader = ({ title, actions }: { title: string; description?: string; actions?: ReactNode; eyebrow?: string }) => <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-center"><h1 className="text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">{title}</h1>{actions && <div className="flex flex-wrap gap-2">{actions}</div>}</div>;
 
-export const StatGrid = ({ items, variant = 'plain' }: { items: { label: string; value: ReactNode; hint?: string; tone?: string; gradient?: string }[]; variant?: 'plain' | 'gradient' }) => <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{items.map((item) => variant === 'gradient'
-    ? <div className={`relative overflow-hidden rounded-lg bg-gradient-to-br p-5 text-white shadow-sm ${item.gradient || 'from-primary to-[#805dca]'}`} key={item.label}><span className="absolute -right-7 -top-7 h-24 w-24 rounded-full bg-white/10" /><span className="absolute -bottom-10 right-8 h-20 w-20 rounded-full bg-black/5" /><div className="relative"><p className="text-xs font-bold uppercase tracking-wider text-white/75">{item.label}</p><p className="mt-2 text-3xl font-black tracking-tight text-white">{item.value}</p>{item.hint && <p className="mt-1 text-xs text-white/80">{item.hint}</p>}</div></div>
-    : <div className="panel" key={item.label}><p className="text-xs font-bold uppercase tracking-wider text-white-dark">{item.label}</p><p className={`mt-2 text-2xl font-black text-${item.tone || 'primary'}`}>{item.value}</p>{item.hint && <p className="mt-1 text-xs text-white-dark">{item.hint}</p>}</div>)}</div>;
+
+const getStatIcon = (label: string, icon?: ReactNode) => {
+    if (icon) return icon;
+    const l = label.toLowerCase();
+    if (l.includes('company') || l.includes('companies') || l.includes('property') || l.includes('properties')) return <Building2 size={18} />;
+    if (l.includes('staff') || l.includes('user') || l.includes('tenant') || l.includes('client')) return <Users size={18} />;
+    if (l.includes('revenue') || l.includes('income') || l.includes('sale') || l.includes('value')) return <TrendingUp size={18} />;
+    if (l.includes('expense') || l.includes('cost') || l.includes('invoice') || l.includes('bill')) return <CreditCard size={18} />;
+    if (l.includes('active') || l.includes('paid') || l.includes('cleared')) return <CheckCircle2 size={18} />;
+    if (l.includes('pending') || l.includes('due') || l.includes('soon')) return <Clock size={18} />;
+    if (l.includes('low stock') || l.includes('expired') || l.includes('suspended') || l.includes('late')) return <AlertTriangle size={18} />;
+    if (l.includes('product') || l.includes('sku') || l.includes('inventory') || l.includes('material')) return <Package size={18} />;
+    return <BarChart3 size={18} />;
+};
+
+export const StatGrid = ({ items }: { items: { label: string; value: ReactNode; hint?: string; tone?: string; icon?: ReactNode; gradient?: string }[]; variant?: 'plain' | 'gradient' }) => (
+    <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {items.map((item) => (
+            <div className="panel flex flex-col justify-between p-5 transition-all hover:shadow-md dark:border-dark dark:bg-black" key={item.label}>
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-white-dark">{item.label}</p>
+                        <p className="mt-2 text-3xl font-extrabold tracking-tight text-secondary dark:text-white">{item.value}</p>
+                    </div>
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary">
+                        {getStatIcon(item.label, item.icon)}
+                    </div>
+                </div>
+                {item.hint && <p className="mt-2 text-xs text-white-dark">{item.hint}</p>}
+            </div>
+        ))}
+    </div>
+);
+
 
 export const EmptyState = ({ title = 'No records found', description, action }: { title?: string; description?: string; action?: ReactNode }) => <div className="p-10 text-center"><div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-primary-light text-xl text-primary" aria-hidden="true">○</div><h3 className="font-bold">{title}</h3>{description && <p className="mx-auto mt-1 max-w-md text-sm text-white-dark">{description}</p>}{action && <div className="mt-4 flex justify-center">{action}</div>}</div>;
 export const LoadingState = ({ label = 'Loading live data…' }: { label?: string }) => <div className="flex min-h-44 flex-col items-center justify-center gap-4 p-10 text-center text-white-dark"><DotLoader label={label} /><span className="text-sm">{label}</span></div>;
 export const ErrorAlert = ({ message, onRetry }: { message: string; onRetry?: () => void }) => <div className="mb-5 flex items-center justify-between gap-4 rounded-md bg-danger-light p-4 text-danger" role="alert"><span>{message}</span>{onRetry && <button className="btn btn-sm btn-outline-danger" onClick={onRetry}>Retry</button>}</div>;
 export const SuccessAlert = ({ message, onDismiss }: { message: string; onDismiss?: () => void }) => <div className="mb-5 flex items-center justify-between gap-4 rounded-md bg-success-light p-4 text-success" role="status"><span>{message}</span>{onDismiss && <button className="btn btn-sm btn-outline-success" onClick={onDismiss}>Close</button>}</div>;
 
-export const Modal = ({ title, open, onClose, children, wide = false }: { title: string; open: boolean; onClose: () => void; children: ReactNode; wide?: boolean }) => !open ? null : <div className="fixed inset-0 z-[110] grid place-items-center bg-black/60 p-4" onMouseDown={(event) => event.currentTarget === event.target && onClose()}><div className={`panel max-h-[92vh] w-full overflow-y-auto ${wide ? 'max-w-5xl' : 'max-w-2xl'}`} role="dialog" aria-modal="true" aria-label={title}><div className="mb-5 flex items-center justify-between"><h2 className="text-xl font-bold">{title}</h2><button aria-label="Close" className="btn btn-sm btn-outline-dark p-1.5" onClick={onClose}><X size={16} /></button></div>{children}</div></div>;
+export const Modal = ({ title, open, onClose, children, wide = false }: { title: string; open: boolean; onClose: () => void; children: ReactNode; wide?: boolean }) => !open ? null : (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4" onMouseDown={(event) => event.currentTarget === event.target && onClose()}>
+        <div className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-md bg-white shadow-xl dark:bg-black ${wide ? 'max-w-4xl' : 'max-w-xl'}`} role="dialog" aria-modal="true" aria-label={title}>
+            <div className="flex shrink-0 items-center justify-between border-b border-white-light px-5 py-4 dark:border-[#191e3a]">
+                <h2 className="text-lg font-bold">{title}</h2>
+                <button aria-label="Close" className="btn btn-sm btn-outline-dark p-1.5" onClick={onClose}><X size={16} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
+        </div>
+    </div>
+);
 
 const defaultPlaceholder = (label: string) => {
     const normalized = label.toLowerCase();
@@ -63,8 +104,6 @@ export const somaliExample = (name: string, type?: string): string | undefined =
 
 export const fieldHint = (name: string, type?: string, fallback?: string) => {
     if (fallback) return fallback;
-    if (type === 'date') return 'Qaabka taariikhda: 2026-07-29';
-    if (type === 'number') return 'Geli qiime tiro ah; tusaale 1,500.';
     return undefined;
 };
 
@@ -83,4 +122,10 @@ const addPlaceholder = (node: ReactNode, placeholder: string): ReactNode => {
 
 export const Field = ({ label, required, children, hint }: { label: string; required?: boolean; children: ReactNode; hint?: string }) => <label className="block"><span className="font-semibold">{label}{required && <span className="text-danger"> *</span>}</span>{addPlaceholder(children, defaultPlaceholder(label))}{hint && <span className="mt-1 block text-xs text-white-dark">{hint}</span>}</label>;
 
-export const FormActions = ({ onCancel, loading = false, saveLabel = 'Save', savingLabel = 'Saving…' }: { onCancel?: () => void; loading?: boolean; saveLabel?: string; savingLabel?: string }) => <div className="mt-6 flex items-center justify-end gap-3 border-t border-white-light pt-5 dark:border-[#191e3a]"><button className="btn btn-outline-dark" disabled={loading} onClick={onCancel} type="button">Cancel</button><button className="btn btn-primary" disabled={loading} type="submit">{loading ? savingLabel : saveLabel}</button></div>;
+export const FormActions = ({ onCancel, loading = false, saveLabel = 'Save', savingLabel = 'Saving…' }: { onCancel?: () => void; loading?: boolean; saveLabel?: string; savingLabel?: string }) => (
+    <div className="col-span-full mt-8 flex items-center justify-end gap-3 border-t border-white-light pt-5 dark:border-[#191e3a]">
+        <button className="btn btn-outline-dark" disabled={loading} onClick={onCancel} type="button">Cancel</button>
+        <button className="btn btn-primary" disabled={loading} type="submit">{loading ? savingLabel : saveLabel}</button>
+    </div>
+);
+

@@ -658,6 +658,45 @@ export class SubscriptionLifecycleService implements OnModuleInit {
     });
   }
 
+  async extendInvoiceDueDate(invoiceId: string, extendDays = 7, newDueDateStr?: string) {
+    const invoice = await this.central.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { company: true },
+    });
+    if (!invoice) throw new NotFoundException('Invoice not found');
+
+    let newDueDate: Date;
+    if (newDueDateStr) {
+      newDueDate = new Date(newDueDateStr);
+      if (isNaN(newDueDate.getTime())) throw new BadRequestException('Invalid due date provided');
+    } else {
+      const baseDate = new Date(invoice.dueDate > new Date() ? invoice.dueDate : new Date());
+      newDueDate = new Date(baseDate.getTime() + extendDays * 24 * 60 * 60 * 1000);
+    }
+
+    const newStatus = newDueDate > new Date() ? 'UNPAID' : invoice.status;
+    const updated = await this.central.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        dueDate: newDueDate,
+        status: newStatus,
+      },
+    });
+
+    await this.central.subscriptionTransaction.create({
+      data: {
+        companyId: invoice.companyId,
+        transactionType: 'INVOICE_EXTENSION',
+        amount: invoice.amount,
+        previousStatus: invoice.status,
+        newStatus,
+        notes: `Extended invoice ${invoice.invoiceNumber} due date to ${newDueDate.toISOString().slice(0, 10)}`,
+      },
+    });
+
+    return updated;
+  }
+
   private logStatus(
     tx: any,
     subscription: any,
@@ -682,3 +721,4 @@ export class SubscriptionLifecycleService implements OnModuleInit {
     });
   }
 }
+

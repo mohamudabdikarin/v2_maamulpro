@@ -30,10 +30,12 @@ const RealEstateOverviewPage = lazy(() => import('../pages/RealEstateOverviewPag
 const PropertiesPage = lazy(() => import('../pages/PropertiesPage'));
 const RentalHubPage = lazy(() => import('../pages/RentalHubPage'));
 const PropertySalesPage = lazy(() => import('../pages/PropertySalesPage'));
-import { clientFields, dealFields, propertyFields } from '../pages/realEstateConfig';
+import { clientFields, dealFields, propertyFields, rentalContractFields, rentPaymentFields } from '../pages/realEstateConfig';
+
 const MaterialsOverviewPage = lazy(() => import('../pages/MaterialsOverviewPage'));
 const MaterialsInventoryPage = lazy(() => import('../pages/MaterialsInventoryPage'));
-import { materialFields } from '../pages/materialsConfig';
+import { customerFields, materialFields, purchaseFields, saleFields, supplierFields, transportationFields } from '../pages/materialsConfig';
+
 const SuperAdminCompaniesPage = lazy(() => import('../pages/SuperAdminCompaniesPage'));
 const CompanyOnboardingPage = lazy(() => import('../pages/CompanyOnboardingPage'));
 const SuperAdminCompanyPage = lazy(() => import('../pages/SuperAdminCompanyPage'));
@@ -41,6 +43,7 @@ const SuperAdminAccountPage = lazy(() => import('../pages/SuperAdminAccountPage'
 const ReportSchedulesPage = lazy(() => import('../pages/ReportSchedulesPage'));
 const LegacyRedirectPage = lazy(() => import('../pages/LegacyRedirectPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
+
 
 const routes = [
     { path: '/', element: <LoginPage />, layout: 'blank' },
@@ -151,6 +154,8 @@ const routes = [
         { name: 'status', label: 'Status', type: 'select', options: ['ACTIVE', 'EXPIRED', 'RENEWAL_DUE', 'TERMINATED'].map((value) => ({ value, label: value.replace(/_/g, ' ') })) },
         { name: 'notes', label: 'Notes', type: 'textarea' },
     ]} />, layout: 'blank' },
+    { path: '/app/real-estate/rental-contracts/new', element: <CrudRoutePage title="New rental contract" description="Create a lease agreement linking a tenant to a property with rent terms." endpoint="/api/real-estate/rental-contracts" fields={rentalContractFields} initialMode="create" returnTo="/app/real-estate/rentals" />, layout: 'blank' },
+    { path: '/app/real-estate/rental-contracts/:id/edit', element: <CrudRoutePage title="Edit rental contract" description="Update lease terms, status and renewal dates." endpoint="/api/real-estate/rental-contracts" fields={rentalContractFields} initialMode="edit" returnTo="/app/real-estate/rental-contracts" />, layout: 'blank' },
     { path: '/app/real-estate/rent-payments', element: <CrudPage title="Rent Payments" description="Rent due, collections, receipts and overdue status synchronized to financials." endpoint="/api/real-estate/rent-payments" transitions={[
         { action: 'paid', label: 'Mark paid', tone: 'success', path: 'status', body: { status: 'PAID' }, when: ['UNPAID', 'LATE', 'PARTIAL'] },
         { action: 'partial', label: 'Mark partial', tone: 'warning', path: 'status', body: { status: 'PARTIAL' }, when: ['UNPAID', 'LATE'] },
@@ -162,58 +167,42 @@ const routes = [
         { name: 'status', label: 'Status', type: 'select', options: ['PAID', 'UNPAID', 'LATE', 'PARTIAL'].map((value) => ({ value, label: value })) },
         { name: 'receiptNo', label: 'Receipt number' }, { name: 'notes', label: 'Notes', type: 'textarea' },
     ]} />, layout: 'blank' },
+    { path: '/app/real-estate/rent-payments/new', element: <CrudRoutePage title="Record rent payment" description="Log a tenant payment against a lease contract." endpoint="/api/real-estate/rent-payments" fields={rentPaymentFields} initialMode="create" returnTo="/app/real-estate/rentals" />, layout: 'blank' },
+    { path: '/app/real-estate/rent-payments/:id/edit', element: <CrudRoutePage title="Edit rent payment" description="Correct amounts, dates or receipt details." endpoint="/api/real-estate/rent-payments" fields={rentPaymentFields} initialMode="edit" returnTo="/app/real-estate/rent-payments" />, layout: 'blank' },
+
     { path: '/app/real-estate/reports', element: <ReportsCenterPage workspace="real_estate" title="Real Estate Reports" />, layout: 'blank' },
     { path: '/app/materials', element: <MaterialsOverviewPage />, layout: 'blank' },
     { path: '/app/materials/overview', element: <MaterialsOverviewPage />, layout: 'blank' },
     { path: '/app/materials/inventory', element: <MaterialsInventoryPage />, layout: 'blank' },
     { path: '/app/materials/inventory/manage', element: <CrudPage title="Manage material products" description="Add, edit or retire product records, images, costs, pricing and stock thresholds." endpoint="/api/materials/products" fields={materialFields} />, layout: 'blank' },
-    { path: '/app/materials/suppliers', element: <CrudPage title="Suppliers" description="Procurement suppliers, balances and contact details." endpoint="/api/materials/suppliers" fields={[
-        { name: 'name', label: 'Name', required: true }, { name: 'email', label: 'Email', type: 'email' }, { name: 'phone', label: 'Phone' },
-        { name: 'address', label: 'Address' }, { name: 'balance', label: 'Opening balance', type: 'number' }, { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank' },
+    { path: '/app/materials/inventory/manage/new', element: <CrudRoutePage title="Add material product" description="Create a new material product listing with pricing and stock parameters." endpoint="/api/materials/products" fields={materialFields} initialMode="create" returnTo="/app/materials/inventory" />, layout: 'blank' },
+    { path: '/app/materials/inventory/manage/:id/edit', element: <CrudRoutePage title="Edit material product" description="Update pricing, costs, warehouse or threshold settings." endpoint="/api/materials/products" fields={materialFields} initialMode="edit" returnTo="/app/materials/inventory" />, layout: 'blank' },
+    { path: '/app/materials/suppliers', element: <CrudPage title="Suppliers" description="Procurement suppliers, balances and contact details." endpoint="/api/materials/suppliers" fields={supplierFields} />, layout: 'blank' },
+    { path: '/app/materials/suppliers/new', element: <CrudRoutePage title="Add supplier" description="Create a new procurement supplier record." endpoint="/api/materials/suppliers" fields={supplierFields} initialMode="create" returnTo="/app/materials/suppliers" />, layout: 'blank' },
+    { path: '/app/materials/suppliers/:id/edit', element: <CrudRoutePage title="Edit supplier" description="Update supplier contact details and opening balance." endpoint="/api/materials/suppliers" fields={supplierFields} initialMode="edit" returnTo="/app/materials/suppliers" />, layout: 'blank' },
     { path: '/app/materials/purchases', element: <CrudPage title="Purchase Orders" description="Orders with received-stock, weighted-cost and supplier-ledger synchronization." endpoint="/api/materials/purchases" canEdit={false} transitions={[
         { action: 'ordered', label: 'Mark ordered', tone: 'primary', path: 'status', body: { status: 'ORDERED' }, when: ['DRAFT'] },
         { action: 'received', label: 'Receive stock', tone: 'success', path: 'status', body: { status: 'RECEIVED' }, when: ['DRAFT', 'ORDERED'] },
         { action: 'cancelled', label: 'Cancel', tone: 'danger', path: 'status', body: { status: 'CANCELLED' }, when: ['DRAFT', 'ORDERED'] },
         { action: 'reopen', label: 'Reopen draft', tone: 'warning', path: 'status', body: { status: 'DRAFT' }, when: ['CANCELLED'] },
-    ]} fields={[
-        { name: 'orderNo', label: 'Order number', required: true }, { name: 'supplierId', label: 'Supplier', lookup: { endpoint: '/api/materials/suppliers', labelKeys: ['name'] } },
-        { name: 'status', label: 'Status', type: 'select', options: ['DRAFT', 'ORDERED', 'RECEIVED', 'CANCELLED'].map((value) => ({ value, label: value })) },
-        { name: 'orderedAt', label: 'Ordered date', type: 'date' }, { name: 'receivedAt', label: 'Received date', type: 'date' },
-        { name: 'items', label: 'Purchase items', type: 'lineItems', required: true, lineItems: {
-            endpoint: '/api/materials/products', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
-            populate: { unitCost: 'unitCost' },
-            fields: [{ name: 'quantity', label: 'Quantity', type: 'number', min: 0.01, required: true }, { name: 'unitCost', label: 'Unit cost', type: 'number', min: 0, required: true }],
-        } },
-        { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank' },
-    { path: '/app/materials/customers', element: <CrudPage title="Material Customers" description="Customer accounts for material sales and invoices." endpoint="/api/materials/customers" fields={[
-        { name: 'name', label: 'Name', required: true }, { name: 'email', label: 'Email', type: 'email' }, { name: 'phone', label: 'Phone' },
-        { name: 'address', label: 'Address' }, { name: 'balance', label: 'Balance', type: 'number' },
-    ]} />, layout: 'blank' },
-    { path: '/app/materials/sales', element: <CrudPage title="Material Sales" description="Invoices with stock reversal, discounts, revenue and receivable synchronization." endpoint="/api/materials/sales" printable fields={[
-        { name: 'invoiceNo', label: 'Invoice number', required: true }, { name: 'customerId', label: 'Customer', lookup: { endpoint: '/api/materials/customers', labelKeys: ['name'] } },
-        { name: 'paidAmount', label: 'Paid amount', type: 'number' }, { name: 'discountPercent', label: 'Discount %', type: 'number' },
-        { name: 'date', label: 'Invoice date', type: 'date' },
-        { name: 'items', label: 'Invoice items', type: 'lineItems', required: true, lineItems: {
-            endpoint: '/api/materials/products', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
-            populate: { salePrice: 'unitPrice' },
-            fields: [{ name: 'quantity', label: 'Quantity', type: 'number', min: 0.01, required: true }, { name: 'unitPrice', label: 'Unit price', type: 'number', min: 0, required: true }],
-        } },
-        { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank' },
+    ]} fields={purchaseFields} />, layout: 'blank' },
+    { path: '/app/materials/purchases/new', element: <CrudRoutePage title="Create purchase order" description="Draft a material order with supplier and line items." endpoint="/api/materials/purchases" fields={purchaseFields} initialMode="create" returnTo="/app/materials/purchases" />, layout: 'blank' },
+    { path: '/app/materials/purchases/:id/edit', element: <CrudRoutePage title="Edit purchase order" description="Modify purchase order line items and dates." endpoint="/api/materials/purchases" fields={purchaseFields} initialMode="edit" returnTo="/app/materials/purchases" />, layout: 'blank' },
+    { path: '/app/materials/customers', element: <CrudPage title="Material Customers" description="Customer accounts for material sales and invoices." endpoint="/api/materials/customers" fields={customerFields} />, layout: 'blank' },
+    { path: '/app/materials/customers/new', element: <CrudRoutePage title="Add customer" description="Register a customer account for material sales." endpoint="/api/materials/customers" fields={customerFields} initialMode="create" returnTo="/app/materials/customers" />, layout: 'blank' },
+    { path: '/app/materials/customers/:id/edit', element: <CrudRoutePage title="Edit customer" description="Update customer contact details." endpoint="/api/materials/customers" fields={customerFields} initialMode="edit" returnTo="/app/materials/customers" />, layout: 'blank' },
+    { path: '/app/materials/sales', element: <CrudPage title="Material Sales" description="Invoices with stock reversal, discounts, revenue and receivable synchronization." endpoint="/api/materials/sales" printable fields={saleFields} />, layout: 'blank' },
+    { path: '/app/materials/sales/new', element: <CrudRoutePage title="Create sales invoice" description="Issue a material sales invoice to a customer." endpoint="/api/materials/sales" fields={saleFields} initialMode="create" returnTo="/app/materials/sales" />, layout: 'blank' },
+    { path: '/app/materials/sales/:id/edit', element: <CrudRoutePage title="Edit sales invoice" description="Update invoice discount or notes." endpoint="/api/materials/sales" fields={saleFields} initialMode="edit" returnTo="/app/materials/sales" />, layout: 'blank' },
     { path: '/app/materials/transportation', element: <CrudPage title="Transportation" description="Delivery tracking with expense posting when delivered." endpoint="/api/materials/transportation" transitions={[
         { action: 'in_transit', label: 'Start transit', tone: 'primary', path: 'status', body: { status: 'IN_TRANSIT' }, when: ['PENDING'] },
         { action: 'delivered', label: 'Mark delivered', tone: 'success', path: 'status', body: { status: 'DELIVERED' }, when: ['PENDING', 'IN_TRANSIT'] },
         { action: 'cancelled', label: 'Cancel', tone: 'danger', path: 'status', body: { status: 'CANCELLED' }, when: ['PENDING', 'IN_TRANSIT'] },
-    ]} fields={[
-        { name: 'deliveryNo', label: 'Delivery number', required: true }, { name: 'responsiblePerson', label: 'Responsible person', required: true },
-        { name: 'materialId', label: 'Material', required: true, lookup: { endpoint: '/api/materials/products', labelKeys: ['name'] } }, { name: 'quantity', label: 'Quantity', type: 'number', required: true },
-        { name: 'cost', label: 'Cost', type: 'number', required: true },
-        { name: 'status', label: 'Status', type: 'select', options: ['PENDING', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'].map((value) => ({ value, label: value.replace(/_/g, ' ') })) },
-        { name: 'deliveryDate', label: 'Delivery date', type: 'date' }, { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank' },
+    ]} fields={transportationFields} />, layout: 'blank' },
+    { path: '/app/materials/transportation/new', element: <CrudRoutePage title="New delivery record" description="Log a material transportation and delivery dispatch." endpoint="/api/materials/transportation" fields={transportationFields} initialMode="create" returnTo="/app/materials/transportation" />, layout: 'blank' },
+    { path: '/app/materials/transportation/:id/edit', element: <CrudRoutePage title="Edit delivery record" description="Update delivery status, cost or notes." endpoint="/api/materials/transportation" fields={transportationFields} initialMode="edit" returnTo="/app/materials/transportation" />, layout: 'blank' },
     { path: '/app/materials/reports', element: <ReportsCenterPage workspace="material_management" title="Materials Reports" />, layout: 'blank' },
+
     { path: '/app/reports', element: <ReportsCenterPage />, layout: 'blank' },
     { path: '/app/report-schedules', element: <ReportSchedulesPage />, layout: 'blank' },
     { path: '/app/audits', element: <AuditsPage />, layout: 'blank' },

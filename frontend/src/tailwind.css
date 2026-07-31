@@ -45,12 +45,12 @@
     }
     .sidebar .nav-item > button.active,
     .sidebar .nav-item > a.active {
-        @apply bg-[#000]/[0.08] text-black dark:bg-[#181f32] dark:text-white-dark;
+        @apply bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary;
     }
 
     .sidebar .nav-item > button.active > div > span,
     .sidebar .nav-item > a.active > div > span {
-        @apply dark:!text-white-dark;
+        @apply !text-primary dark:!text-primary;
     }
 
     .sidebar ul.sub-menu li a {
@@ -678,7 +678,7 @@ pre.hljs {
     width: 10px;
     height: 10px;
     border-radius: 9999px;
-    background: #6c5ce7;
+    background: #0E8B8B;
     animation: maamulpro-dot-fade 1.2s linear infinite;
 }
 
@@ -693,8 +693,8 @@ pre.hljs {
     width: 10px;
     height: 10px;
     border-radius: 9999px;
-    background: #6c5ce7;
-    box-shadow: 0 -18px #6c5ce7, 9px -15px #6c5ce7, 16px -9px #6c5ce7, 18px 0 #6c5ce7, 16px 9px #6c5ce7, 9px 15px #6c5ce7, 0 18px #6c5ce7, -9px 15px #6c5ce7, -16px 9px #6c5ce7, -18px 0 #6c5ce7, -16px -9px #6c5ce7, -9px -15px #6c5ce7;
+    background: #0E8B8B;
+    box-shadow: 0 -18px #0E8B8B, 9px -15px #0E8B8B, 16px -9px #0E8B8B, 18px 0 #0E8B8B, 16px 9px #0E8B8B, 9px 15px #0E8B8B, 0 18px #0E8B8B, -9px 15px #0E8B8B, -16px 9px #0E8B8B, -18px 0 #0E8B8B, -16px -9px #0E8B8B, -9px -15px #0E8B8B;
     animation: maamulpro-screen-dot-spin 1.2s linear infinite;
 }
 @keyframes maamulpro-screen-dot-spin { to { transform: rotate(360deg); } }

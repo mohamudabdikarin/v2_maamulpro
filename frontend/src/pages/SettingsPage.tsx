@@ -1,15 +1,16 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Building2, CreditCard, KeyRound, Palette, Tags, UserRound } from 'lucide-react';
+import { Building2, CreditCard, Globe, KeyRound, Palette, Tags, UserRound } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
 import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
 import { api, sessionStore } from '../lib/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { ErrorAlert, Field, LoadingState, PageHeader, SuccessAlert } from '../components/maamulpro/PageKit';
 
-type Settings = { companyName: string; logoUrl?: string; companyEmail: string; companyPhone: string; companyAddress: string; companyDescription: string; constructionEnabled: boolean; realEstateEnabled: boolean; materialManagementEnabled: boolean; entitlements?: { features: Record<string, boolean>; limits: Record<string, number> }; usage?: Record<string, number> };
+type Settings = { companyName: string; logoUrl?: string; companyEmail: string; companyPhone: string; companyAddress: string; companyDescription: string; subdomain?: string; constructionEnabled: boolean; realEstateEnabled: boolean; materialManagementEnabled: boolean; entitlements?: { features: Record<string, boolean>; limits: Record<string, number> }; usage?: Record<string, number> };
 type Profile = { name: string; email: string; avatarUrl?: string; language: string; role: string };
 const settingSections = [
     { id: 'company', label: 'Company', icon: Building2 },
+    { id: 'domain', label: 'Domain', icon: Globe },
     { id: 'account', label: 'My account', icon: UserRound },
     { id: 'security', label: 'Security', icon: KeyRound },
     { id: 'preferences', label: 'Preferences', icon: Palette },
@@ -26,13 +27,20 @@ const SettingsPage = () => {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [uploading, setUploading] = useState('');
+    const [subdomainInput, setSubdomainInput] = useState('');
+    const [savingSubdomain, setSavingSubdomain] = useState(false);
     const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '' });
     const [preferences, setPreferences] = useState(() => {
         try { return JSON.parse(localStorage.getItem('maamulpro.preferences') || '{"emailNotifications":true,"reportNotifications":true,"compactTables":false}'); } catch { return { emailNotifications: true, reportNotifications: true, compactTables: false }; }
     });
 
-    const load = () => Promise.all([api<Settings>('/api/settings'), api<Profile>('/api/settings/profile')]).then(([company, user]) => { setSettings(company); setProfile(user); }).catch((reason) => setError(reason.message));
+    const load = () => Promise.all([api<Settings>('/api/settings'), api<Profile>('/api/settings/profile')]).then(([company, user]) => {
+        setSettings(company);
+        setSubdomainInput(company.subdomain || '');
+        setProfile(user);
+    }).catch((reason) => setError(reason.message));
     useEffect(() => { load(); }, []);
+
     const uploadImage = async (file: File | undefined, folder: 'branding' | 'avatars', target: 'logoUrl' | 'avatarUrl') => {
         if (!file) return;
         setUploading(target); setError('');
@@ -59,6 +67,25 @@ const SettingsPage = () => {
     };
     const savePreferences = () => { localStorage.setItem('maamulpro.preferences', JSON.stringify(preferences)); setMessage('Preferences saved successfully.'); };
 
+    const saveSubdomain = async (event: FormEvent) => {
+        event.preventDefault();
+        setMessage('');
+        setError('');
+        setSavingSubdomain(true);
+        try {
+            const res = await api<{ subdomain: string }>('/api/settings/subdomain', {
+                method: 'PATCH',
+                body: JSON.stringify({ subdomain: subdomainInput }),
+            });
+            setSettings((current) => current ? { ...current, subdomain: res.subdomain } : current);
+            setMessage(`Domain updated successfully to ${res.subdomain}.maamulpro.site`);
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : 'Unable to update subdomain');
+        } finally {
+            setSavingSubdomain(false);
+        }
+    };
+
     return <AppShell>
         <PageHeader eyebrow="Configuration" title="Company & Account Settings" description="Manage company branding, account details, preferences, and workspace access." />
         {message && <SuccessAlert message={message} onDismiss={() => setMessage('')} />}{error && <ErrorAlert message={error} onRetry={load} />}
@@ -67,8 +94,9 @@ const SettingsPage = () => {
                 <aside className="w-64 shrink-0 border-r border-white-light bg-gray-50/50 p-4 dark:border-dark dark:bg-[#0e1726]"><div className="mb-5 px-3"><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Settings</p><p className="mt-1 text-sm text-white-dark">Company and personal controls</p></div><nav className="flex flex-col gap-1" aria-label="Settings navigation">{settingSections.map((section) => { const Icon = section.icon; return <button key={section.id} type="button" onClick={() => setActiveSection(section.id)} className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-semibold transition ${activeSection === section.id ? 'bg-primary-light text-primary' : 'text-white-dark hover:bg-white dark:hover:bg-black'}`} aria-current={activeSection === section.id ? 'page' : undefined}><Icon size={18} />{section.label}</button>; })}</nav></aside>
                 <main className="min-w-0 flex-1 p-5 sm:p-7">
                     {activeSection === 'company' && <form className="max-w-3xl space-y-5" onSubmit={(event) => save(event, 'company')}><div><h2 className="text-2xl font-extrabold">Company profile</h2><p className="mt-1 text-sm text-white-dark">Set the public company identity and contact information used across the workspace.</p></div>{!settings ? <LoadingState /> : <><Field label="Company logo"><div className="mt-2 flex items-center gap-3">{settings.logoUrl && <img src={settings.logoUrl} className="h-20 w-20 rounded-lg border border-white-light object-contain p-1 dark:border-dark" alt="Company logo" />}<input className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === 'logoUrl'} onChange={(event) => uploadImage(event.target.files?.[0], 'branding', 'logoUrl')} /></div></Field>{uploading === 'logoUrl' && <p className="text-xs text-primary">Uploading…</p>}<div className="grid gap-5 sm:grid-cols-2"><Field label="Company name" required><input className="form-input mt-1" required value={settings.companyName || ''} onChange={(event) => setSettings({ ...settings, companyName: event.target.value })} /></Field><Field label="Company email"><input className="form-input mt-1" type="email" value={settings.companyEmail || ''} onChange={(event) => setSettings({ ...settings, companyEmail: event.target.value })} /></Field><Field label="Company phone"><input className="form-input mt-1" value={settings.companyPhone || ''} onChange={(event) => setSettings({ ...settings, companyPhone: event.target.value })} /></Field><Field label="Company address"><input className="form-input mt-1" value={settings.companyAddress || ''} onChange={(event) => setSettings({ ...settings, companyAddress: event.target.value })} /></Field></div><Field label="Description"><textarea className="form-textarea mt-1" value={settings.companyDescription || ''} onChange={(event) => setSettings({ ...settings, companyDescription: event.target.value })} /></Field><div className="flex flex-wrap gap-2">{(['constructionEnabled', 'realEstateEnabled', 'materialManagementEnabled'] as const).map((field) => <span className={`badge ${settings[field] ? 'bg-success' : 'bg-dark'} text-white`} key={field}>{field.replace('Enabled', '')}: {settings[field] ? 'Enabled' : 'Disabled'}</span>)}</div><button className="btn btn-primary">Save company settings</button></>}</form>}
+                    {activeSection === 'domain' && <form className="max-w-xl space-y-5" onSubmit={saveSubdomain}><div><h2 className="text-2xl font-extrabold">Workspace Domain</h2><p className="mt-1 text-sm text-white-dark">Customize your company subdomain. Automatically routes via Wildcard DNS.</p></div>{!settings ? <LoadingState /> : <><Field label="Subdomain name" required hint="Lowercase letters, numbers, and hyphens only (2-30 characters)."><div className="mt-1 flex items-center rounded-md border border-white-light bg-gray-50 dark:border-dark dark:bg-dark"><span className="px-3 text-sm text-white-dark">https://</span><input className="form-input flex-1 border-0 bg-transparent px-0 py-2 focus:ring-0" required minLength={2} maxLength={30} value={subdomainInput} onChange={(event) => setSubdomainInput(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} /><span className="px-3 text-sm font-semibold text-primary">.maamulpro.site</span></div></Field><div className="rounded-md bg-gray-50 p-4 text-xs text-white-dark dark:bg-dark"><strong className="block text-secondary dark:text-white">Domain preview:</strong><code className="mt-1 block font-mono text-sm font-bold text-primary">https://{subdomainInput || 'subdomain'}.maamulpro.site</code></div><button className="btn btn-primary" disabled={savingSubdomain}>{savingSubdomain ? 'Saving domain…' : 'Update subdomain'}</button></>}</form>}
                     {activeSection === 'account' && <form className="max-w-3xl space-y-5" onSubmit={(event) => save(event, 'profile')}><div><h2 className="text-2xl font-extrabold">My account</h2><p className="mt-1 text-sm text-white-dark">Update your profile, avatar, email address, and language preference.</p></div>{!profile ? <LoadingState /> : <><Field label="Profile photo"><div className="mt-2 flex items-center gap-3">{profile.avatarUrl && <AuthenticatedImage src={profile.avatarUrl} className="h-20 w-20 rounded-full border border-white-light object-cover dark:border-dark" alt="Profile" />}<input className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === 'avatarUrl'} onChange={(event) => uploadImage(event.target.files?.[0], 'avatars', 'avatarUrl')} /></div></Field>{uploading === 'avatarUrl' && <p className="text-xs text-primary">Uploading…</p>}<div className="grid gap-5 sm:grid-cols-2"><Field label="Name" required><input className="form-input mt-1" required value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} /></Field><Field label="Email" required><input className="form-input mt-1" type="email" required value={profile.email} onChange={(event) => setProfile({ ...profile, email: event.target.value })} /></Field><Field label="Language"><select className="form-select mt-1" value={profile.language} onChange={(event) => setProfile({ ...profile, language: event.target.value })}><option value="en">English</option><option value="so">Somali</option></select></Field></div><button className="btn btn-primary">Save profile</button></>}</form>}
-                    {activeSection === 'security' && <form className="max-w-xl space-y-5" onSubmit={(event) => save(event, 'password')}><div><h2 className="text-2xl font-extrabold">Security</h2><p className="mt-1 text-sm text-white-dark">Set a new password for your account.</p></div><Field label="Current password" required><input className="form-input mt-1" type="password" required value={passwords.currentPassword} onChange={(event) => setPasswords({ ...passwords, currentPassword: event.target.value })} /></Field><Field label="New password" required hint="12+ characters with uppercase, lowercase, number, and symbol."><input className="form-input mt-1" type="password" minLength={12} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,200}" required value={passwords.newPassword} onChange={(event) => setPasswords({ ...passwords, newPassword: event.target.value })} /></Field><button className="btn btn-danger">Update password</button></form>}
+                    {activeSection === 'security' && <form className="max-w-xl space-y-5" onSubmit={(event) => save(event, 'password')}><div><h2 className="text-2xl font-extrabold">Security</h2><p className="mt-1 text-sm text-white-dark">Set a new password for your account.</p></div><Field label="Current password" required><input className="form-input mt-1" type="password" required value={passwords.currentPassword} onChange={(event) => setPasswords({ ...passwords, currentPassword: event.target.value })} /></Field><Field label="New password" required hint="Minimum 6 characters."><input className="form-input mt-1" type="password" minLength={6} required value={passwords.newPassword} onChange={(event) => setPasswords({ ...passwords, newPassword: event.target.value })} /></Field><button className="btn btn-danger">Update password</button></form>}
                     {activeSection === 'preferences' && <div className="max-w-2xl space-y-5"><div><h2 className="text-2xl font-extrabold">Appearance & notifications</h2><p className="mt-1 text-sm text-white-dark">These preferences are stored for this browser.</p></div><div className="space-y-3">{([['emailNotifications', 'Account and security emails'], ['reportNotifications', 'Scheduled report notifications'], ['compactTables', 'Compact data tables']] as const).map(([key, label]) => <label className="flex items-center justify-between gap-3 rounded-md bg-gray-50 p-4 dark:bg-dark" key={key}><span>{label}</span><input className="form-checkbox" type="checkbox" checked={Boolean(preferences[key])} onChange={(event) => setPreferences({ ...preferences, [key]: event.target.checked })} /></label>)}</div><button className="btn btn-primary" onClick={savePreferences}>Save preferences</button></div>}
                     {activeSection === 'categories' && <div className="max-w-2xl"><h2 className="text-2xl font-extrabold">Transaction categories</h2><p className="mt-1 text-sm text-white-dark">Manage the classifications available on income and expense forms.</p><Link className="btn btn-outline-primary mt-5" to="/app/financials/categories">Manage categories</Link></div>}
                     {activeSection === 'billing' && <div className="max-w-3xl"><h2 className="text-2xl font-extrabold">Workspace subscription</h2><p className="mt-1 text-sm text-white-dark">Modules and capacity are controlled by your MaamulPro plan.</p>{!settings ? <LoadingState /> : <div className="mt-6 space-y-4"><div className="grid gap-3 sm:grid-cols-2">{Object.entries(settings.entitlements?.features || {}).map(([key, enabled]) => <div className="flex items-center justify-between rounded-md bg-gray-50 p-4 dark:bg-dark" key={key}><span>{key.replace(/([A-Z])/g, ' $1')}</span><span className={`badge ${enabled ? 'bg-success' : 'bg-dark'} text-white`}>{enabled ? 'Enabled' : 'Not included'}</span></div>)}</div><h3 className="pt-3 text-lg font-bold">Capacity usage</h3>{Object.entries(settings.entitlements?.limits || {}).map(([key, limit]) => <div className="rounded-md bg-gray-50 p-4 dark:bg-dark" key={key}><div className="flex justify-between gap-4"><span>{key.replace(/([A-Z])/g, ' $1')}</span><strong>{settings.usage?.[key] || 0} / {Number(limit) === 0 ? 'Unlimited' : limit}</strong></div>{Number(limit) > 0 && <div className="mt-3 h-2 rounded-full bg-gray-200 dark:bg-black"><div className="h-2 rounded-full bg-primary" style={{ width: `${Math.min(100, ((settings.usage?.[key] || 0) / Number(limit)) * 100)}%` }} /></div>}</div>)}</div>}</div>}

@@ -168,6 +168,15 @@ export class SuperAdminController {
     return this.superAdminService.markInvoicePaid(id, body.paymentMethod, adminId);
   }
 
+  @Patch('invoices/:id/extend')
+  async extendInvoiceDueDate(
+    @Param('id') id: string,
+    @Body() body: { extendDays?: number; newDueDate?: string },
+  ) {
+    return this.superAdminService.extendInvoiceDueDate(id, body.extendDays, body.newDueDate);
+  }
+
+
   @Post('companies/:id/subscription/renew')
   @HttpCode(HttpStatus.OK)
   createRenewalInvoice(

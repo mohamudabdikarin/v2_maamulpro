@@ -50,6 +50,7 @@ export class SettingsService {
       companyPhone: values.company_phone || '',
       companyAddress: values.company_address || '',
       companyDescription: values.company_description || '',
+      subdomain: tenant.subdomain,
       constructionEnabled: tenant.constructionEnabled,
       realEstateEnabled: tenant.realEstateEnabled,
       materialManagementEnabled: tenant.materialManagementEnabled,
@@ -61,6 +62,28 @@ export class SettingsService {
       usage: { users, constructionProjects, properties },
     };
   }
+
+  async updateSubdomain(tenant: any, newSubdomain: string) {
+    const subdomain = String(newSubdomain || '').trim().toLowerCase();
+    if (!/^[a-z0-9-]+$/.test(subdomain) || subdomain.length < 2 || subdomain.length > 30) {
+      throw new BadRequestException('Subdomain must be 2-30 characters of lowercase letters, numbers, and hyphens');
+    }
+    const existing = await (this.centralPrisma as any).company.findFirst({
+      where: {
+        subdomain,
+        id: { not: tenant.companyId },
+      },
+    });
+    if (existing) {
+      throw new ConflictException('Subdomain is already in use by another company');
+    }
+    await (this.centralPrisma as any).company.update({
+      where: { id: tenant.companyId },
+      data: { subdomain },
+    });
+    return { subdomain };
+  }
+
 
   async updateSettings(tenantDb: any, data: UpdateCompanySettingsDto) {
     const entries = Object.entries(data).filter(([, value]) => value !== undefined);

@@ -28,9 +28,8 @@ export class UploadsService {
     const extension = detectedType.extension;
     const owner = companyId || 'platform';
     const pathname = `${owner}/${safeFolder}/${Date.now()}-${randomUUID()}.${extension}`;
-    const access = safeFolder === 'branding' ? 'public' as const : 'private' as const;
     const blob = await put(pathname, file.buffer, {
-      access,
+      access: 'public',
       addRandomSuffix: false,
       token,
       contentType: file.mimetype,
@@ -42,10 +41,16 @@ export class UploadsService {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     if (!token) throw new ServiceUnavailableException('Persistent blob storage is not configured');
     const pathname = this.ownedPathname(url, companyId, isSuperAdmin);
-    const blob = await get(pathname, { access: 'private', token });
+    let blob: any;
+    try {
+      blob = await get(pathname, { access: 'public', token });
+    } catch {
+      blob = await get(pathname, { access: 'private', token });
+    }
     if (!blob?.stream) throw new NotFoundException('Image was not found');
     return blob;
   }
+
 
   async deleteImage(url: string, companyId?: string, isSuperAdmin = false) {
     const token = process.env.BLOB_READ_WRITE_TOKEN;

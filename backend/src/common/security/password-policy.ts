@@ -1,13 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
 
-export const STRONG_PASSWORD_PATTERN =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,200}$/;
+export const STRONG_PASSWORD_PATTERN = /^.{6,200}$/;
 
 export const STRONG_PASSWORD_MESSAGE =
-  'Password must be 12-200 characters and include uppercase, lowercase, number, and special character';
+  'Password must be at least 6 characters long';
 
 export function assertStrongPassword(password: string): void {
-  if (!STRONG_PASSWORD_PATTERN.test(String(password || ''))) {
+  if (String(password || '').length < 6) {
     throw new BadRequestException(STRONG_PASSWORD_MESSAGE);
   }
 }
+
