@@ -9,6 +9,6 @@
     "dev:ui": "npm --prefix frontend run dev"
   },
   "engines": {
-    "node": ">=20.x"
+    "node": "20.x"
   }
 }
