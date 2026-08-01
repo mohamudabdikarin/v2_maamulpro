@@ -243,6 +243,39 @@ export class AuthService {
     }
     const company = companyUser.company;
     const enterpriseConfiguration = await this.enterpriseConfiguration(company);
+
+    let userPermissions: string[] = [];
+    if (company.dbUrl) {
+      try {
+        const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+        const tenantUser = await tenantDb.user.findFirst({
+          where: { email: companyUser.email, isActive: true, deletedAt: null },
+          include: {
+            rbacUserRoles: { include: { role: { include: { rolePermissions: { include: { permission: true } } } } } },
+            rbacUserPermissions: { include: { permission: true } },
+          },
+        });
+        if (tenantUser) {
+          const permSet = new Set<string>();
+          for (const ur of (tenantUser as any).rbacUserRoles || []) {
+            for (const rp of ur.role.rolePermissions || []) {
+              if (rp?.permission?.key) permSet.add(rp.permission.key);
+            }
+          }
+          for (const up of ((tenantUser as any).rbacUserPermissions || []).filter((item: any) => item.effect === 'ALLOW')) {
+            if (up.permission?.key) permSet.add(up.permission.key);
+          }
+          for (const up of ((tenantUser as any).rbacUserPermissions || []).filter((item: any) => item.effect === 'DENY')) {
+            if (up.permission?.key) permSet.delete(up.permission.key);
+          }
+          userPermissions = Array.from(permSet);
+        }
+      } catch (err) {
+        this.logger.warn(`Session permissions resolution failed: ${err instanceof Error ? err.message : String(err)}`);
+        userPermissions = user.permissions || [];
+      }
+    }
+
     return {
       id: companyUser.id,
       email: companyUser.email,
@@ -250,7 +283,7 @@ export class AuthService {
       companyId: company.id,
       companyName: company.name,
       subdomain: company.subdomain,
-      permissions: user.permissions || [],
+      permissions: userPermissions,
       constructionEnabled: company.constructionEnabled,
       realEstateEnabled: company.realEstateEnabled,
       materialManagementEnabled: company.materialManagementEnabled,

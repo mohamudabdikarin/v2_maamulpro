@@ -18,19 +18,57 @@ import IconMenuElements from '../Icon/Menu/IconMenuElements';
 import IconMenuForms from '../Icon/Menu/IconMenuForms';
 
 type Feature = 'construction' | 'realEstate' | 'materials' | 'payroll' | 'advancedReports';
-type Item = { label: string; to: string; icon?: ReactNode; feature?: Feature };
-type Group = { label: string; icon: ReactNode; items: Item[]; feature?: Feature };
+type Item = { label: string; to: string; icon?: ReactNode; feature?: Feature; permission?: string };
+type Group = { label: string; icon: ReactNode; items: Item[]; feature?: Feature; permission?: string };
 
 const subIconClass = 'shrink-0 text-gray-400 group-hover/sub:!text-primary';
 const iconClass = 'group-hover:!text-primary shrink-0';
 
 const companyGroups: Group[] = [
-    { label: 'Executive hub', icon: <IconMenuDashboard className={iconClass} />, items: [{ label: 'Dashboard', to: '/app/dashboard', icon: <LayoutDashboard size={16} className={subIconClass} /> }, { label: 'Analytics', to: '/app/analytics', icon: <BarChart3 size={16} className={subIconClass} /> }] },
-    { label: 'People & finance', icon: <IconMenuUsers className={iconClass} />, items: [{ label: 'Staff', to: '/app/staff', icon: <Users size={16} className={subIconClass} /> }, { label: 'Financials', to: '/app/financials', icon: <Wallet size={16} className={subIconClass} /> }, { label: 'Chart of accounts', to: '/app/financials/accounts', icon: <BookOpen size={16} className={subIconClass} /> }, { label: 'Payroll', to: '/app/payroll', feature: 'payroll', icon: <Receipt size={16} className={subIconClass} /> }, { label: 'Payslips', to: '/app/payroll/payslips', feature: 'payroll', icon: <FileText size={16} className={subIconClass} /> }] },
-    { label: 'Construction', feature: 'construction', icon: <IconMenuComponents className={iconClass} />, items: [{ label: 'Overview', to: '/app/construction/overview', icon: <LayoutDashboard size={16} className={subIconClass} /> }, { label: 'Projects', to: '/app/construction/projects', icon: <Building2 size={16} className={subIconClass} /> }, { label: 'Tasks', to: '/app/construction/tasks', icon: <CheckSquare size={16} className={subIconClass} /> }, { label: 'Expenses', to: '/app/construction/expenses', icon: <DollarSign size={16} className={subIconClass} /> }, { label: 'Manpower', to: '/app/construction/manpower', icon: <Users size={16} className={subIconClass} /> }, { label: 'Inventory', to: '/app/construction/inventory', icon: <Package size={16} className={subIconClass} /> }, { label: 'Contracts', to: '/app/construction/contracts', icon: <FileSignature size={16} className={subIconClass} /> }] },
-    { label: 'Real estate', feature: 'realEstate', icon: <IconMenuElements className={iconClass} />, items: [{ label: 'Overview', to: '/app/real-estate/overview', icon: <LayoutDashboard size={16} className={subIconClass} /> }, { label: 'Properties', to: '/app/real-estate/properties', icon: <Building2 size={16} className={subIconClass} /> }, { label: 'Clients', to: '/app/real-estate/clients', icon: <UserCheck size={16} className={subIconClass} /> }, { label: 'Deals', to: '/app/real-estate/deals', icon: <Handshake size={16} className={subIconClass} /> }, { label: 'Rentals', to: '/app/real-estate/rentals', icon: <KeyRound size={16} className={subIconClass} /> }, { label: 'Tenants', to: '/app/real-estate/tenants', icon: <User size={16} className={subIconClass} /> }, { label: 'Rent payments', to: '/app/real-estate/rent-payments', icon: <Wallet size={16} className={subIconClass} /> }] },
-    { label: 'Materials', feature: 'materials', icon: <IconMenuInvoice className={iconClass} />, items: [{ label: 'Overview', to: '/app/materials/overview', icon: <LayoutDashboard size={16} className={subIconClass} /> }, { label: 'Inventory', to: '/app/materials/inventory', icon: <Package size={16} className={subIconClass} /> }, { label: 'Suppliers', to: '/app/materials/suppliers', icon: <Truck size={16} className={subIconClass} /> }, { label: 'Purchases', to: '/app/materials/purchases', icon: <ShoppingCart size={16} className={subIconClass} /> }, { label: 'Sales', to: '/app/materials/sales', icon: <Tags size={16} className={subIconClass} /> }, { label: 'Transportation', to: '/app/materials/transportation', icon: <Truck size={16} className={subIconClass} /> }] },
-    { label: 'Governance', icon: <IconMenuCharts className={iconClass} />, items: [{ label: 'Reports', to: '/app/reports', feature: 'advancedReports', icon: <BarChart3 size={16} className={subIconClass} /> }, { label: 'Report schedules', to: '/app/report-schedules', feature: 'advancedReports', icon: <Calendar size={16} className={subIconClass} /> }, { label: 'Audit logs', to: '/app/audits', icon: <Shield size={16} className={subIconClass} /> }, { label: 'Roles & permissions', to: '/app/roles', icon: <ShieldCheck size={16} className={subIconClass} /> }, { label: 'Settings', to: '/app/settings', icon: <Settings size={16} className={subIconClass} /> }] },
+    { label: 'Executive hub', icon: <IconMenuDashboard className={iconClass} />, items: [
+        { label: 'Dashboard', to: '/app/dashboard', icon: <LayoutDashboard size={16} className={subIconClass} /> },
+        { label: 'Analytics', to: '/app/analytics', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'analytics.read' },
+    ] },
+    { label: 'People & finance', icon: <IconMenuUsers className={iconClass} />, items: [
+        { label: 'Staff', to: '/app/staff', icon: <Users size={16} className={subIconClass} />, permission: 'users.read' },
+        { label: 'Financials', to: '/app/financials', icon: <Wallet size={16} className={subIconClass} />, permission: 'financials.read' },
+        { label: 'Chart of accounts', to: '/app/financials/accounts', icon: <BookOpen size={16} className={subIconClass} />, permission: 'financials.read' },
+        { label: 'Payroll', to: '/app/payroll', feature: 'payroll', icon: <Receipt size={16} className={subIconClass} />, permission: 'payroll.read' },
+        { label: 'Payslips', to: '/app/payroll/payslips', feature: 'payroll', icon: <FileText size={16} className={subIconClass} />, permission: 'payroll.read' },
+    ] },
+    { label: 'Construction', feature: 'construction', icon: <IconMenuComponents className={iconClass} />, permission: 'workspace.construction.read', items: [
+        { label: 'Overview', to: '/app/construction/overview', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'workspace.construction.read' },
+        { label: 'Projects', to: '/app/construction/projects', icon: <Building2 size={16} className={subIconClass} />, permission: 'projects.read' },
+        { label: 'Tasks', to: '/app/construction/tasks', icon: <CheckSquare size={16} className={subIconClass} />, permission: 'construction_tasks.read' },
+        { label: 'Expenses', to: '/app/construction/expenses', icon: <DollarSign size={16} className={subIconClass} />, permission: 'construction_expenses.read' },
+        { label: 'Manpower', to: '/app/construction/manpower', icon: <Users size={16} className={subIconClass} />, permission: 'manpower.read' },
+        { label: 'Inventory', to: '/app/construction/inventory', icon: <Package size={16} className={subIconClass} />, permission: 'construction_inventory.read' },
+        { label: 'Contracts', to: '/app/construction/contracts', icon: <FileSignature size={16} className={subIconClass} />, permission: 'workforce_contracts.read' },
+    ] },
+    { label: 'Real estate', feature: 'realEstate', icon: <IconMenuElements className={iconClass} />, permission: 'workspace.real_estate.read', items: [
+        { label: 'Overview', to: '/app/real-estate/overview', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'workspace.real_estate.read' },
+        { label: 'Properties', to: '/app/real-estate/properties', icon: <Building2 size={16} className={subIconClass} />, permission: 'properties.read' },
+        { label: 'Clients', to: '/app/real-estate/clients', icon: <UserCheck size={16} className={subIconClass} />, permission: 'clients.read' },
+        { label: 'Deals', to: '/app/real-estate/deals', icon: <Handshake size={16} className={subIconClass} />, permission: 'deals.read' },
+        { label: 'Rentals', to: '/app/real-estate/rentals', icon: <KeyRound size={16} className={subIconClass} />, permission: 'rentals.read' },
+        { label: 'Tenants', to: '/app/real-estate/tenants', icon: <User size={16} className={subIconClass} />, permission: 'rentals.read' },
+        { label: 'Rent payments', to: '/app/real-estate/rent-payments', icon: <Wallet size={16} className={subIconClass} />, permission: 'rentals.read' },
+    ] },
+    { label: 'Materials', feature: 'materials', icon: <IconMenuInvoice className={iconClass} />, permission: 'workspace.material_management.read', items: [
+        { label: 'Overview', to: '/app/materials/overview', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'workspace.material_management.read' },
+        { label: 'Inventory', to: '/app/materials/inventory', icon: <Package size={16} className={subIconClass} />, permission: 'materials_inventory.read' },
+        { label: 'Suppliers', to: '/app/materials/suppliers', icon: <Truck size={16} className={subIconClass} />, permission: 'suppliers.read' },
+        { label: 'Purchases', to: '/app/materials/purchases', icon: <ShoppingCart size={16} className={subIconClass} />, permission: 'purchases.read' },
+        { label: 'Sales', to: '/app/materials/sales', icon: <Tags size={16} className={subIconClass} />, permission: 'material_sales.read' },
+        { label: 'Transportation', to: '/app/materials/transportation', icon: <Truck size={16} className={subIconClass} />, permission: 'transportation.read' },
+    ] },
+    { label: 'Governance', icon: <IconMenuCharts className={iconClass} />, items: [
+        { label: 'Reports', to: '/app/reports', feature: 'advancedReports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.read' },
+        { label: 'Report schedules', to: '/app/report-schedules', feature: 'advancedReports', icon: <Calendar size={16} className={subIconClass} />, permission: 'reports.admin' },
+        { label: 'Audit logs', to: '/app/audits', icon: <Shield size={16} className={subIconClass} />, permission: 'activity_logs.read' },
+        { label: 'Roles & permissions', to: '/app/roles', icon: <ShieldCheck size={16} className={subIconClass} />, permission: 'roles.read' },
+        { label: 'Settings', to: '/app/settings', icon: <Settings size={16} className={subIconClass} />, permission: 'settings.read' },
+    ] },
 ];
 
 const platformGroups: Group[] = [
@@ -57,6 +95,10 @@ const Sidebar = () => {
         return () => window.removeEventListener('maamulpro:session', update);
     }, []);
     const isPlatform = Boolean(session?.user.isSuperAdmin);
+    const userPermissions = useMemo(() => new Set(session?.user.permissions || []), [session]);
+    const isOwner = isPlatform || ['COMPANY_OWNER', 'SUPER_ADMIN'].includes(session?.user.role || '');
+    const hasPerm = (perm?: string) => !perm || isOwner || userPermissions.has(perm);
+
     const groups = useMemo(() => {
         if (isPlatform) return platformGroups;
         const features = session?.user.entitlements?.features;
@@ -80,6 +122,7 @@ const Sidebar = () => {
         };
         return companyGroups
             .filter((group) => !group.feature || Boolean(features?.[group.feature]))
+            .filter((group) => hasPerm(group.permission))
             .filter((group) => {
                 const workspace = workspaceKey(group.label);
                 return !workspace
@@ -90,12 +133,13 @@ const Sidebar = () => {
                 ...group,
                 items: group.items.filter((item) => {
                     if (item.feature && !features?.[item.feature]) return false;
+                    if (!hasPerm(item.permission)) return false;
                     const key = sidebarKey(item);
                     return !key || enterprise?.sidebarVisibility?.[key] !== false;
                 }),
             }))
             .filter((group) => group.items.length);
-    }, [isPlatform, session]);
+    }, [isPlatform, session, userPermissions, isOwner]);
     const activeGroup = groups.find((group) => group.items.some((item) => location.pathname.startsWith(item.to)))?.label || '';
     const [openGroup, setOpenGroup] = useState(activeGroup);
 
