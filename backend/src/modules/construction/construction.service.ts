@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { AccountingService } from '../accounting/accounting.service';
 import {
   ContractAdjustmentDto,
   ContractAssignmentDto,
@@ -15,7 +16,18 @@ import { SubscriptionEntitlementService } from '../../common/subscriptions/subsc
 
 @Injectable()
 export class ConstructionService {
-  constructor(private readonly entitlements: SubscriptionEntitlementService) {}
+  private readonly logger = new Logger('ConstructionService');
+  constructor(
+    private readonly entitlements: SubscriptionEntitlementService,
+    private readonly accounting: AccountingService,
+  ) {}
+
+  private async safePost(fn: () => Promise<unknown>) {
+    try { await fn(); } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Journal post skipped: ${message}`);
+    }
+  }
 
   // -----------------------------------------------------------
   // Projects & Tasks
@@ -371,6 +383,21 @@ export class ConstructionService {
           notes: data.notes,
         },
       });
+      // Workforce contract payments are a labor expense funded from
+      // cash — same posting shape as payroll.
+      await this.safePost(() =>
+        this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system', userId,
+          sourceType: 'WORKFORCE_PAYMENT',
+          sourceId: payment.id,
+          sourceRef: `wfpayment ${payment.id}`,
+          date: data.date || new Date(),
+          memo: `${data.description} (contract payment ${payment.id})`,
+          drKey: 'PAYROLL_EXPENSE',
+          crKey: 'PAYROLL_CASH',
+          amount: Number(data.amount),
+        }),
+      );
       return payment;
     });
   }
@@ -670,7 +697,7 @@ export class ConstructionService {
 
   private async syncDailyExpense(tx: any, expense: any, userId: string) {
     const category = await this.findOrCreateCategory(tx, expense.category || 'Operational Expense');
-    return tx.transaction.upsert({
+    const result = await tx.transaction.upsert({
       where: { referenceId: `expense:${expense.id}` },
       create: {
         referenceId: `expense:${expense.id}`,
@@ -696,6 +723,21 @@ export class ConstructionService {
         version: { increment: 1 },
       },
     });
+    await this.safePost(async () => {
+      await this.accounting.retractPriorForSource(tx, 'DAILY_EXPENSE', expense.id);
+      await this.accounting.postFinancialEvent(tx, {
+        tx, tenantId: 'system', userId,
+        sourceType: 'DAILY_EXPENSE',
+        sourceId: expense.id,
+        sourceRef: `expense ${expense.id}`,
+        date: expense.date,
+        memo: `${expense.description} (expense ${expense.id})`,
+        drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
+        crKey: 'TRANSACTION_EXPENSE_CASH',
+        amount: Number(expense.amount),
+      });
+    });
+    return result;
   }
 
   private async syncWorkerLedger(tx: any, entry: any, userId: string) {
@@ -703,7 +745,7 @@ export class ConstructionService {
       tx,
       entry.type === 'EXPENSE' ? 'Labor Expense' : 'Labor Income',
     );
-    return tx.transaction.upsert({
+    const result = await tx.transaction.upsert({
       where: { referenceId: `ledger:${entry.id}` },
       create: {
         referenceId: `ledger:${entry.id}`,
@@ -729,6 +771,22 @@ export class ConstructionService {
         version: { increment: 1 },
       },
     });
+    await this.safePost(async () => {
+      await this.accounting.retractPriorForSource(tx, 'WORKER_LEDGER', entry.id);
+      const isExpense = entry.type === 'EXPENSE';
+      await this.accounting.postFinancialEvent(tx, {
+        tx, tenantId: 'system', userId,
+        sourceType: 'WORKER_LEDGER',
+        sourceId: entry.id,
+        sourceRef: `ledger ${entry.id}`,
+        date: entry.date,
+        memo: `${entry.description} (ledger ${entry.id})`,
+        drKey: isExpense ? 'PAYROLL_EXPENSE' : 'TRANSACTION_INCOME_CASH',
+        crKey: isExpense ? 'PAYROLL_CASH' : 'TRANSACTION_INCOME_REVENUE',
+        amount: Number(entry.amount),
+      });
+    });
+    return result;
   }
 
   private async syncContractBudget(tenantDb: any, contractId: string) {

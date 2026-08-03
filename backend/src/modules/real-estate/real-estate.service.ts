@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   ClientDto,
   DealDto,
@@ -8,10 +8,25 @@ import {
   TenantDto,
 } from './real-estate.dto';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
+import { AccountingService } from '../accounting/accounting.service';
 
 @Injectable()
 export class RealEstateService {
-  constructor(private readonly entitlements: SubscriptionEntitlementService) {}
+  private readonly logger = new Logger(RealEstateService.name);
+  constructor(
+    private readonly entitlements: SubscriptionEntitlementService,
+    private readonly accounting: AccountingService,
+  ) {}
+
+  // See material-management for the rationale — a ledger post that
+  // fails must not block the source-record write, so wrap in try/catch
+  // and log. Missing default accounts are the most common cause.
+  private async safePost(fn: () => Promise<unknown>) {
+    try { await fn(); } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Journal post skipped: ${message}`);
+    }
+  }
   getProperties(tenantDb: any, query?: { type?: string; status?: string; search?: string }) {
     const where: any = { deletedAt: null };
     if (query?.type) where.type = query.type;
@@ -413,10 +428,12 @@ export class RealEstateService {
       where: { dealId: deal.id, deletedAt: null },
       data: { deletedAt: new Date(), version: { increment: 1 } },
     });
+    await this.safePost(() => this.accounting.retractPriorForSource(tx, 'DEAL', deal.id));
     if (deal.paymentStatus === 'REFUNDED' || Number(deal.totalAmount) <= 0) return;
     const paid = Number(deal.paidAmount);
     const total = Number(deal.totalAmount);
     const description = deal.type === 'RENTAL' ? 'Rental' : 'Sale';
+    const isRental = deal.type === 'RENTAL';
     if (paid > 0) {
       await tx.transaction.create({
         data: {
@@ -429,6 +446,18 @@ export class RealEstateService {
           propertyId: deal.propertyId,
         },
       });
+      await this.safePost(() =>
+        this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system',
+          sourceType: 'DEAL',
+          sourceId: deal.id,
+          sourceRef: `deal ${deal.id} · paid`,
+          memo: `${description} payment received for deal ${deal.id}`,
+          drKey: isRental ? 'RENTAL_RECEIPT_CASH' : 'DEAL_SALE_CASH',
+          crKey: isRental ? 'RENTAL_INVOICE_REVENUE' : 'DEAL_SALE_REVENUE',
+          amount: paid,
+        }),
+      );
     }
     if (total - paid > 0) {
       await tx.transaction.create({
@@ -442,6 +471,18 @@ export class RealEstateService {
           propertyId: deal.propertyId,
         },
       });
+      await this.safePost(() =>
+        this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system',
+          sourceType: 'DEAL',
+          sourceId: deal.id,
+          sourceRef: `deal ${deal.id} · due`,
+          memo: `Outstanding balance on ${description.toLowerCase()} deal ${deal.id}`,
+          drKey: isRental ? 'RENTAL_INVOICE_AR' : 'SALES_INVOICE_AR',
+          crKey: isRental ? 'RENTAL_INVOICE_REVENUE' : 'DEAL_SALE_REVENUE',
+          amount: total - paid,
+        }),
+      );
     }
   }
 
@@ -457,6 +498,9 @@ export class RealEstateService {
       where: { referenceId: { startsWith: prefix }, deletedAt: null },
       data: { deletedAt: new Date(), version: { increment: 1 } },
     });
+    await this.safePost(() =>
+      this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', payment.id),
+    );
     const propertyId = payment.contractId
       ? (await tx.rentalContract.findUnique({ where: { id: payment.contractId } }))?.propertyId
       : null;
@@ -474,6 +518,19 @@ export class RealEstateService {
           propertyId,
         },
       });
+      await this.safePost(() =>
+        this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system',
+          sourceType: 'RENT_PAYMENT',
+          sourceId: payment.id,
+          sourceRef: `rent ${payment.id} · paid`,
+          date: payment.paidDate || new Date(),
+          memo: `Rent payment received (${payment.id})`,
+          drKey: 'RENTAL_RECEIPT_CASH',
+          crKey: 'RENTAL_RECEIPT_AR',
+          amount: paid,
+        }),
+      );
     }
     if (due - paid > 0) {
       await tx.transaction.create({
@@ -487,6 +544,19 @@ export class RealEstateService {
           propertyId,
         },
       });
+      await this.safePost(() =>
+        this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system',
+          sourceType: 'RENT_PAYMENT',
+          sourceId: payment.id,
+          sourceRef: `rent ${payment.id} · due`,
+          date: payment.dueDate,
+          memo: `Outstanding rent (${payment.id})`,
+          drKey: 'RENTAL_INVOICE_AR',
+          crKey: 'RENTAL_INVOICE_REVENUE',
+          amount: due - paid,
+        }),
+      );
     }
   }
 }

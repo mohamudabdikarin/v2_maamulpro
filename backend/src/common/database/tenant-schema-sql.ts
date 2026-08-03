@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 14;
+export const CURRENT_TENANT_SCHEMA_VERSION = 16;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -1197,6 +1197,263 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "payroll_items_payroll_id_idx" ON "payroll_items"("payroll_id")`,
   `CREATE INDEX IF NOT EXISTS "payroll_items_staff_id_idx" ON "payroll_items"("staff_id")`,
   `CREATE INDEX IF NOT EXISTS "payroll_items_payslip_number_idx" ON "payroll_items"("payslip_number")`,
+
+  // ── Full Accounting Module — Phase 1 (v15) ─────────────────────
+  //
+  // Extends the minimal accounts + journal_entries tables with:
+  //   1) Descriptive/status/policy columns on accounts.
+  //   2) A new journal_batches table so double-entry lines are grouped
+  //      into balanced batches (SUM(debit) = SUM(credit) per batch).
+  //   3) A batch_id link on journal_entries with a self-consistent
+  //      DR/CR line invariant.
+  //   4) A seeded default Chart of Accounts so posting works out of
+  //      the box before the mappings UI (phase 2) is available.
+  //
+  // ---- accounts: extend ----
+  `DO $$ BEGIN
+    ALTER TABLE "accounts" ADD COLUMN "description" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "accounts" ADD COLUMN "is_active" BOOLEAN NOT NULL DEFAULT true;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "accounts" ADD COLUMN "allow_negative" BOOLEAN NOT NULL DEFAULT true;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "accounts" ADD COLUMN "normal_balance" TEXT NOT NULL DEFAULT 'DEBIT';
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "accounts" ADD COLUMN "is_system" BOOLEAN NOT NULL DEFAULT false;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "accounts" ADD CONSTRAINT "accounts_normal_balance_check"
+      CHECK ("normal_balance" IN ('DEBIT','CREDIT'));
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "accounts" ADD CONSTRAINT "accounts_parent_code_fkey"
+      FOREIGN KEY ("parent_code") REFERENCES "accounts"("code") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "accounts_is_active_idx" ON "accounts"("is_active")`,
+
+  // ---- journal_batches: new ----
+  `CREATE TABLE IF NOT EXISTS "journal_batches" (
+    "id"                     TEXT           NOT NULL PRIMARY KEY,
+    "tenant_id"              TEXT           NOT NULL,
+    "batch_number"           TEXT           NOT NULL,
+    "date"                   TIMESTAMP(3)   NOT NULL,
+    "memo"                   TEXT,
+    "source_type"            TEXT           NOT NULL DEFAULT 'MANUAL',
+    "source_id"              TEXT,
+    "source_ref"             TEXT,
+    "status"                 TEXT           NOT NULL DEFAULT 'POSTED',
+    "total_debit"            DECIMAL(14,2)  NOT NULL DEFAULT 0,
+    "total_credit"           DECIMAL(14,2)  NOT NULL DEFAULT 0,
+    "posted_by_id"           TEXT,
+    "posted_at"              TIMESTAMP(3),
+    "reverses_batch_id"      TEXT,
+    "reversed_by_batch_id"   TEXT,
+    "version"                INTEGER        NOT NULL DEFAULT 0,
+    "created_at"             TIMESTAMP(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"             TIMESTAMP(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"             TIMESTAMP(3)
+  )`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "journal_batches" ADD CONSTRAINT "journal_batches_status_check"
+      CHECK ("status" IN ('POSTED','PENDING_APPROVAL','REVERSED','VOID'));
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "journal_batches" ADD CONSTRAINT "journal_batches_balanced_check"
+      CHECK ("total_debit" = "total_credit");
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "journal_batches" ADD CONSTRAINT "journal_batches_posted_by_id_fkey"
+      FOREIGN KEY ("posted_by_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "journal_batches" ADD CONSTRAINT "journal_batches_reverses_batch_id_fkey"
+      FOREIGN KEY ("reverses_batch_id") REFERENCES "journal_batches"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "journal_batches" ADD CONSTRAINT "journal_batches_reversed_by_batch_id_fkey"
+      FOREIGN KEY ("reversed_by_batch_id") REFERENCES "journal_batches"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE UNIQUE INDEX IF NOT EXISTS "journal_batches_batch_number_key" ON "journal_batches"("batch_number")`,
+  `CREATE INDEX IF NOT EXISTS "journal_batches_date_idx"        ON "journal_batches"("date")`,
+  `CREATE INDEX IF NOT EXISTS "journal_batches_status_idx"      ON "journal_batches"("status")`,
+  `CREATE INDEX IF NOT EXISTS "journal_batches_source_idx"      ON "journal_batches"("source_type","source_id")`,
+  `CREATE INDEX IF NOT EXISTS "journal_batches_deleted_date_idx" ON "journal_batches"("deleted_at","date")`,
+
+  // ---- journal_entries: link to batch, add line ordering ----
+  `DO $$ BEGIN
+    ALTER TABLE "journal_entries" ADD COLUMN "batch_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "journal_entries" ADD COLUMN "line_number" INTEGER NOT NULL DEFAULT 0;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "journal_entries" ADD CONSTRAINT "journal_entries_batch_id_fkey"
+      FOREIGN KEY ("batch_id") REFERENCES "journal_batches"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  // A line is EITHER a debit OR a credit (never both, never zero).
+  `DO $$ BEGIN
+    ALTER TABLE "journal_entries" ADD CONSTRAINT "journal_entries_dr_or_cr_check"
+      CHECK (("debit" > 0 AND "credit" = 0) OR ("debit" = 0 AND "credit" > 0));
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "journal_entries_batch_id_idx" ON "journal_entries"("batch_id")`,
+
+  // ---- transaction linkage to journal batch (traceability) ----
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD COLUMN "journal_batch_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD COLUMN "posting_status" TEXT NOT NULL DEFAULT 'UNPOSTED';
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_posting_status_check"
+      CHECK ("posting_status" IN ('UNPOSTED','POSTED','REVERSED','FAILED'));
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_journal_batch_id_fkey"
+      FOREIGN KEY ("journal_batch_id") REFERENCES "journal_batches"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "transactions_journal_batch_id_idx" ON "transactions"("journal_batch_id")`,
+
+  // ---- Seed default Chart of Accounts (idempotent) ----
+  //
+  // Uses tenant_id='system' as the sentinel for seeded rows. The
+  // per-tenant Postgres database already provides isolation; the
+  // tenant_id column on accounts is retained for schema symmetry
+  // only and no service filters by it. Anyone can rename/inactivate
+  // these accounts later — codes are stable so mappings keep working.
+  //
+  // Numbering scheme (US-standard 4-digit):
+  //   1000 Assets, 2000 Liabilities, 3000 Equity, 4000 Income, 5000 Expense
+  `INSERT INTO "accounts" ("code","name","parent_code","type","tenant_id","description","normal_balance","allow_negative","is_system")
+   VALUES
+     ('1000','Assets',              NULL,   'ASSET',    'system','Root: everything the company owns',                 'DEBIT',  false, true),
+     ('1100','Cash and Bank',       '1000', 'ASSET',    'system','Physical cash and bank balances',                   'DEBIT',  false, true),
+     ('1110','Cash on Hand',        '1100', 'ASSET',    'system','Petty cash and cash drawers',                       'DEBIT',  false, true),
+     ('1120','Bank Account',        '1100', 'ASSET',    'system','Primary operating bank account',                    'DEBIT',  false, true),
+     ('1200','Accounts Receivable', '1000', 'ASSET',    'system','Amounts owed by customers',                         'DEBIT',  true,  true),
+     ('1300','Inventory',           '1000', 'ASSET',    'system','Materials and goods held for sale',                 'DEBIT',  false, true),
+     ('1400','Prepaid Expenses',    '1000', 'ASSET',    'system','Expenses paid in advance',                          'DEBIT',  false, true),
+     ('1500','Fixed Assets',        '1000', 'ASSET',    'system','Property, plant and equipment',                     'DEBIT',  false, true),
+
+     ('2000','Liabilities',         NULL,   'LIABILITY','system','Root: everything the company owes',                 'CREDIT', false, true),
+     ('2100','Accounts Payable',    '2000', 'LIABILITY','system','Amounts owed to suppliers',                         'CREDIT', true,  true),
+     ('2200','Tax Payable',         '2000', 'LIABILITY','system','Taxes collected but not yet remitted',              'CREDIT', true,  true),
+     ('2300','Customer Deposits',   '2000', 'LIABILITY','system','Advances and deposits held for customers',          'CREDIT', true,  true),
+     ('2400','Accrued Expenses',    '2000', 'LIABILITY','system','Expenses incurred but not yet paid',                'CREDIT', true,  true),
+
+     ('3000','Equity',              NULL,   'EQUITY',   'system','Root: owners equity',                               'CREDIT', true,  true),
+     ('3100','Owner Capital',       '3000', 'EQUITY',   'system','Owner contributions',                               'CREDIT', true,  true),
+     ('3900','Retained Earnings',   '3000', 'EQUITY',   'system','Accumulated earnings',                              'CREDIT', true,  true),
+
+     ('4000','Income',              NULL,   'INCOME',   'system','Root: all revenue',                                 'CREDIT', true,  true),
+     ('4100','Sales Revenue',       '4000', 'INCOME',   'system','Revenue from goods sold',                           'CREDIT', true,  true),
+     ('4200','Service Revenue',     '4000', 'INCOME',   'system','Revenue from services rendered',                    'CREDIT', true,  true),
+     ('4300','Rental Income',       '4000', 'INCOME',   'system','Revenue from property rentals',                     'CREDIT', true,  true),
+     ('4400','Other Income',        '4000', 'INCOME',   'system','Miscellaneous income',                              'CREDIT', true,  true),
+
+     ('5000','Expenses',            NULL,   'EXPENSE',  'system','Root: all expenses',                                'DEBIT',  true,  true),
+     ('5100','Cost of Goods Sold',  '5000', 'EXPENSE',  'system','Direct cost of goods sold',                         'DEBIT',  true,  true),
+     ('5200','Salaries and Wages',  '5000', 'EXPENSE',  'system','Payroll expense',                                   'DEBIT',  true,  true),
+     ('5300','Rent Expense',        '5000', 'EXPENSE',  'system','Office/site rental expense',                        'DEBIT',  true,  true),
+     ('5400','Utilities',           '5000', 'EXPENSE',  'system','Electricity, water, internet',                      'DEBIT',  true,  true),
+     ('5500','Operating Expenses',  '5000', 'EXPENSE',  'system','General operating expenses',                        'DEBIT',  true,  true),
+     ('5600','Discounts Given',     '5000', 'EXPENSE',  'system','Sales/settlement discounts given to customers',     'DEBIT',  true,  true),
+     ('5900','Other Expenses',      '5000', 'EXPENSE',  'system','Miscellaneous expenses',                            'DEBIT',  true,  true)
+   ON CONFLICT ("code") DO NOTHING`,
+
+  // ── Full Accounting Module — Phase 2 (v16) ─────────────────────
+  //
+  // account_mappings drives every auto-posting hook. Each row binds a
+  // stable key (TRANSACTION_INCOME_CASH, SALES_INVOICE_AR, …) to a
+  // Chart-of-Accounts code. Services call AccountMappingsService.resolve()
+  // instead of hardcoding codes so mappings can be re-pointed at any time
+  // from Settings without a code change.
+  `CREATE TABLE IF NOT EXISTS "account_mappings" (
+    "key"            TEXT          NOT NULL PRIMARY KEY,
+    "account_code"   TEXT          NOT NULL,
+    "description"    TEXT,
+    "updated_by_id"  TEXT,
+    "created_at"     TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"     TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "account_mappings" ADD CONSTRAINT "account_mappings_account_code_fkey"
+      FOREIGN KEY ("account_code") REFERENCES "accounts"("code") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "account_mappings" ADD CONSTRAINT "account_mappings_updated_by_id_fkey"
+      FOREIGN KEY ("updated_by_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "account_mappings_account_code_idx" ON "account_mappings"("account_code")`,
+
+  // Seed the default mapping set. Codes mirror the phase-1 hardcoded
+  // constants so this migration is a no-op for auto-posting behavior;
+  // once landed, admins can re-point any key from Settings.
+  `INSERT INTO "account_mappings" ("key","account_code","description")
+   VALUES
+     -- Core transactions (Financials page — the informal ledger)
+     ('TRANSACTION_INCOME_CASH',     '1120','Cash/bank account debited on quick income entries'),
+     ('TRANSACTION_INCOME_REVENUE',  '4400','Revenue account credited on quick income entries'),
+     ('TRANSACTION_EXPENSE_CASH',    '1120','Cash/bank account credited on quick expense entries'),
+     ('TRANSACTION_EXPENSE_ACCOUNT', '5900','Expense account debited on quick expense entries'),
+     -- Sales invoices / customer flow
+     ('SALES_INVOICE_AR',            '1200','Receivable debited when a sales invoice is issued'),
+     ('SALES_INVOICE_REVENUE',       '4100','Revenue credited when a sales invoice is issued'),
+     ('CUSTOMER_PAYMENT_CASH',       '1120','Cash/bank debited on customer payments received'),
+     ('CUSTOMER_PAYMENT_AR',         '1200','Receivable credited on customer payments received'),
+     ('CUSTOMER_DEPOSIT_LIABILITY',  '2300','Deposit liability credited when a deposit is held'),
+     -- Purchases / supplier flow
+     ('PURCHASE_INVOICE_AP',         '2100','Payable credited when a purchase invoice is entered'),
+     ('PURCHASE_INVOICE_EXPENSE',    '5100','Cost/expense debited when a purchase invoice is entered'),
+     ('SUPPLIER_PAYMENT_CASH',       '1120','Cash/bank credited when paying suppliers'),
+     ('SUPPLIER_PAYMENT_AP',         '2100','Payable debited when paying suppliers'),
+     -- Rentals (real estate)
+     ('RENTAL_INVOICE_AR',           '1200','Tenant receivable debited when a rent invoice is issued'),
+     ('RENTAL_INVOICE_REVENUE',      '4300','Rental income credited when a rent invoice is issued'),
+     ('RENTAL_RECEIPT_CASH',         '1120','Cash/bank debited on rent receipts'),
+     ('RENTAL_RECEIPT_AR',           '1200','Tenant receivable credited on rent receipts'),
+     -- Real estate sale
+     ('DEAL_SALE_REVENUE',           '4100','Revenue credited on real estate sale'),
+     ('DEAL_SALE_CASH',              '1120','Cash/bank debited on real estate sale'),
+     -- Payroll
+     ('PAYROLL_EXPENSE',             '5200','Salary expense debited on payroll run'),
+     ('PAYROLL_CASH',                '1120','Cash/bank credited on payroll payout'),
+     -- Tax and discount
+     ('TAX_PAYABLE',                 '2200','Tax payable credited on taxable transactions'),
+     ('DISCOUNT_GIVEN',              '5600','Discount-given expense debited when a discount is applied'),
+     -- Defaults / fallbacks
+     ('DEFAULT_CASH',                '1120','Fallback cash account when nothing more specific applies'),
+     ('DEFAULT_INCOME',              '4400','Fallback income account when nothing more specific applies'),
+     ('DEFAULT_EXPENSE',             '5900','Fallback expense account when nothing more specific applies')
+   ON CONFLICT ("key") DO NOTHING`,
 ];
 
 /**

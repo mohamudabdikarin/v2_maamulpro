@@ -30,6 +30,11 @@ export type AccountMinAggregateOutputType = {
   parentCode: string | null
   type: $Enums.AccountType | null
   tenantId: string | null
+  description: string | null
+  isActive: boolean | null
+  allowNegative: boolean | null
+  normalBalance: string | null
+  isSystem: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -40,6 +45,11 @@ export type AccountMaxAggregateOutputType = {
   parentCode: string | null
   type: $Enums.AccountType | null
   tenantId: string | null
+  description: string | null
+  isActive: boolean | null
+  allowNegative: boolean | null
+  normalBalance: string | null
+  isSystem: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +60,11 @@ export type AccountCountAggregateOutputType = {
   parentCode: number
   type: number
   tenantId: number
+  description: number
+  isActive: number
+  allowNegative: number
+  normalBalance: number
+  isSystem: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -62,6 +77,11 @@ export type AccountMinAggregateInputType = {
   parentCode?: true
   type?: true
   tenantId?: true
+  description?: true
+  isActive?: true
+  allowNegative?: true
+  normalBalance?: true
+  isSystem?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,6 +92,11 @@ export type AccountMaxAggregateInputType = {
   parentCode?: true
   type?: true
   tenantId?: true
+  description?: true
+  isActive?: true
+  allowNegative?: true
+  normalBalance?: true
+  isSystem?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +107,11 @@ export type AccountCountAggregateInputType = {
   parentCode?: true
   type?: true
   tenantId?: true
+  description?: true
+  isActive?: true
+  allowNegative?: true
+  normalBalance?: true
+  isSystem?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -165,6 +195,11 @@ export type AccountGroupByOutputType = {
   parentCode: string | null
   type: $Enums.AccountType
   tenantId: string
+  description: string | null
+  isActive: boolean
+  allowNegative: boolean
+  normalBalance: string
+  isSystem: boolean
   createdAt: Date
   updatedAt: Date
   _count: AccountCountAggregateOutputType | null
@@ -196,10 +231,18 @@ export type AccountWhereInput = {
   parentCode?: Prisma.StringNullableFilter<"Account"> | string | null
   type?: Prisma.EnumAccountTypeFilter<"Account"> | $Enums.AccountType
   tenantId?: Prisma.StringFilter<"Account"> | string
+  description?: Prisma.StringNullableFilter<"Account"> | string | null
+  isActive?: Prisma.BoolFilter<"Account"> | boolean
+  allowNegative?: Prisma.BoolFilter<"Account"> | boolean
+  normalBalance?: Prisma.StringFilter<"Account"> | string
+  isSystem?: Prisma.BoolFilter<"Account"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
+  parent?: Prisma.XOR<Prisma.AccountNullableScalarRelationFilter, Prisma.AccountWhereInput> | null
+  children?: Prisma.AccountListRelationFilter
   journalEntries?: Prisma.JournalEntryListRelationFilter
   payrolls?: Prisma.PayrollListRelationFilter
+  mappings?: Prisma.AccountMappingListRelationFilter
 }
 
 export type AccountOrderByWithRelationInput = {
@@ -208,10 +251,18 @@ export type AccountOrderByWithRelationInput = {
   parentCode?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  allowNegative?: Prisma.SortOrder
+  normalBalance?: Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  parent?: Prisma.AccountOrderByWithRelationInput
+  children?: Prisma.AccountOrderByRelationAggregateInput
   journalEntries?: Prisma.JournalEntryOrderByRelationAggregateInput
   payrolls?: Prisma.PayrollOrderByRelationAggregateInput
+  mappings?: Prisma.AccountMappingOrderByRelationAggregateInput
 }
 
 export type AccountWhereUniqueInput = Prisma.AtLeast<{
@@ -223,10 +274,18 @@ export type AccountWhereUniqueInput = Prisma.AtLeast<{
   parentCode?: Prisma.StringNullableFilter<"Account"> | string | null
   type?: Prisma.EnumAccountTypeFilter<"Account"> | $Enums.AccountType
   tenantId?: Prisma.StringFilter<"Account"> | string
+  description?: Prisma.StringNullableFilter<"Account"> | string | null
+  isActive?: Prisma.BoolFilter<"Account"> | boolean
+  allowNegative?: Prisma.BoolFilter<"Account"> | boolean
+  normalBalance?: Prisma.StringFilter<"Account"> | string
+  isSystem?: Prisma.BoolFilter<"Account"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
+  parent?: Prisma.XOR<Prisma.AccountNullableScalarRelationFilter, Prisma.AccountWhereInput> | null
+  children?: Prisma.AccountListRelationFilter
   journalEntries?: Prisma.JournalEntryListRelationFilter
   payrolls?: Prisma.PayrollListRelationFilter
+  mappings?: Prisma.AccountMappingListRelationFilter
 }, "code">
 
 export type AccountOrderByWithAggregationInput = {
@@ -235,6 +294,11 @@ export type AccountOrderByWithAggregationInput = {
   parentCode?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  allowNegative?: Prisma.SortOrder
+  normalBalance?: Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AccountCountOrderByAggregateInput
@@ -251,6 +315,11 @@ export type AccountScalarWhereWithAggregatesInput = {
   parentCode?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
   type?: Prisma.EnumAccountTypeWithAggregatesFilter<"Account"> | $Enums.AccountType
   tenantId?: Prisma.StringWithAggregatesFilter<"Account"> | string
+  description?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
+  isActive?: Prisma.BoolWithAggregatesFilter<"Account"> | boolean
+  allowNegative?: Prisma.BoolWithAggregatesFilter<"Account"> | boolean
+  normalBalance?: Prisma.StringWithAggregatesFilter<"Account"> | string
+  isSystem?: Prisma.BoolWithAggregatesFilter<"Account"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Account"> | Date | string
 }
@@ -258,13 +327,20 @@ export type AccountScalarWhereWithAggregatesInput = {
 export type AccountCreateInput = {
   code: string
   name: string
-  parentCode?: string | null
   type: $Enums.AccountType
   tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.AccountCreateNestedOneWithoutChildrenInput
+  children?: Prisma.AccountCreateNestedManyWithoutParentInput
   journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutAccountInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutExpenseAccountInput
+  mappings?: Prisma.AccountMappingCreateNestedManyWithoutAccountInput
 }
 
 export type AccountUncheckedCreateInput = {
@@ -273,22 +349,36 @@ export type AccountUncheckedCreateInput = {
   parentCode?: string | null
   type: $Enums.AccountType
   tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.AccountUncheckedCreateNestedManyWithoutParentInput
   journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutAccountInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutExpenseAccountInput
+  mappings?: Prisma.AccountMappingUncheckedCreateNestedManyWithoutAccountInput
 }
 
 export type AccountUpdateInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AccountUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.AccountUpdateManyWithoutParentNestedInput
   journalEntries?: Prisma.JournalEntryUpdateManyWithoutAccountNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutExpenseAccountNestedInput
+  mappings?: Prisma.AccountMappingUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateInput = {
@@ -297,10 +387,17 @@ export type AccountUncheckedUpdateInput = {
   parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AccountUncheckedUpdateManyWithoutParentNestedInput
   journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutAccountNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutExpenseAccountNestedInput
+  mappings?: Prisma.AccountMappingUncheckedUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountCreateManyInput = {
@@ -309,6 +406,11 @@ export type AccountCreateManyInput = {
   parentCode?: string | null
   type: $Enums.AccountType
   tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -316,9 +418,13 @@ export type AccountCreateManyInput = {
 export type AccountUpdateManyMutationInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -329,8 +435,28 @@ export type AccountUncheckedUpdateManyInput = {
   parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AccountNullableScalarRelationFilter = {
+  is?: Prisma.AccountWhereInput | null
+  isNot?: Prisma.AccountWhereInput | null
+}
+
+export type AccountListRelationFilter = {
+  every?: Prisma.AccountWhereInput
+  some?: Prisma.AccountWhereInput
+  none?: Prisma.AccountWhereInput
+}
+
+export type AccountOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type AccountCountOrderByAggregateInput = {
@@ -339,6 +465,11 @@ export type AccountCountOrderByAggregateInput = {
   parentCode?: Prisma.SortOrder
   type?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  allowNegative?: Prisma.SortOrder
+  normalBalance?: Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -349,6 +480,11 @@ export type AccountMaxOrderByAggregateInput = {
   parentCode?: Prisma.SortOrder
   type?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  allowNegative?: Prisma.SortOrder
+  normalBalance?: Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -359,6 +495,11 @@ export type AccountMinOrderByAggregateInput = {
   parentCode?: Prisma.SortOrder
   type?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  allowNegative?: Prisma.SortOrder
+  normalBalance?: Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -368,13 +509,66 @@ export type AccountScalarRelationFilter = {
   isNot?: Prisma.AccountWhereInput
 }
 
-export type AccountNullableScalarRelationFilter = {
-  is?: Prisma.AccountWhereInput | null
-  isNot?: Prisma.AccountWhereInput | null
+export type AccountCreateNestedOneWithoutChildrenInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutChildrenInput, Prisma.AccountUncheckedCreateWithoutChildrenInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutChildrenInput
+  connect?: Prisma.AccountWhereUniqueInput
+}
+
+export type AccountCreateNestedManyWithoutParentInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutParentInput, Prisma.AccountUncheckedCreateWithoutParentInput> | Prisma.AccountCreateWithoutParentInput[] | Prisma.AccountUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutParentInput | Prisma.AccountCreateOrConnectWithoutParentInput[]
+  createMany?: Prisma.AccountCreateManyParentInputEnvelope
+  connect?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+}
+
+export type AccountUncheckedCreateNestedManyWithoutParentInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutParentInput, Prisma.AccountUncheckedCreateWithoutParentInput> | Prisma.AccountCreateWithoutParentInput[] | Prisma.AccountUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutParentInput | Prisma.AccountCreateOrConnectWithoutParentInput[]
+  createMany?: Prisma.AccountCreateManyParentInputEnvelope
+  connect?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
 }
 
 export type EnumAccountTypeFieldUpdateOperationsInput = {
   set?: $Enums.AccountType
+}
+
+export type AccountUpdateOneWithoutChildrenNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutChildrenInput, Prisma.AccountUncheckedCreateWithoutChildrenInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutChildrenInput
+  upsert?: Prisma.AccountUpsertWithoutChildrenInput
+  disconnect?: Prisma.AccountWhereInput | boolean
+  delete?: Prisma.AccountWhereInput | boolean
+  connect?: Prisma.AccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutChildrenInput, Prisma.AccountUpdateWithoutChildrenInput>, Prisma.AccountUncheckedUpdateWithoutChildrenInput>
+}
+
+export type AccountUpdateManyWithoutParentNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutParentInput, Prisma.AccountUncheckedCreateWithoutParentInput> | Prisma.AccountCreateWithoutParentInput[] | Prisma.AccountUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutParentInput | Prisma.AccountCreateOrConnectWithoutParentInput[]
+  upsert?: Prisma.AccountUpsertWithWhereUniqueWithoutParentInput | Prisma.AccountUpsertWithWhereUniqueWithoutParentInput[]
+  createMany?: Prisma.AccountCreateManyParentInputEnvelope
+  set?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+  disconnect?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+  delete?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+  connect?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+  update?: Prisma.AccountUpdateWithWhereUniqueWithoutParentInput | Prisma.AccountUpdateWithWhereUniqueWithoutParentInput[]
+  updateMany?: Prisma.AccountUpdateManyWithWhereWithoutParentInput | Prisma.AccountUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.AccountScalarWhereInput | Prisma.AccountScalarWhereInput[]
+}
+
+export type AccountUncheckedUpdateManyWithoutParentNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutParentInput, Prisma.AccountUncheckedCreateWithoutParentInput> | Prisma.AccountCreateWithoutParentInput[] | Prisma.AccountUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutParentInput | Prisma.AccountCreateOrConnectWithoutParentInput[]
+  upsert?: Prisma.AccountUpsertWithWhereUniqueWithoutParentInput | Prisma.AccountUpsertWithWhereUniqueWithoutParentInput[]
+  createMany?: Prisma.AccountCreateManyParentInputEnvelope
+  set?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+  disconnect?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+  delete?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+  connect?: Prisma.AccountWhereUniqueInput | Prisma.AccountWhereUniqueInput[]
+  update?: Prisma.AccountUpdateWithWhereUniqueWithoutParentInput | Prisma.AccountUpdateWithWhereUniqueWithoutParentInput[]
+  updateMany?: Prisma.AccountUpdateManyWithWhereWithoutParentInput | Prisma.AccountUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.AccountScalarWhereInput | Prisma.AccountScalarWhereInput[]
 }
 
 export type AccountCreateNestedOneWithoutJournalEntriesInput = {
@@ -389,6 +583,20 @@ export type AccountUpdateOneRequiredWithoutJournalEntriesNestedInput = {
   upsert?: Prisma.AccountUpsertWithoutJournalEntriesInput
   connect?: Prisma.AccountWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutJournalEntriesInput, Prisma.AccountUpdateWithoutJournalEntriesInput>, Prisma.AccountUncheckedUpdateWithoutJournalEntriesInput>
+}
+
+export type AccountCreateNestedOneWithoutMappingsInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutMappingsInput, Prisma.AccountUncheckedCreateWithoutMappingsInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutMappingsInput
+  connect?: Prisma.AccountWhereUniqueInput
+}
+
+export type AccountUpdateOneRequiredWithoutMappingsNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutMappingsInput, Prisma.AccountUncheckedCreateWithoutMappingsInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutMappingsInput
+  upsert?: Prisma.AccountUpsertWithoutMappingsInput
+  connect?: Prisma.AccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutMappingsInput, Prisma.AccountUpdateWithoutMappingsInput>, Prisma.AccountUncheckedUpdateWithoutMappingsInput>
 }
 
 export type AccountCreateNestedOneWithoutPayrollsInput = {
@@ -407,15 +615,190 @@ export type AccountUpdateOneWithoutPayrollsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutPayrollsInput, Prisma.AccountUpdateWithoutPayrollsInput>, Prisma.AccountUncheckedUpdateWithoutPayrollsInput>
 }
 
-export type AccountCreateWithoutJournalEntriesInput = {
+export type AccountCreateWithoutChildrenInput = {
+  code: string
+  name: string
+  type: $Enums.AccountType
+  tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.AccountCreateNestedOneWithoutChildrenInput
+  journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutAccountInput
+  payrolls?: Prisma.PayrollCreateNestedManyWithoutExpenseAccountInput
+  mappings?: Prisma.AccountMappingCreateNestedManyWithoutAccountInput
+}
+
+export type AccountUncheckedCreateWithoutChildrenInput = {
   code: string
   name: string
   parentCode?: string | null
   type: $Enums.AccountType
   tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutAccountInput
+  payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutExpenseAccountInput
+  mappings?: Prisma.AccountMappingUncheckedCreateNestedManyWithoutAccountInput
+}
+
+export type AccountCreateOrConnectWithoutChildrenInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutChildrenInput, Prisma.AccountUncheckedCreateWithoutChildrenInput>
+}
+
+export type AccountCreateWithoutParentInput = {
+  code: string
+  name: string
+  type: $Enums.AccountType
+  tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AccountCreateNestedManyWithoutParentInput
+  journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutAccountInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutExpenseAccountInput
+  mappings?: Prisma.AccountMappingCreateNestedManyWithoutAccountInput
+}
+
+export type AccountUncheckedCreateWithoutParentInput = {
+  code: string
+  name: string
+  type: $Enums.AccountType
+  tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AccountUncheckedCreateNestedManyWithoutParentInput
+  journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutAccountInput
+  payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutExpenseAccountInput
+  mappings?: Prisma.AccountMappingUncheckedCreateNestedManyWithoutAccountInput
+}
+
+export type AccountCreateOrConnectWithoutParentInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutParentInput, Prisma.AccountUncheckedCreateWithoutParentInput>
+}
+
+export type AccountCreateManyParentInputEnvelope = {
+  data: Prisma.AccountCreateManyParentInput | Prisma.AccountCreateManyParentInput[]
+  skipDuplicates?: boolean
+}
+
+export type AccountUpsertWithoutChildrenInput = {
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutChildrenInput, Prisma.AccountUncheckedUpdateWithoutChildrenInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutChildrenInput, Prisma.AccountUncheckedCreateWithoutChildrenInput>
+  where?: Prisma.AccountWhereInput
+}
+
+export type AccountUpdateToOneWithWhereWithoutChildrenInput = {
+  where?: Prisma.AccountWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutChildrenInput, Prisma.AccountUncheckedUpdateWithoutChildrenInput>
+}
+
+export type AccountUpdateWithoutChildrenInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AccountUpdateOneWithoutChildrenNestedInput
+  journalEntries?: Prisma.JournalEntryUpdateManyWithoutAccountNestedInput
+  payrolls?: Prisma.PayrollUpdateManyWithoutExpenseAccountNestedInput
+  mappings?: Prisma.AccountMappingUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutChildrenInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutAccountNestedInput
+  payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutExpenseAccountNestedInput
+  mappings?: Prisma.AccountMappingUncheckedUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountUpsertWithWhereUniqueWithoutParentInput = {
+  where: Prisma.AccountWhereUniqueInput
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutParentInput, Prisma.AccountUncheckedUpdateWithoutParentInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutParentInput, Prisma.AccountUncheckedCreateWithoutParentInput>
+}
+
+export type AccountUpdateWithWhereUniqueWithoutParentInput = {
+  where: Prisma.AccountWhereUniqueInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutParentInput, Prisma.AccountUncheckedUpdateWithoutParentInput>
+}
+
+export type AccountUpdateManyWithWhereWithoutParentInput = {
+  where: Prisma.AccountScalarWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateManyMutationInput, Prisma.AccountUncheckedUpdateManyWithoutParentInput>
+}
+
+export type AccountScalarWhereInput = {
+  AND?: Prisma.AccountScalarWhereInput | Prisma.AccountScalarWhereInput[]
+  OR?: Prisma.AccountScalarWhereInput[]
+  NOT?: Prisma.AccountScalarWhereInput | Prisma.AccountScalarWhereInput[]
+  code?: Prisma.StringFilter<"Account"> | string
+  name?: Prisma.StringFilter<"Account"> | string
+  parentCode?: Prisma.StringNullableFilter<"Account"> | string | null
+  type?: Prisma.EnumAccountTypeFilter<"Account"> | $Enums.AccountType
+  tenantId?: Prisma.StringFilter<"Account"> | string
+  description?: Prisma.StringNullableFilter<"Account"> | string | null
+  isActive?: Prisma.BoolFilter<"Account"> | boolean
+  allowNegative?: Prisma.BoolFilter<"Account"> | boolean
+  normalBalance?: Prisma.StringFilter<"Account"> | string
+  isSystem?: Prisma.BoolFilter<"Account"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"Account"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
+}
+
+export type AccountCreateWithoutJournalEntriesInput = {
+  code: string
+  name: string
+  type: $Enums.AccountType
+  tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.AccountCreateNestedOneWithoutChildrenInput
+  children?: Prisma.AccountCreateNestedManyWithoutParentInput
+  payrolls?: Prisma.PayrollCreateNestedManyWithoutExpenseAccountInput
+  mappings?: Prisma.AccountMappingCreateNestedManyWithoutAccountInput
 }
 
 export type AccountUncheckedCreateWithoutJournalEntriesInput = {
@@ -424,9 +807,16 @@ export type AccountUncheckedCreateWithoutJournalEntriesInput = {
   parentCode?: string | null
   type: $Enums.AccountType
   tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.AccountUncheckedCreateNestedManyWithoutParentInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutExpenseAccountInput
+  mappings?: Prisma.AccountMappingUncheckedCreateNestedManyWithoutAccountInput
 }
 
 export type AccountCreateOrConnectWithoutJournalEntriesInput = {
@@ -448,12 +838,19 @@ export type AccountUpdateToOneWithWhereWithoutJournalEntriesInput = {
 export type AccountUpdateWithoutJournalEntriesInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AccountUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.AccountUpdateManyWithoutParentNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutExpenseAccountNestedInput
+  mappings?: Prisma.AccountMappingUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateWithoutJournalEntriesInput = {
@@ -462,20 +859,122 @@ export type AccountUncheckedUpdateWithoutJournalEntriesInput = {
   parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AccountUncheckedUpdateManyWithoutParentNestedInput
+  payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutExpenseAccountNestedInput
+  mappings?: Prisma.AccountMappingUncheckedUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountCreateWithoutMappingsInput = {
+  code: string
+  name: string
+  type: $Enums.AccountType
+  tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.AccountCreateNestedOneWithoutChildrenInput
+  children?: Prisma.AccountCreateNestedManyWithoutParentInput
+  journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutAccountInput
+  payrolls?: Prisma.PayrollCreateNestedManyWithoutExpenseAccountInput
+}
+
+export type AccountUncheckedCreateWithoutMappingsInput = {
+  code: string
+  name: string
+  parentCode?: string | null
+  type: $Enums.AccountType
+  tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AccountUncheckedCreateNestedManyWithoutParentInput
+  journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutAccountInput
+  payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutExpenseAccountInput
+}
+
+export type AccountCreateOrConnectWithoutMappingsInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutMappingsInput, Prisma.AccountUncheckedCreateWithoutMappingsInput>
+}
+
+export type AccountUpsertWithoutMappingsInput = {
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutMappingsInput, Prisma.AccountUncheckedUpdateWithoutMappingsInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutMappingsInput, Prisma.AccountUncheckedCreateWithoutMappingsInput>
+  where?: Prisma.AccountWhereInput
+}
+
+export type AccountUpdateToOneWithWhereWithoutMappingsInput = {
+  where?: Prisma.AccountWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutMappingsInput, Prisma.AccountUncheckedUpdateWithoutMappingsInput>
+}
+
+export type AccountUpdateWithoutMappingsInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AccountUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.AccountUpdateManyWithoutParentNestedInput
+  journalEntries?: Prisma.JournalEntryUpdateManyWithoutAccountNestedInput
+  payrolls?: Prisma.PayrollUpdateManyWithoutExpenseAccountNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutMappingsInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AccountUncheckedUpdateManyWithoutParentNestedInput
+  journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutAccountNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutExpenseAccountNestedInput
 }
 
 export type AccountCreateWithoutPayrollsInput = {
   code: string
   name: string
-  parentCode?: string | null
   type: $Enums.AccountType
   tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.AccountCreateNestedOneWithoutChildrenInput
+  children?: Prisma.AccountCreateNestedManyWithoutParentInput
   journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutAccountInput
+  mappings?: Prisma.AccountMappingCreateNestedManyWithoutAccountInput
 }
 
 export type AccountUncheckedCreateWithoutPayrollsInput = {
@@ -484,9 +983,16 @@ export type AccountUncheckedCreateWithoutPayrollsInput = {
   parentCode?: string | null
   type: $Enums.AccountType
   tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.AccountUncheckedCreateNestedManyWithoutParentInput
   journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutAccountInput
+  mappings?: Prisma.AccountMappingUncheckedCreateNestedManyWithoutAccountInput
 }
 
 export type AccountCreateOrConnectWithoutPayrollsInput = {
@@ -508,12 +1014,19 @@ export type AccountUpdateToOneWithWhereWithoutPayrollsInput = {
 export type AccountUpdateWithoutPayrollsInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AccountUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.AccountUpdateManyWithoutParentNestedInput
   journalEntries?: Prisma.JournalEntryUpdateManyWithoutAccountNestedInput
+  mappings?: Prisma.AccountMappingUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateWithoutPayrollsInput = {
@@ -522,9 +1035,80 @@ export type AccountUncheckedUpdateWithoutPayrollsInput = {
   parentCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AccountUncheckedUpdateManyWithoutParentNestedInput
   journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutAccountNestedInput
+  mappings?: Prisma.AccountMappingUncheckedUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountCreateManyParentInput = {
+  code: string
+  name: string
+  type: $Enums.AccountType
+  tenantId: string
+  description?: string | null
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: string
+  isSystem?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AccountUpdateWithoutParentInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AccountUpdateManyWithoutParentNestedInput
+  journalEntries?: Prisma.JournalEntryUpdateManyWithoutAccountNestedInput
+  payrolls?: Prisma.PayrollUpdateManyWithoutExpenseAccountNestedInput
+  mappings?: Prisma.AccountMappingUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutParentInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AccountUncheckedUpdateManyWithoutParentNestedInput
+  journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutAccountNestedInput
+  payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutExpenseAccountNestedInput
+  mappings?: Prisma.AccountMappingUncheckedUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountUncheckedUpdateManyWithoutParentInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNegative?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  normalBalance?: Prisma.StringFieldUpdateOperationsInput | string
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -533,13 +1117,17 @@ export type AccountUncheckedUpdateWithoutPayrollsInput = {
  */
 
 export type AccountCountOutputType = {
+  children: number
   journalEntries: number
   payrolls: number
+  mappings: number
 }
 
 export type AccountCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  children?: boolean | AccountCountOutputTypeCountChildrenArgs
   journalEntries?: boolean | AccountCountOutputTypeCountJournalEntriesArgs
   payrolls?: boolean | AccountCountOutputTypeCountPayrollsArgs
+  mappings?: boolean | AccountCountOutputTypeCountMappingsArgs
 }
 
 /**
@@ -550,6 +1138,13 @@ export type AccountCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
    * Select specific fields to fetch from the AccountCountOutputType
    */
   select?: Prisma.AccountCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AccountCountOutputType without action
+ */
+export type AccountCountOutputTypeCountChildrenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AccountWhereInput
 }
 
 /**
@@ -566,6 +1161,13 @@ export type AccountCountOutputTypeCountPayrollsArgs<ExtArgs extends runtime.Type
   where?: Prisma.PayrollWhereInput
 }
 
+/**
+ * AccountCountOutputType without action
+ */
+export type AccountCountOutputTypeCountMappingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AccountMappingWhereInput
+}
+
 
 export type AccountSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   code?: boolean
@@ -573,10 +1175,18 @@ export type AccountSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   parentCode?: boolean
   type?: boolean
   tenantId?: boolean
+  description?: boolean
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: boolean
+  isSystem?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  parent?: boolean | Prisma.Account$parentArgs<ExtArgs>
+  children?: boolean | Prisma.Account$childrenArgs<ExtArgs>
   journalEntries?: boolean | Prisma.Account$journalEntriesArgs<ExtArgs>
   payrolls?: boolean | Prisma.Account$payrollsArgs<ExtArgs>
+  mappings?: boolean | Prisma.Account$mappingsArgs<ExtArgs>
   _count?: boolean | Prisma.AccountCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["account"]>
 
@@ -586,8 +1196,14 @@ export type AccountSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   parentCode?: boolean
   type?: boolean
   tenantId?: boolean
+  description?: boolean
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: boolean
+  isSystem?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  parent?: boolean | Prisma.Account$parentArgs<ExtArgs>
 }, ExtArgs["result"]["account"]>
 
 export type AccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -596,8 +1212,14 @@ export type AccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   parentCode?: boolean
   type?: boolean
   tenantId?: boolean
+  description?: boolean
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: boolean
+  isSystem?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  parent?: boolean | Prisma.Account$parentArgs<ExtArgs>
 }, ExtArgs["result"]["account"]>
 
 export type AccountSelectScalar = {
@@ -606,24 +1228,39 @@ export type AccountSelectScalar = {
   parentCode?: boolean
   type?: boolean
   tenantId?: boolean
+  description?: boolean
+  isActive?: boolean
+  allowNegative?: boolean
+  normalBalance?: boolean
+  isSystem?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"code" | "name" | "parentCode" | "type" | "tenantId" | "createdAt" | "updatedAt", ExtArgs["result"]["account"]>
+export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"code" | "name" | "parentCode" | "type" | "tenantId" | "description" | "isActive" | "allowNegative" | "normalBalance" | "isSystem" | "createdAt" | "updatedAt", ExtArgs["result"]["account"]>
 export type AccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Account$parentArgs<ExtArgs>
+  children?: boolean | Prisma.Account$childrenArgs<ExtArgs>
   journalEntries?: boolean | Prisma.Account$journalEntriesArgs<ExtArgs>
   payrolls?: boolean | Prisma.Account$payrollsArgs<ExtArgs>
+  mappings?: boolean | Prisma.Account$mappingsArgs<ExtArgs>
   _count?: boolean | Prisma.AccountCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type AccountIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type AccountIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type AccountIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Account$parentArgs<ExtArgs>
+}
+export type AccountIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Account$parentArgs<ExtArgs>
+}
 
 export type $AccountPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Account"
   objects: {
+    parent: Prisma.$AccountPayload<ExtArgs> | null
+    children: Prisma.$AccountPayload<ExtArgs>[]
     journalEntries: Prisma.$JournalEntryPayload<ExtArgs>[]
     payrolls: Prisma.$PayrollPayload<ExtArgs>[]
+    mappings: Prisma.$AccountMappingPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     code: string
@@ -631,6 +1268,11 @@ export type $AccountPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     parentCode: string | null
     type: $Enums.AccountType
     tenantId: string
+    description: string | null
+    isActive: boolean
+    allowNegative: boolean
+    normalBalance: string
+    isSystem: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["account"]>
@@ -1027,8 +1669,11 @@ readonly fields: AccountFieldRefs;
  */
 export interface Prisma__AccountClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  parent<T extends Prisma.Account$parentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$parentArgs<ExtArgs>>): Prisma.Prisma__AccountClient<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  children<T extends Prisma.Account$childrenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   journalEntries<T extends Prisma.Account$journalEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$journalEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$JournalEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payrolls<T extends Prisma.Account$payrollsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$payrollsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  mappings<T extends Prisma.Account$mappingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$mappingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1063,6 +1708,11 @@ export interface AccountFieldRefs {
   readonly parentCode: Prisma.FieldRef<"Account", 'String'>
   readonly type: Prisma.FieldRef<"Account", 'AccountType'>
   readonly tenantId: Prisma.FieldRef<"Account", 'String'>
+  readonly description: Prisma.FieldRef<"Account", 'String'>
+  readonly isActive: Prisma.FieldRef<"Account", 'Boolean'>
+  readonly allowNegative: Prisma.FieldRef<"Account", 'Boolean'>
+  readonly normalBalance: Prisma.FieldRef<"Account", 'String'>
+  readonly isSystem: Prisma.FieldRef<"Account", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Account", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Account", 'DateTime'>
 }
@@ -1319,6 +1969,10 @@ export type AccountCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensi
    */
   data: Prisma.AccountCreateManyInput | Prisma.AccountCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1389,6 +2043,10 @@ export type AccountUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensi
    * Limit how many Accounts to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1458,6 +2116,49 @@ export type AccountDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
+ * Account.parent
+ */
+export type Account$parentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Account
+   */
+  select?: Prisma.AccountSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Account
+   */
+  omit?: Prisma.AccountOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountInclude<ExtArgs> | null
+  where?: Prisma.AccountWhereInput
+}
+
+/**
+ * Account.children
+ */
+export type Account$childrenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Account
+   */
+  select?: Prisma.AccountSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Account
+   */
+  omit?: Prisma.AccountOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountInclude<ExtArgs> | null
+  where?: Prisma.AccountWhereInput
+  orderBy?: Prisma.AccountOrderByWithRelationInput | Prisma.AccountOrderByWithRelationInput[]
+  cursor?: Prisma.AccountWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AccountScalarFieldEnum | Prisma.AccountScalarFieldEnum[]
+}
+
+/**
  * Account.journalEntries
  */
 export type Account$journalEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1503,6 +2204,30 @@ export type Account$payrollsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.PayrollScalarFieldEnum | Prisma.PayrollScalarFieldEnum[]
+}
+
+/**
+ * Account.mappings
+ */
+export type Account$mappingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AccountMapping
+   */
+  select?: Prisma.AccountMappingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AccountMapping
+   */
+  omit?: Prisma.AccountMappingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountMappingInclude<ExtArgs> | null
+  where?: Prisma.AccountMappingWhereInput
+  orderBy?: Prisma.AccountMappingOrderByWithRelationInput | Prisma.AccountMappingOrderByWithRelationInput[]
+  cursor?: Prisma.AccountMappingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AccountMappingScalarFieldEnum | Prisma.AccountMappingScalarFieldEnum[]
 }
 
 /**

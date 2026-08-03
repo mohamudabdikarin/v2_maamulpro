@@ -36,11 +36,3 @@ export class ChangePasswordDto {
 export class UpdateLanguageDto {
   @IsIn(['en', 'so']) language: 'en' | 'so';
 }
-
-export class UpdateSubdomainDto {
-  @IsString()
-  @Matches(/^[a-z0-9-]+$/, { message: 'Subdomain must contain only lowercase letters, numbers, and hyphens' })
-  @MaxLength(30)
-  subdomain: string;
-}
-

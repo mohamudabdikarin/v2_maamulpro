@@ -5,9 +5,11 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
+import { ANY_PERMISSIONS_KEY, PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { CentralPrismaService } from '../database/central-prisma.service';
+import { ROLE_PERMISSIONS } from '../database/registry';
+import type { AppRole } from '../database/roles';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -43,17 +45,27 @@ export class PermissionsGuard implements CanActivate {
         rbacUserPermissions: { include: { permission: true } },
       },
     });
-    if (!tenantUser) return [];
     const permissions = new Set<string>();
-    for (const assignment of tenantUser.rbacUserRoles || []) {
-      for (const rolePermission of assignment.role?.rolePermissions || []) {
-        if (rolePermission.permission?.key) permissions.add(rolePermission.permission.key);
+    if (tenantUser) {
+      const rbacRoles = tenantUser.rbacUserRoles || [];
+      for (const assignment of rbacRoles) {
+        for (const rolePermission of assignment.role?.rolePermissions || []) {
+          if (rolePermission.permission?.key) permissions.add(rolePermission.permission.key);
+        }
       }
-    }
-    for (const direct of tenantUser.rbacUserPermissions || []) {
-      if (!direct.permission?.key) continue;
-      if (direct.effect === 'DENY') permissions.delete(direct.permission.key);
-      else permissions.add(direct.permission.key);
+      const directPerms = tenantUser.rbacUserPermissions || [];
+      for (const direct of directPerms) {
+        if (!direct.permission?.key) continue;
+        if (direct.effect === 'DENY') permissions.delete(direct.permission.key);
+        else permissions.add(direct.permission.key);
+      }
+      if (rbacRoles.length === 0 && directPerms.length === 0) {
+        const roleTemplate = ROLE_PERMISSIONS[user.role as AppRole];
+        if (roleTemplate) roleTemplate.forEach((p: string) => permissions.add(p));
+      }
+    } else {
+      const roleTemplate = ROLE_PERMISSIONS[user.role as AppRole];
+      if (roleTemplate) roleTemplate.forEach((p: string) => permissions.add(p));
     }
     const resolved = Array.from(permissions);
     this.permissionCache.set(key, { permissions: resolved, expiresAt: Date.now() + 2_000 });
@@ -65,12 +77,16 @@ export class PermissionsGuard implements CanActivate {
       PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
     );
+    const anyOfPermissions = this.reflector.getAllAndOverride<string[]>(
+      ANY_PERMISSIONS_KEY,
+      [context.getHandler(), context.getClass()],
+    );
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredPermissions && !requiredRoles) {
+    if (!requiredPermissions && !anyOfPermissions && !requiredRoles) {
       return true;
     }
 
@@ -98,12 +114,32 @@ export class PermissionsGuard implements CanActivate {
       }
     }
 
-    if (requiredPermissions && requiredPermissions.length > 0) {
-      const userPermissions = await this.currentPermissions(request.tenantDb, user, request.tenantContext?.companyId || user.companyId);
+    // Load once if either check needs it.
+    let userPermissions: string[] | null = null;
+    const loadPermissions = async () => {
+      if (userPermissions) return userPermissions;
+      userPermissions = await this.currentPermissions(
+        request.tenantDb,
+        user,
+        request.tenantContext?.companyId || user.companyId,
+      );
       user.permissions = userPermissions;
-      const hasAllPermissions = requiredPermissions.every(p => userPermissions.includes(p));
+      return userPermissions;
+    };
+
+    if (requiredPermissions && requiredPermissions.length > 0) {
+      const perms = await loadPermissions();
+      const hasAllPermissions = requiredPermissions.every((p) => perms.includes(p));
       if (!hasAllPermissions) {
         throw new ForbiddenException(`Missing required permissions: ${requiredPermissions.join(', ')}`);
+      }
+    }
+
+    if (anyOfPermissions && anyOfPermissions.length > 0) {
+      const perms = await loadPermissions();
+      const hasAny = anyOfPermissions.some((p) => perms.includes(p));
+      if (!hasAny) {
+        throw new ForbiddenException(`Missing one of required permissions: ${anyOfPermissions.join(', ')}`);
       }
     }
 

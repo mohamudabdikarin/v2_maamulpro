@@ -18,12 +18,16 @@ import router from './router/index';
 import { Provider } from 'react-redux';
 import store from './store/index';
 
+// Toasts
+import { ToastViewport } from './components/maamulpro/Toast';
+
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
         <Suspense>
             <Provider store={store}>
                 <RouterProvider router={router} future={{ v7_startTransition: true }} />
+                <ToastViewport />
             </Provider>
         </Suspense>
     </React.StrictMode>

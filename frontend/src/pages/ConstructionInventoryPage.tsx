@@ -1,6 +1,18 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
+import {
+    EmptyState,
+    ErrorAlert,
+    Field,
+    FormActions,
+    LoadingState,
+    Modal,
+    PageHeader,
+    StatusPill,
+} from '../components/maamulpro/PageKit';
+import { PermissionButton } from '../components/PermissionButton';
 import { api } from '../lib/api';
+import { toast } from '../lib/toast';
 
 type Material = {
     id: string;
@@ -29,24 +41,41 @@ type InventoryResponse = {
     summary: { materialCount: number; lowStockCount: number; stockValue: number };
 };
 
+const MOVEMENT_TYPES = ['RESTOCK', 'USAGE', 'ADJUSTMENT', 'TRANSFER'] as const;
 const initialForm = { materialId: '', type: 'RESTOCK', quantity: '', projectId: '', warehouse: '', notes: '' };
+
+const currency = (value: number | string) => `$${Number(value || 0).toLocaleString()}`;
 
 const ConstructionInventoryPage = () => {
     const [inventory, setInventory] = useState<InventoryResponse | null>(null);
-    const [form, setForm] = useState(initialForm);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [tab, setTab] = useState<'stock' | 'movements'>('stock');
+    const [modalOpen, setModalOpen] = useState(false);
+    const [form, setForm] = useState(initialForm);
     const [saving, setSaving] = useState(false);
 
-    const load = () => api<InventoryResponse>('/api/construction/inventory').then(setInventory).catch((reason) => setError(reason.message));
-    useEffect(() => { load(); }, []);
+    const load = () => {
+        setLoading(true);
+        setError('');
+        return api<InventoryResponse>('/api/construction/inventory', { silent: true })
+            .then(setInventory)
+            .catch((reason) => setError(reason instanceof Error ? reason.message : 'Unable to load inventory'))
+            .finally(() => setLoading(false));
+    };
+
+    useEffect(() => { void load(); }, []);
+
+    const openModal = () => { setForm(initialForm); setModalOpen(true); };
+    const closeModal = () => { if (!saving) setModalOpen(false); };
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();
         setSaving(true);
-        setError('');
         try {
             await api('/api/construction/inventory/movements', {
                 method: 'POST',
+                silent: true,
                 body: JSON.stringify({
                     materialId: form.materialId,
                     type: form.type,
@@ -56,55 +85,191 @@ const ConstructionInventoryPage = () => {
                     notes: form.notes || undefined,
                 }),
             });
+            toast.success('Stock movement recorded.');
+            setModalOpen(false);
             setForm(initialForm);
             await load();
         } catch (reason) {
-            setError(reason instanceof Error ? reason.message : 'Unable to record stock movement');
+            toast.error(reason instanceof Error ? reason.message : 'Unable to record stock movement');
         } finally {
             setSaving(false);
         }
     };
 
+    const summaryCards = useMemo(() => [
+        { label: 'Materials tracked', value: inventory?.summary.materialCount ?? '—', tone: 'text-primary' },
+        { label: 'Low stock', value: inventory?.summary.lowStockCount ?? '—', tone: 'text-warning' },
+        { label: 'Stock value', value: inventory ? currency(inventory.summary.stockValue) : '—', tone: 'text-success' },
+    ], [inventory]);
+
     return <AppShell>
-        <div className="mb-6">
-            <h1 className="text-2xl font-extrabold">Construction Inventory</h1>
-            <p className="mt-1 text-white-dark">Project material availability, valuation, and auditable stock movements.</p>
-        </div>
-        {error && <div className="mb-5 rounded-md bg-danger-light p-4 text-danger">{error}</div>}
+        <PageHeader
+            title="Construction inventory"
+            actions={<PermissionButton perm="construction.manage" className="btn btn-primary" onClick={openModal}>Record movement</PermissionButton>}
+        />
+
+        {error && <ErrorAlert message={error} onRetry={load} />}
+
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
-            <div className="panel"><p className="text-white-dark">Materials</p><p className="mt-2 text-3xl font-bold">{inventory?.summary.materialCount ?? '—'}</p></div>
-            <div className="panel"><p className="text-white-dark">Low stock</p><p className="mt-2 text-3xl font-bold text-warning">{inventory?.summary.lowStockCount ?? '—'}</p></div>
-            <div className="panel"><p className="text-white-dark">Stock value</p><p className="mt-2 text-3xl font-bold text-success">${Number(inventory?.summary.stockValue || 0).toLocaleString()}</p></div>
+            {summaryCards.map((card) => (
+                <div className="panel" key={card.label}>
+                    <p className="text-white-dark">{card.label}</p>
+                    <p className={`mt-2 text-3xl font-bold ${card.tone}`}>{card.value}</p>
+                </div>
+            ))}
         </div>
-        <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
-            <form className="panel space-y-4" onSubmit={submit}>
-                <h2 className="text-lg font-bold">Record movement</h2>
-                <div><label>Material</label><select className="form-select mt-1" required value={form.materialId} onChange={(e) => setForm({ ...form, materialId: e.target.value })}><option value="">Select material…</option>{inventory?.materials.map((material) => <option value={material.id} key={material.id}>{material.name} ({material.quantity} {material.unit})</option>)}</select></div>
-                <div><label>Movement type</label><select className="form-select mt-1" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>{['RESTOCK', 'USAGE', 'ADJUSTMENT', 'TRANSFER'].map((type) => <option key={type}>{type}</option>)}</select></div>
-                <div><label>Quantity</label><input className="form-input mt-1" type="number" min="0.01" step="0.01" required value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} /></div>
-                {form.type === 'USAGE' && <div><label>Project ID</label><input className="form-input mt-1" required value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })} /></div>}
-                <div><label>Warehouse</label><input className="form-input mt-1" value={form.warehouse} onChange={(e) => setForm({ ...form, warehouse: e.target.value })} /></div>
-                <div><label>Notes</label><textarea className="form-textarea mt-1" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-                <button className="btn btn-primary w-full" disabled={saving}>{saving ? 'Saving…' : 'Record movement'}</button>
-            </form>
-            <div className="space-y-6 overflow-hidden">
-                <div className="panel overflow-x-auto p-0">
-                    <div className="border-b border-white-light p-5 dark:border-[#191e3a]"><h2 className="text-lg font-bold">Stock on hand</h2></div>
-                    <table className="table-hover w-full"><thead><tr><th>Material</th><th>Quantity</th><th>Unit cost</th><th>Warehouse</th><th>Status</th></tr></thead>
-                        <tbody>{inventory?.materials.map((material) => {
-                            const low = Number(material.quantity) <= Number(material.lowStockThreshold);
-                            return <tr key={material.id}><td className="font-semibold">{material.name}</td><td>{material.quantity} {material.unit}</td><td>${Number(material.unitCost).toLocaleString()}</td><td>{material.warehouse || '—'}</td><td><span className={`badge ${low ? 'bg-warning' : 'bg-success'}`}>{low ? 'LOW STOCK' : 'AVAILABLE'}</span></td></tr>;
-                        })}</tbody>
-                    </table>
-                </div>
-                <div className="panel overflow-x-auto p-0">
-                    <div className="border-b border-white-light p-5 dark:border-[#191e3a]"><h2 className="text-lg font-bold">Movement history</h2></div>
-                    <table className="table-hover w-full"><thead><tr><th>Date</th><th>Material</th><th>Type</th><th>Quantity</th><th>Project</th><th>Notes</th></tr></thead>
-                        <tbody>{inventory?.movements.map((movement) => <tr key={movement.id}><td>{new Date(movement.date).toLocaleDateString()}</td><td>{movement.material?.name}</td><td><span className="badge bg-primary">{movement.type}</span></td><td>{movement.quantity}</td><td>{movement.project?.name || '—'}</td><td>{movement.notes || '—'}</td></tr>)}</tbody>
-                    </table>
-                </div>
+
+        <div className="panel p-0">
+            <div className="flex items-center gap-1 border-b border-white-light px-3 pt-3 dark:border-[#191e3a]">
+                <button
+                    type="button"
+                    className={`rounded-t-md px-4 py-2 text-sm font-semibold transition ${tab === 'stock' ? 'bg-primary text-white' : 'text-white-dark hover:bg-primary-light/40'}`}
+                    onClick={() => setTab('stock')}
+                >Stock on hand</button>
+                <button
+                    type="button"
+                    className={`rounded-t-md px-4 py-2 text-sm font-semibold transition ${tab === 'movements' ? 'bg-primary text-white' : 'text-white-dark hover:bg-primary-light/40'}`}
+                    onClick={() => setTab('movements')}
+                >Movement history</button>
             </div>
+
+            {loading && !inventory ? <LoadingState /> : tab === 'stock' ? (
+                !inventory?.materials.length ? (
+                    <EmptyState title="No materials yet" description="Materials appear here once they are added to a project." />
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="table-hover w-full">
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Quantity</th>
+                                    <th>Unit cost</th>
+                                    <th>Warehouse</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {inventory.materials.map((material) => {
+                                    const low = Number(material.quantity) <= Number(material.lowStockThreshold);
+                                    return (
+                                        <tr key={material.id}>
+                                            <td className="font-semibold">{material.name}</td>
+                                            <td>{material.quantity} {material.unit}</td>
+                                            <td>{currency(material.unitCost)}</td>
+                                            <td>{material.warehouse || '—'}</td>
+                                            <td><StatusPill value={low ? 'LOW STOCK' : 'AVAILABLE'} /></td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )
+            ) : (
+                !inventory?.movements.length ? (
+                    <EmptyState title="No movements yet" description="Recorded stock movements will show up here." />
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="table-hover w-full">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Material</th>
+                                    <th>Type</th>
+                                    <th>Quantity</th>
+                                    <th>Project</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {inventory.movements.map((movement) => (
+                                    <tr key={movement.id}>
+                                        <td>{new Date(movement.date).toLocaleDateString()}</td>
+                                        <td>{movement.material?.name || '—'}</td>
+                                        <td><StatusPill value={movement.type} /></td>
+                                        <td>{movement.quantity}</td>
+                                        <td>{movement.project?.name || '—'}</td>
+                                        <td>{movement.notes || '—'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )
+            )}
         </div>
+
+        <Modal title="Record stock movement" open={modalOpen} onClose={closeModal}>
+            <form className="grid gap-4" onSubmit={submit}>
+                <Field label="Material" required>
+                    <select
+                        className="form-select"
+                        required
+                        value={form.materialId}
+                        onChange={(event) => setForm({ ...form, materialId: event.target.value })}
+                    >
+                        <option value="">Select material…</option>
+                        {inventory?.materials.map((material) => (
+                            <option value={material.id} key={material.id}>
+                                {material.name} ({material.quantity} {material.unit})
+                            </option>
+                        ))}
+                    </select>
+                </Field>
+
+                <Field label="Movement type" required>
+                    <select
+                        className="form-select"
+                        value={form.type}
+                        onChange={(event) => setForm({ ...form, type: event.target.value })}
+                    >
+                        {MOVEMENT_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+                    </select>
+                </Field>
+
+                <Field label="Quantity" required>
+                    <input
+                        className="form-input"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        required
+                        value={form.quantity}
+                        onChange={(event) => setForm({ ...form, quantity: event.target.value })}
+                    />
+                </Field>
+
+                {form.type === 'USAGE' && (
+                    <Field label="Project ID" required>
+                        <input
+                            className="form-input"
+                            required
+                            value={form.projectId}
+                            onChange={(event) => setForm({ ...form, projectId: event.target.value })}
+                        />
+                    </Field>
+                )}
+
+                <Field label="Warehouse">
+                    <input
+                        className="form-input"
+                        value={form.warehouse}
+                        onChange={(event) => setForm({ ...form, warehouse: event.target.value })}
+                    />
+                </Field>
+
+                <Field label="Notes">
+                    <textarea
+                        className="form-textarea"
+                        rows={3}
+                        value={form.notes}
+                        onChange={(event) => setForm({ ...form, notes: event.target.value })}
+                    />
+                </Field>
+
+                <FormActions onCancel={closeModal} loading={saving} saveLabel="Record movement" savingLabel="Recording…" />
+            </form>
+        </Modal>
     </AppShell>;
 };
 

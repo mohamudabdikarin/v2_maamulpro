@@ -21,6 +21,15 @@ export class StaffService {
     return this.centralPrisma as any;
   }
 
+  async listUserAccounts(tenantDb: any) {
+    if (!tenantDb) return [];
+    return tenantDb.user.findMany({
+      where: { deletedAt: null, isActive: true },
+      select: { id: true, name: true, email: true, role: true },
+      orderBy: [{ name: 'asc' }],
+    });
+  }
+
   async getStaff(tenantDb: any, query: PaginationQueryDto & { department?: string; status?: string }) {
     if (!tenantDb) return [];
     const where: any = { deletedAt: null };
@@ -134,19 +143,19 @@ export class StaffService {
     return tenantDb.staff.update({ where: { id }, data: data as any });
   }
 
-  async deleteStaff(tenantDb: any, id: string) {
+  async deleteStaff(tenantDb: any, id: string, currentUserId?: string) {
     const staff = await this.getStaffById(tenantDb, id);
+    if (currentUserId && staff.userId === currentUserId) {
+      throw new BadRequestException('You cannot delete your own staff record.');
+    }
     await tenantDb.$transaction(async (tx: any) => {
-      await tx.staff.update({ where: { id }, data: { deletedAt: new Date(), status: 'TERMINATED' } });
+      await tx.staff.delete({ where: { id } });
       if (staff.userId) {
-        await tx.user.update({ where: { id: staff.userId }, data: { isActive: false, deletedAt: new Date() } });
+        await tx.user.delete({ where: { id: staff.userId } });
       }
     });
     if (staff.userId) {
-      await this.central.companyUser.update({
-        where: { id: staff.userId },
-        data: { isActive: false, deletedAt: new Date() },
-      });
+      await this.central.companyUser.delete({ where: { id: staff.userId } });
     }
     return { deleted: true };
   }
@@ -225,6 +234,19 @@ export class StaffService {
       }),
     ]);
     return { reset: true };
+  }
+
+  async updateAccountRole(tenantDb: any, staffId: string, role: string) {
+    const staff = await this.getStaffById(tenantDb, staffId);
+    if (!staff.userId) throw new BadRequestException('Staff member has no user account');
+    await Promise.all([
+      tenantDb.user.update({ where: { id: staff.userId }, data: { role } }),
+      this.central.companyUser.update({
+        where: { id: staff.userId },
+        data: { role, sessionVersion: { increment: 1 } },
+      }),
+    ]);
+    return { role };
   }
 
   async getStaffActivity(tenantDb: any, staffId: string) {

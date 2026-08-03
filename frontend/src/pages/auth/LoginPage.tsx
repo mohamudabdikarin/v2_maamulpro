@@ -3,6 +3,24 @@ import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api, Session, sessionStore } from '../../lib/api';
 
+const LANDING_BY_PERMISSION: { permission: string; route: string }[] = [
+    { permission: 'dashboard.executive.read', route: '/app/dashboard' },
+    { permission: 'workspace.construction.read', route: '/app/construction/overview' },
+    { permission: 'workspace.real_estate.read', route: '/app/real-estate/overview' },
+    { permission: 'workspace.material_management.read', route: '/app/materials/overview' },
+    { permission: 'financials.read', route: '/app/financials' },
+    { permission: 'payroll.read', route: '/app/payroll' },
+];
+
+function resolveLanding(session: Session): string {
+    const user = session.user;
+    if (user.isSuperAdmin) return '/superadmin/dashboard';
+    if (['SUPER_ADMIN', 'COMPANY_OWNER'].includes(user.role)) return '/app/dashboard';
+    const granted = new Set(user.permissions || []);
+    const match = LANDING_BY_PERMISSION.find((entry) => granted.has(entry.permission));
+    return match?.route || '/app/no-access';
+}
+
 const LoginPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -22,7 +40,7 @@ const LoginPage = () => {
         try {
             const session = await api<Session>(superAdmin ? '/api/auth/superadmin/login' : '/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
             sessionStore.set(session, rememberMe);
-            navigate(superAdmin ? '/superadmin/dashboard' : '/app/dashboard', { replace: true });
+            navigate(superAdmin ? '/superadmin/dashboard' : resolveLanding(session), { replace: true });
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : 'Sign in failed');
         } finally {

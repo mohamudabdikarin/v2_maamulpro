@@ -86,7 +86,9 @@ export const ModelName = {
   Client: 'Client',
   Deal: 'Deal',
   Account: 'Account',
+  JournalBatch: 'JournalBatch',
   JournalEntry: 'JournalEntry',
+  AccountMapping: 'AccountMapping',
   WorkforceContract: 'WorkforceContract',
   WorkforceContractWorker: 'WorkforceContractWorker',
   WorkforceContractPayment: 'WorkforceContractPayment',
@@ -263,6 +265,8 @@ export const TransactionScalarFieldEnum = {
   dealId: 'dealId',
   notes: 'notes',
   version: 'version',
+  journalBatchId: 'journalBatchId',
+  postingStatus: 'postingStatus',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -668,6 +672,11 @@ export const AccountScalarFieldEnum = {
   parentCode: 'parentCode',
   type: 'type',
   tenantId: 'tenantId',
+  description: 'description',
+  isActive: 'isActive',
+  allowNegative: 'allowNegative',
+  normalBalance: 'normalBalance',
+  isSystem: 'isSystem',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -675,8 +684,34 @@ export const AccountScalarFieldEnum = {
 export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
 
 
+export const JournalBatchScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  batchNumber: 'batchNumber',
+  date: 'date',
+  memo: 'memo',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  sourceRef: 'sourceRef',
+  status: 'status',
+  totalDebit: 'totalDebit',
+  totalCredit: 'totalCredit',
+  postedById: 'postedById',
+  postedAt: 'postedAt',
+  reversesBatchId: 'reversesBatchId',
+  reversedByBatchId: 'reversedByBatchId',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type JournalBatchScalarFieldEnum = (typeof JournalBatchScalarFieldEnum)[keyof typeof JournalBatchScalarFieldEnum]
+
+
 export const JournalEntryScalarFieldEnum = {
   id: 'id',
+  batchId: 'batchId',
   tenantId: 'tenantId',
   accountCode: 'accountCode',
   type: 'type',
@@ -686,11 +721,24 @@ export const JournalEntryScalarFieldEnum = {
   splitAccountCode: 'splitAccountCode',
   debit: 'debit',
   credit: 'credit',
+  lineNumber: 'lineNumber',
   clearedStatus: 'clearedStatus',
   createdAt: 'createdAt'
 } as const
 
 export type JournalEntryScalarFieldEnum = (typeof JournalEntryScalarFieldEnum)[keyof typeof JournalEntryScalarFieldEnum]
+
+
+export const AccountMappingScalarFieldEnum = {
+  key: 'key',
+  accountCode: 'accountCode',
+  description: 'description',
+  updatedById: 'updatedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountMappingScalarFieldEnum = (typeof AccountMappingScalarFieldEnum)[keyof typeof AccountMappingScalarFieldEnum]
 
 
 export const WorkforceContractScalarFieldEnum = {

@@ -309,6 +309,7 @@ export type UserWhereInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentListRelationFilter
   createdPayrolls?: Prisma.PayrollListRelationFilter
   approvedPayrolls?: Prisma.PayrollListRelationFilter
+  postedJournalBatches?: Prisma.JournalBatchListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -346,6 +347,7 @@ export type UserOrderByWithRelationInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentOrderByRelationAggregateInput
   createdPayrolls?: Prisma.PayrollOrderByRelationAggregateInput
   approvedPayrolls?: Prisma.PayrollOrderByRelationAggregateInput
+  postedJournalBatches?: Prisma.JournalBatchOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -386,6 +388,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentListRelationFilter
   createdPayrolls?: Prisma.PayrollListRelationFilter
   approvedPayrolls?: Prisma.PayrollListRelationFilter
+  postedJournalBatches?: Prisma.JournalBatchListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -473,6 +476,7 @@ export type UserCreateInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -510,6 +514,7 @@ export type UserUncheckedCreateInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUpdateInput = {
@@ -547,6 +552,7 @@ export type UserUpdateInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -584,6 +590,7 @@ export type UserUncheckedUpdateInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -912,6 +919,22 @@ export type UserUpdateOneWithoutCreatedDealsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedDealsInput, Prisma.UserUpdateWithoutCreatedDealsInput>, Prisma.UserUncheckedUpdateWithoutCreatedDealsInput>
 }
 
+export type UserCreateNestedOneWithoutPostedJournalBatchesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPostedJournalBatchesInput, Prisma.UserUncheckedCreateWithoutPostedJournalBatchesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPostedJournalBatchesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutPostedJournalBatchesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPostedJournalBatchesInput, Prisma.UserUncheckedCreateWithoutPostedJournalBatchesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPostedJournalBatchesInput
+  upsert?: Prisma.UserUpsertWithoutPostedJournalBatchesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPostedJournalBatchesInput, Prisma.UserUpdateWithoutPostedJournalBatchesInput>, Prisma.UserUncheckedUpdateWithoutPostedJournalBatchesInput>
+}
+
 export type UserCreateNestedOneWithoutWorkforceContractPaymentsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutWorkforceContractPaymentsInput, Prisma.UserUncheckedCreateWithoutWorkforceContractPaymentsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutWorkforceContractPaymentsInput
@@ -1006,6 +1029,7 @@ export type UserCreateWithoutRbacUserRolesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutRbacUserRolesInput = {
@@ -1042,6 +1066,7 @@ export type UserUncheckedCreateWithoutRbacUserRolesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutRbacUserRolesInput = {
@@ -1094,6 +1119,7 @@ export type UserUpdateWithoutRbacUserRolesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRbacUserRolesInput = {
@@ -1130,6 +1156,7 @@ export type UserUncheckedUpdateWithoutRbacUserRolesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutRbacUserPermissionsInput = {
@@ -1166,6 +1193,7 @@ export type UserCreateWithoutRbacUserPermissionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutRbacUserPermissionsInput = {
@@ -1202,6 +1230,7 @@ export type UserUncheckedCreateWithoutRbacUserPermissionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutRbacUserPermissionsInput = {
@@ -1254,6 +1283,7 @@ export type UserUpdateWithoutRbacUserPermissionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRbacUserPermissionsInput = {
@@ -1290,6 +1320,7 @@ export type UserUncheckedUpdateWithoutRbacUserPermissionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutStaffInput = {
@@ -1326,6 +1357,7 @@ export type UserCreateWithoutStaffInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutStaffInput = {
@@ -1362,6 +1394,7 @@ export type UserUncheckedCreateWithoutStaffInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutStaffInput = {
@@ -1414,6 +1447,7 @@ export type UserUpdateWithoutStaffInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStaffInput = {
@@ -1450,6 +1484,7 @@ export type UserUncheckedUpdateWithoutStaffInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -1486,6 +1521,7 @@ export type UserCreateWithoutTransactionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -1522,6 +1558,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -1574,6 +1611,7 @@ export type UserUpdateWithoutTransactionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -1610,6 +1648,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutActivityLogsInput = {
@@ -1646,6 +1685,7 @@ export type UserCreateWithoutActivityLogsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutActivityLogsInput = {
@@ -1682,6 +1722,7 @@ export type UserUncheckedCreateWithoutActivityLogsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutActivityLogsInput = {
@@ -1734,6 +1775,7 @@ export type UserUpdateWithoutActivityLogsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActivityLogsInput = {
@@ -1770,6 +1812,7 @@ export type UserUncheckedUpdateWithoutActivityLogsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutProjectTasksInput = {
@@ -1806,6 +1849,7 @@ export type UserCreateWithoutProjectTasksInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutProjectTasksInput = {
@@ -1842,6 +1886,7 @@ export type UserUncheckedCreateWithoutProjectTasksInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutProjectTasksInput = {
@@ -1894,6 +1939,7 @@ export type UserUpdateWithoutProjectTasksInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectTasksInput = {
@@ -1930,6 +1976,7 @@ export type UserUncheckedUpdateWithoutProjectTasksInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutInventoryTransactionsInput = {
@@ -1966,6 +2013,7 @@ export type UserCreateWithoutInventoryTransactionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutInventoryTransactionsInput = {
@@ -2002,6 +2050,7 @@ export type UserUncheckedCreateWithoutInventoryTransactionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutInventoryTransactionsInput = {
@@ -2054,6 +2103,7 @@ export type UserUpdateWithoutInventoryTransactionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInventoryTransactionsInput = {
@@ -2090,6 +2140,7 @@ export type UserUncheckedUpdateWithoutInventoryTransactionsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutMaterialSalesInput = {
@@ -2126,6 +2177,7 @@ export type UserCreateWithoutMaterialSalesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutMaterialSalesInput = {
@@ -2162,6 +2214,7 @@ export type UserUncheckedCreateWithoutMaterialSalesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutMaterialSalesInput = {
@@ -2214,6 +2267,7 @@ export type UserUpdateWithoutMaterialSalesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMaterialSalesInput = {
@@ -2250,6 +2304,7 @@ export type UserUncheckedUpdateWithoutMaterialSalesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutRecordedDailyExpensesInput = {
@@ -2286,6 +2341,7 @@ export type UserCreateWithoutRecordedDailyExpensesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutRecordedDailyExpensesInput = {
@@ -2322,6 +2378,7 @@ export type UserUncheckedCreateWithoutRecordedDailyExpensesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutRecordedDailyExpensesInput = {
@@ -2374,6 +2431,7 @@ export type UserUpdateWithoutRecordedDailyExpensesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRecordedDailyExpensesInput = {
@@ -2410,6 +2468,7 @@ export type UserUncheckedUpdateWithoutRecordedDailyExpensesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutWorkerLedgerEntriesInput = {
@@ -2446,6 +2505,7 @@ export type UserCreateWithoutWorkerLedgerEntriesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutWorkerLedgerEntriesInput = {
@@ -2482,6 +2542,7 @@ export type UserUncheckedCreateWithoutWorkerLedgerEntriesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutWorkerLedgerEntriesInput = {
@@ -2534,6 +2595,7 @@ export type UserUpdateWithoutWorkerLedgerEntriesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkerLedgerEntriesInput = {
@@ -2570,6 +2632,7 @@ export type UserUncheckedUpdateWithoutWorkerLedgerEntriesInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutCreatedDealsInput = {
@@ -2606,6 +2669,7 @@ export type UserCreateWithoutCreatedDealsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutCreatedDealsInput = {
@@ -2642,6 +2706,7 @@ export type UserUncheckedCreateWithoutCreatedDealsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedDealsInput = {
@@ -2694,6 +2759,7 @@ export type UserUpdateWithoutCreatedDealsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedDealsInput = {
@@ -2720,6 +2786,171 @@ export type UserUncheckedUpdateWithoutCreatedDealsInput = {
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserCreateWithoutPostedJournalBatchesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  staff?: Prisma.StaffCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+}
+
+export type UserUncheckedCreateWithoutPostedJournalBatchesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+}
+
+export type UserCreateOrConnectWithoutPostedJournalBatchesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPostedJournalBatchesInput, Prisma.UserUncheckedCreateWithoutPostedJournalBatchesInput>
+}
+
+export type UserUpsertWithoutPostedJournalBatchesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPostedJournalBatchesInput, Prisma.UserUncheckedUpdateWithoutPostedJournalBatchesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPostedJournalBatchesInput, Prisma.UserUncheckedCreateWithoutPostedJournalBatchesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPostedJournalBatchesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPostedJournalBatchesInput, Prisma.UserUncheckedUpdateWithoutPostedJournalBatchesInput>
+}
+
+export type UserUpdateWithoutPostedJournalBatchesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPostedJournalBatchesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
@@ -2766,6 +2997,7 @@ export type UserCreateWithoutWorkforceContractPaymentsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutWorkforceContractPaymentsInput = {
@@ -2802,6 +3034,7 @@ export type UserUncheckedCreateWithoutWorkforceContractPaymentsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutWorkforceContractPaymentsInput = {
@@ -2854,6 +3087,7 @@ export type UserUpdateWithoutWorkforceContractPaymentsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkforceContractPaymentsInput = {
@@ -2890,6 +3124,7 @@ export type UserUncheckedUpdateWithoutWorkforceContractPaymentsInput = {
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutWorkforceContractAdjustmentsInput = {
@@ -2926,6 +3161,7 @@ export type UserCreateWithoutWorkforceContractAdjustmentsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutWorkforceContractAdjustmentsInput = {
@@ -2962,6 +3198,7 @@ export type UserUncheckedCreateWithoutWorkforceContractAdjustmentsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutWorkforceContractAdjustmentsInput = {
@@ -3014,6 +3251,7 @@ export type UserUpdateWithoutWorkforceContractAdjustmentsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkforceContractAdjustmentsInput = {
@@ -3050,6 +3288,7 @@ export type UserUncheckedUpdateWithoutWorkforceContractAdjustmentsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserCreateWithoutCreatedPayrollsInput = {
@@ -3086,6 +3325,7 @@ export type UserCreateWithoutCreatedPayrollsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutCreatedPayrollsInput = {
@@ -3122,6 +3362,7 @@ export type UserUncheckedCreateWithoutCreatedPayrollsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedPayrollsInput = {
@@ -3163,6 +3404,7 @@ export type UserCreateWithoutApprovedPayrollsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
 }
 
 export type UserUncheckedCreateWithoutApprovedPayrollsInput = {
@@ -3199,6 +3441,7 @@ export type UserUncheckedCreateWithoutApprovedPayrollsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
   createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
 }
 
 export type UserCreateOrConnectWithoutApprovedPayrollsInput = {
@@ -3251,6 +3494,7 @@ export type UserUpdateWithoutCreatedPayrollsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedPayrollsInput = {
@@ -3287,6 +3531,7 @@ export type UserUncheckedUpdateWithoutCreatedPayrollsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUpsertWithoutApprovedPayrollsInput = {
@@ -3334,6 +3579,7 @@ export type UserUpdateWithoutApprovedPayrollsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovedPayrollsInput = {
@@ -3370,6 +3616,7 @@ export type UserUncheckedUpdateWithoutApprovedPayrollsInput = {
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
   workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
   createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
 }
 
 
@@ -3392,6 +3639,7 @@ export type UserCountOutputType = {
   workforceContractAdjustments: number
   createdPayrolls: number
   approvedPayrolls: number
+  postedJournalBatches: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3409,6 +3657,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   workforceContractAdjustments?: boolean | UserCountOutputTypeCountWorkforceContractAdjustmentsArgs
   createdPayrolls?: boolean | UserCountOutputTypeCountCreatedPayrollsArgs
   approvedPayrolls?: boolean | UserCountOutputTypeCountApprovedPayrollsArgs
+  postedJournalBatches?: boolean | UserCountOutputTypeCountPostedJournalBatchesArgs
 }
 
 /**
@@ -3519,6 +3768,13 @@ export type UserCountOutputTypeCountApprovedPayrollsArgs<ExtArgs extends runtime
   where?: Prisma.PayrollWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPostedJournalBatchesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.JournalBatchWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -3555,6 +3811,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   workforceContractAdjustments?: boolean | Prisma.User$workforceContractAdjustmentsArgs<ExtArgs>
   createdPayrolls?: boolean | Prisma.User$createdPayrollsArgs<ExtArgs>
   approvedPayrolls?: boolean | Prisma.User$approvedPayrollsArgs<ExtArgs>
+  postedJournalBatches?: boolean | Prisma.User$postedJournalBatchesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3641,6 +3898,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   workforceContractAdjustments?: boolean | Prisma.User$workforceContractAdjustmentsArgs<ExtArgs>
   createdPayrolls?: boolean | Prisma.User$createdPayrollsArgs<ExtArgs>
   approvedPayrolls?: boolean | Prisma.User$approvedPayrollsArgs<ExtArgs>
+  postedJournalBatches?: boolean | Prisma.User$postedJournalBatchesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -3664,6 +3922,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     workforceContractAdjustments: Prisma.$WorkforceContractAdjustmentPayload<ExtArgs>[]
     createdPayrolls: Prisma.$PayrollPayload<ExtArgs>[]
     approvedPayrolls: Prisma.$PayrollPayload<ExtArgs>[]
+    postedJournalBatches: Prisma.$JournalBatchPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4094,6 +4353,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   workforceContractAdjustments<T extends Prisma.User$workforceContractAdjustmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$workforceContractAdjustmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkforceContractAdjustmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdPayrolls<T extends Prisma.User$createdPayrollsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdPayrollsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvedPayrolls<T extends Prisma.User$approvedPayrollsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvedPayrollsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  postedJournalBatches<T extends Prisma.User$postedJournalBatchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$postedJournalBatchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$JournalBatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4887,6 +5147,30 @@ export type User$approvedPayrollsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.PayrollScalarFieldEnum | Prisma.PayrollScalarFieldEnum[]
+}
+
+/**
+ * User.postedJournalBatches
+ */
+export type User$postedJournalBatchesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the JournalBatch
+   */
+  select?: Prisma.JournalBatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the JournalBatch
+   */
+  omit?: Prisma.JournalBatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.JournalBatchInclude<ExtArgs> | null
+  where?: Prisma.JournalBatchWhereInput
+  orderBy?: Prisma.JournalBatchOrderByWithRelationInput | Prisma.JournalBatchOrderByWithRelationInput[]
+  cursor?: Prisma.JournalBatchWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.JournalBatchScalarFieldEnum | Prisma.JournalBatchScalarFieldEnum[]
 }
 
 /**

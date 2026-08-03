@@ -10,6 +10,7 @@ import { SuperAdminModule } from './modules/superadmin/superadmin.module';
 import { CronModule } from './modules/cron/cron.module';
 import { ExecutiveHubModule } from './modules/executive-hub/executive-hub.module';
 import { FinancialsModule } from './modules/financials/financials.module';
+import { AccountingModule } from './modules/accounting/accounting.module';
 import { PayrollModule } from './modules/payroll/payroll.module';
 import { ConstructionModule } from './modules/construction/construction.module';
 import { RealEstateModule } from './modules/real-estate/real-estate.module';
@@ -34,6 +35,7 @@ import { EmailModule } from './common/email/email.module';
     CronModule,
     ExecutiveHubModule,
     FinancialsModule,
+    AccountingModule,
     PayrollModule,
     ConstructionModule,
     RealEstateModule,

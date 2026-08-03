@@ -1,9 +1,13 @@
+import { toast } from './toast';
+
 export type ApiEnvelope<T> = {
     success: boolean;
     data: T;
     message?: string;
     timestamp: string;
 };
+
+export type ApiInit = RequestInit & { silent?: boolean };
 
 export type SessionUser = {
     id: string;
@@ -86,25 +90,32 @@ export const sessionStore = {
     },
 };
 
-export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
+    const { silent, ...fetchInit } = init;
     const session = sessionStore.get();
-    const headers = new Headers(init.headers);
+    const headers = new Headers(fetchInit.headers);
     headers.set('Accept', 'application/json');
-    if (init.body && !(init.body instanceof FormData)) headers.set('Content-Type', 'application/json');
+    if (fetchInit.body && !(fetchInit.body instanceof FormData)) headers.set('Content-Type', 'application/json');
     if (session?.accessToken) headers.set('Authorization', `Bearer ${session.accessToken}`);
     if (session?.user.companyId) headers.set('X-Company-Id', session.user.companyId);
 
-    const response = await fetch(`${API_URL}${path}`, { ...init, headers });
+    const response = await fetch(`${API_URL}${path}`, { ...fetchInit, headers });
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
         if (response.status === 401) sessionStore.clear();
         const message = payload?.message || payload?.error?.message || `Request failed (${response.status})`;
         const readable = Array.isArray(message) ? message.join(', ') : message;
-        if (response.status === 403 && /subscription|company setup|company account.*suspend/i.test(readable)) {
+        const isLockRedirect = response.status === 403 && /subscription|company setup|company account.*suspend/i.test(readable);
+        if (isLockRedirect) {
             lastSessionRefreshAt = 0;
             if (!window.location.pathname.startsWith('/locked')) {
                 window.location.assign(`/locked?reason=${encodeURIComponent(readable)}`);
             }
+        } else if (response.status === 403) {
+            if (!silent) toast.error("You don't have permission for this action.");
+            refreshSession(true).catch(() => undefined);
+        } else if (response.status !== 401 && !silent) {
+            toast.error(readable);
         }
         throw new Error(readable);
     }

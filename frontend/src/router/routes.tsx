@@ -18,6 +18,8 @@ const FinancialsPage = lazy(() => import('../pages/FinancialsPage'));
 const PayrollEditorPage = lazy(() => import('../pages/PayrollEditorPage'));
 const PayslipsPage = lazy(() => import('../pages/PayslipsPage'));
 const AccountsPage = lazy(() => import('../pages/AccountsPage'));
+const JournalEntriesPage = lazy(() => import('../pages/JournalEntriesPage'));
+const FinancialReportsPage = lazy(() => import('../pages/FinancialReportsPage'));
 const AuditsPage = lazy(() => import('../pages/AuditsPage'));
 const CrudRoutePage = lazy(() => import('../pages/CrudRoutePage'));
 const EntityDetailPage = lazy(() => import('../pages/EntityDetailPage'));
@@ -58,7 +60,7 @@ const routes = [
     { path: '/dashboard/*', element: <LegacyRedirectPage />, layout: 'blank' },
     { path: '/superadmin/login', element: <LoginPage />, layout: 'blank' },
     { path: '/superadmin/forgot-password', element: <PasswordRecoveryPage />, layout: 'blank' },
-    { path: '/app/dashboard', element: <DashboardPage />, layout: 'blank' },
+    { path: '/app/dashboard', element: <DashboardPage />, layout: 'blank', permission: 'dashboard.executive.read' },
     { path: '/app/analytics', element: <AnalyticsPage />, layout: 'blank', permission: 'analytics.read' },
     { path: '/app/no-access', element: <NoAccessPage />, layout: 'blank' },
     { path: '/app/staff', element: <StaffPage />, layout: 'blank', permission: 'users.read' },
@@ -66,7 +68,9 @@ const routes = [
     { path: '/app/financials/categories', element: <CrudPage title="Financial Categories" description="Reusable income and expense classifications." endpoint="/api/financials/categories" fields={[
         { name: 'name', label: 'Name', required: true }, { name: 'code', label: 'Code' }, { name: 'color', label: 'Color' }, { name: 'description', label: 'Description', type: 'textarea' },
     ]} />, layout: 'blank', permission: 'financials.read' },
-    { path: '/app/financials/accounts', element: <AccountsPage />, layout: 'blank', permission: 'financials.read' },
+    { path: '/app/financials/accounts', element: <AccountsPage />, layout: 'blank', permission: 'accounting.read' },
+    { path: '/app/financials/journals', element: <JournalEntriesPage />, layout: 'blank', permission: 'accounting.read' },
+    { path: '/app/financials/financial-reports', element: <FinancialReportsPage />, layout: 'blank', permission: 'accounting.read' },
     { path: '/app/financials/profit-loss', element: <ReportsCenterPage workspace="core" title="Profit & Loss" defaultReportId="core-profit-summary" />, layout: 'blank', permission: 'financials.read' },
     { path: '/app/financials/transaction-detail', element: <ReportsCenterPage workspace="core" title="Transaction Detail By Account" defaultReportId="core-transaction-detail" />, layout: 'blank', permission: 'financials.read' },
     { path: '/app/financials/reports', element: <ReportsCenterPage workspace="core" title="Financial Reports" />, layout: 'blank', permission: 'reports.read' },

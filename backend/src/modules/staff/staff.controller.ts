@@ -3,6 +3,7 @@ import { StaffService } from './staff.service';
 import { GetTenantDb, GetTenantContext } from '../../common/decorators/tenant-context.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import {
   AccountStatusDto,
@@ -10,6 +11,7 @@ import {
   StaffAccountDto,
   StaffEmailDto,
   StaffPasswordDto,
+  StaffRoleDto,
   UpdateStaffDto,
 } from './dto/staff.dto';
 
@@ -27,6 +29,12 @@ export class StaffController {
     @Query('status') status?: string,
   ) {
     return this.staffService.getStaff(tenantDb, { ...query, department, status });
+  }
+
+  @Get('accounts')
+  @RequirePermissions('users.read')
+  listAccounts(@GetTenantDb() db: any) {
+    return this.staffService.listUserAccounts(db);
   }
 
   @Get(':id')
@@ -53,8 +61,8 @@ export class StaffController {
 
   @Delete(':id')
   @RequirePermissions('users.delete')
-  deleteStaff(@GetTenantDb() db: any, @Param('id') id: string) {
-    return this.staffService.deleteStaff(db, id);
+  deleteStaff(@GetTenantDb() db: any, @Param('id') id: string, @CurrentUser('id') currentUserId: string) {
+    return this.staffService.deleteStaff(db, id, currentUserId);
   }
 
   @Post(':id/account')
@@ -89,6 +97,12 @@ export class StaffController {
   @RequirePermissions('users.update')
   resetPassword(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: StaffPasswordDto) {
     return this.staffService.resetPassword(db, id, body.temporaryPassword);
+  }
+
+  @Patch(':id/account/role')
+  @RequirePermissions('users.update')
+  updateRole(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: StaffRoleDto) {
+    return this.staffService.updateAccountRole(db, id, body.role);
   }
 
   @Get(':id/activity')

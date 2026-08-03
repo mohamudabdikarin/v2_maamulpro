@@ -193,10 +193,20 @@ export type Deal = Prisma.DealModel
  */
 export type Account = Prisma.AccountModel
 /**
+ * Model JournalBatch
+ * 
+ */
+export type JournalBatch = Prisma.JournalBatchModel
+/**
  * Model JournalEntry
  * 
  */
 export type JournalEntry = Prisma.JournalEntryModel
+/**
+ * Model AccountMapping
+ * 
+ */
+export type AccountMapping = Prisma.AccountMappingModel
 /**
  * Model WorkforceContract
  * 

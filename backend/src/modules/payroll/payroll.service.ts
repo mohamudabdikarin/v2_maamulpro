@@ -1,8 +1,19 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PayrollItemDto, PayrollTransitionDto, SavePayrollDto } from './dto/payroll.dto';
+import { AccountingService } from '../accounting/accounting.service';
 
 @Injectable()
 export class PayrollService {
+  private readonly logger = new Logger(PayrollService.name);
+
+  constructor(private readonly accounting: AccountingService) {}
+
+  private async safePost(fn: () => Promise<unknown>) {
+    try { await fn(); } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Journal post skipped: ${message}`);
+    }
+  }
 
   async getPayrolls(tenantDb: any, status?: string) {
     if (!tenantDb) return [];
@@ -183,6 +194,23 @@ export class PayrollService {
             notes: `Expense account: ${payroll.expenseAccountCode || 'not assigned'}`,
           },
         });
+        // Post the payroll payment as a balanced batch. If the payroll
+        // has an explicit expense_account_code set, use it — otherwise
+        // fall back to the PAYROLL_EXPENSE mapping.
+        await this.safePost(() =>
+          this.accounting.postFinancialEvent(tx, {
+            tx, tenantId: 'system', userId,
+            sourceType: 'PAYROLL',
+            sourceId: payroll.id,
+            sourceRef: `PAYROLL-${payroll.id}`,
+            date: new Date(),
+            memo: `Payroll payment — ${payroll.name}`,
+            drKey: 'PAYROLL_EXPENSE',
+            crKey: 'PAYROLL_CASH',
+            drAccountOverride: payroll.expenseAccountCode || undefined,
+            amount: Number(payroll.totalNetSalary),
+          }),
+        );
       }
       return updated;
     });
@@ -275,6 +303,22 @@ export class PayrollService {
           status: 'CLEARED',
         },
       });
+
+      // 3. Post the balanced accounting entry alongside the transaction.
+      await this.safePost(() =>
+        this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system', userId,
+          sourceType: 'PAYROLL',
+          sourceId: payroll.id,
+          sourceRef: `PAYROLL-${payroll.id}`,
+          date: new Date(),
+          memo: `Payroll salary payment for ${payroll.name} (${payroll.items.length} employees)`,
+          drKey: 'PAYROLL_EXPENSE',
+          crKey: 'PAYROLL_CASH',
+          drAccountOverride: payroll.expenseAccountCode || undefined,
+          amount: Number(payroll.totalNetSalary),
+        }),
+      );
 
       return updatedPayroll;
     });

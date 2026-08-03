@@ -1,4 +1,5 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { AccountingService } from '../accounting/accounting.service';
 import {
   MaterialCustomerDto,
   MaterialDto,
@@ -10,6 +11,20 @@ import {
 
 @Injectable()
 export class MaterialManagementService {
+  private readonly logger = new Logger(MaterialManagementService.name);
+
+  constructor(private readonly accounting: AccountingService) {}
+
+  // Best-effort post: never breaks the calling write path if the ledger
+  // post fails (e.g. missing default account). Logs and continues; the
+  // transaction row still records the event with posting_status='UNPOSTED'
+  // once phase-3 backfill wires transaction linkage into these hooks.
+  private async safePost(fn: () => Promise<unknown>) {
+    try { await fn(); } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Journal post skipped: ${message}`);
+    }
+  }
   getProducts(db: any, search?: string) {
     const where: any = { deletedAt: null };
     if (search) where.OR = [
@@ -420,6 +435,9 @@ export class MaterialManagementService {
     const referenceId = `purchase:${order.id}`;
     if (order.status !== 'RECEIVED' || Number(order.totalCost) <= 0) {
       await tx.transaction.updateMany({ where: { referenceId, deletedAt: null }, data: { deletedAt: new Date(), version: { increment: 1 } } });
+      await this.safePost(() =>
+        this.accounting.retractPriorForSource(tx, 'PURCHASE', order.id),
+      );
       return;
     }
     const category = await this.category(tx, 'Procurement', '#ef4444');
@@ -427,6 +445,21 @@ export class MaterialManagementService {
       where: { referenceId },
       create: { referenceId, type: 'EXPENSE', status: 'CLEARED', description: `Procurement expense for purchase order ${order.orderNo} (order ${order.id})`, amount: order.totalCost, date: order.receivedAt || new Date(), categoryId: category.id },
       update: { amount: order.totalCost, date: order.receivedAt || new Date(), deletedAt: null, version: { increment: 1 } },
+    });
+    await this.safePost(async () => {
+      await this.accounting.retractPriorForSource(tx, 'PURCHASE', order.id);
+      await this.accounting.postFinancialEvent(tx, {
+        tx,
+        tenantId: 'system',
+        sourceType: 'PURCHASE',
+        sourceId: order.id,
+        sourceRef: order.orderNo,
+        date: order.receivedAt || new Date(),
+        memo: `Procurement expense for purchase order ${order.orderNo}`,
+        drKey: 'PURCHASE_INVOICE_EXPENSE',
+        crKey: 'SUPPLIER_PAYMENT_CASH',
+        amount: Number(order.totalCost),
+      });
     });
   }
 
@@ -439,12 +472,48 @@ export class MaterialManagementService {
     const receivable = await this.category(tx, 'Accounts Receivable', '#f59e0b');
     if (paid > 0) await tx.transaction.create({ data: { referenceId: `${prefix}paid:${sale.updatedAt.getTime()}`, type: 'INCOME', status: 'CLEARED', description: `Payment received for material sale invoice ${sale.invoiceNo} (sale ${sale.id})`, amount: paid, categoryId: revenue.id, userId: sale.userId, date: sale.date } });
     if (total - paid > 0) await tx.transaction.create({ data: { referenceId: `${prefix}due:${sale.updatedAt.getTime()}`, type: 'INCOME', status: 'PENDING', description: `Accounts receivable for material sale invoice ${sale.invoiceNo} (sale ${sale.id})`, amount: total - paid, categoryId: receivable.id, userId: sale.userId, date: sale.date } });
+    // Retract any prior sale batches for this sale, then post fresh:
+    // one batch for the paid portion (cash side) and one for the due
+    // portion (AR side). Keeping them as separate batches makes the
+    // ledger and AR aging reports easier to reason about.
+    await this.safePost(async () => {
+      await this.accounting.retractPriorForSource(tx, 'MATERIAL_SALE', sale.id);
+      if (paid > 0) {
+        await this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system',
+          sourceType: 'MATERIAL_SALE',
+          sourceId: sale.id,
+          sourceRef: `${sale.invoiceNo} · paid`,
+          date: sale.date, userId: sale.userId,
+          memo: `Payment received on sale ${sale.invoiceNo}`,
+          drKey: 'CUSTOMER_PAYMENT_CASH',
+          crKey: 'SALES_INVOICE_REVENUE',
+          amount: paid,
+        });
+      }
+      if (total - paid > 0) {
+        await this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system',
+          sourceType: 'MATERIAL_SALE',
+          sourceId: sale.id,
+          sourceRef: `${sale.invoiceNo} · due`,
+          date: sale.date, userId: sale.userId,
+          memo: `Outstanding balance on sale ${sale.invoiceNo}`,
+          drKey: 'SALES_INVOICE_AR',
+          crKey: 'SALES_INVOICE_REVENUE',
+          amount: total - paid,
+        });
+      }
+    });
   }
 
   private async syncTransportationLedger(tx: any, record: any) {
     const referenceId = `transport:${record.id}`;
     if (record.status !== 'DELIVERED' || Number(record.cost) <= 0) {
       await tx.transaction.updateMany({ where: { referenceId, deletedAt: null }, data: { deletedAt: new Date(), version: { increment: 1 } } });
+      await this.safePost(() =>
+        this.accounting.retractPriorForSource(tx, 'TRANSPORTATION', record.id),
+      );
       return;
     }
     const category = await this.category(tx, 'Transportation', '#ef4444');
@@ -452,6 +521,20 @@ export class MaterialManagementService {
       where: { referenceId },
       create: { referenceId, type: 'EXPENSE', status: 'CLEARED', description: `Transportation expense for delivery ${record.deliveryNo} (record ${record.id})`, amount: record.cost, date: record.deliveryDate || new Date(), categoryId: category.id },
       update: { amount: record.cost, date: record.deliveryDate || new Date(), deletedAt: null, version: { increment: 1 } },
+    });
+    await this.safePost(async () => {
+      await this.accounting.retractPriorForSource(tx, 'TRANSPORTATION', record.id);
+      await this.accounting.postFinancialEvent(tx, {
+        tx, tenantId: 'system',
+        sourceType: 'TRANSPORTATION',
+        sourceId: record.id,
+        sourceRef: record.deliveryNo,
+        date: record.deliveryDate || new Date(),
+        memo: `Transportation expense for delivery ${record.deliveryNo}`,
+        drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
+        crKey: 'TRANSACTION_EXPENSE_CASH',
+        amount: Number(record.cost),
+      });
     });
   }
 }

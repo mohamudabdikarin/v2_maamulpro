@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { IRootState } from '../../store';
 import { toggleSidebar } from '../../store/themeConfigSlice';
 import { Session, sessionStore } from '../../lib/api';
-import { BarChart3, BookOpen, Building2, Calendar, CheckSquare, CreditCard, DollarSign, FileSignature, FileText, Handshake, KeyRound, LayoutDashboard, Package, Receipt, Settings, Shield, ShieldCheck, ShoppingCart, Tags, Truck, User, UserCheck, Users, Wallet } from 'lucide-react';
+import { BarChart3, BookOpen, BookOpenCheck, Building2, Calendar, CheckSquare, CreditCard, DollarSign, FileSignature, FileText, Handshake, KeyRound, LayoutDashboard, Package, Receipt, Settings, Shield, ShieldCheck, ShoppingCart, Tags, TrendingUp, Truck, User, UserCheck, Users, Wallet } from 'lucide-react';
 import IconCaretDown from '../Icon/IconCaretDown';
 import IconCaretsDown from '../Icon/IconCaretsDown';
 import IconMenuDashboard from '../Icon/Menu/IconMenuDashboard';
@@ -26,13 +26,15 @@ const iconClass = 'group-hover:!text-primary shrink-0';
 
 const companyGroups: Group[] = [
     { label: 'Executive hub', icon: <IconMenuDashboard className={iconClass} />, items: [
-        { label: 'Dashboard', to: '/app/dashboard', icon: <LayoutDashboard size={16} className={subIconClass} /> },
+        { label: 'Dashboard', to: '/app/dashboard', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'dashboard.executive.read' },
         { label: 'Analytics', to: '/app/analytics', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'analytics.read' },
     ] },
     { label: 'People & finance', icon: <IconMenuUsers className={iconClass} />, items: [
         { label: 'Staff', to: '/app/staff', icon: <Users size={16} className={subIconClass} />, permission: 'users.read' },
         { label: 'Financials', to: '/app/financials', icon: <Wallet size={16} className={subIconClass} />, permission: 'financials.read' },
-        { label: 'Chart of accounts', to: '/app/financials/accounts', icon: <BookOpen size={16} className={subIconClass} />, permission: 'financials.read' },
+        { label: 'Chart of accounts', to: '/app/financials/accounts', icon: <BookOpen size={16} className={subIconClass} />, permission: 'accounting.read' },
+        { label: 'Journal entries', to: '/app/financials/journals', icon: <BookOpenCheck size={16} className={subIconClass} />, permission: 'accounting.read' },
+        { label: 'Financial reports', to: '/app/financials/financial-reports', icon: <TrendingUp size={16} className={subIconClass} />, permission: 'accounting.read' },
         { label: 'Payroll', to: '/app/payroll', feature: 'payroll', icon: <Receipt size={16} className={subIconClass} />, permission: 'payroll.read' },
         { label: 'Payslips', to: '/app/payroll/payslips', feature: 'payroll', icon: <FileText size={16} className={subIconClass} />, permission: 'payroll.read' },
     ] },
@@ -44,6 +46,7 @@ const companyGroups: Group[] = [
         { label: 'Manpower', to: '/app/construction/manpower', icon: <Users size={16} className={subIconClass} />, permission: 'manpower.read' },
         { label: 'Inventory', to: '/app/construction/inventory', icon: <Package size={16} className={subIconClass} />, permission: 'construction_inventory.read' },
         { label: 'Contracts', to: '/app/construction/contracts', icon: <FileSignature size={16} className={subIconClass} />, permission: 'workforce_contracts.read' },
+        { label: 'Reports', to: '/app/construction/reports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.construction.read' },
     ] },
     { label: 'Real estate', feature: 'realEstate', icon: <IconMenuElements className={iconClass} />, permission: 'workspace.real_estate.read', items: [
         { label: 'Overview', to: '/app/real-estate/overview', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'workspace.real_estate.read' },
@@ -53,6 +56,7 @@ const companyGroups: Group[] = [
         { label: 'Rentals', to: '/app/real-estate/rentals', icon: <KeyRound size={16} className={subIconClass} />, permission: 'rentals.read' },
         { label: 'Tenants', to: '/app/real-estate/tenants', icon: <User size={16} className={subIconClass} />, permission: 'rentals.read' },
         { label: 'Rent payments', to: '/app/real-estate/rent-payments', icon: <Wallet size={16} className={subIconClass} />, permission: 'rentals.read' },
+        { label: 'Reports', to: '/app/real-estate/reports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.real_estate.read' },
     ] },
     { label: 'Materials', feature: 'materials', icon: <IconMenuInvoice className={iconClass} />, permission: 'workspace.material_management.read', items: [
         { label: 'Overview', to: '/app/materials/overview', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'workspace.material_management.read' },
@@ -61,6 +65,7 @@ const companyGroups: Group[] = [
         { label: 'Purchases', to: '/app/materials/purchases', icon: <ShoppingCart size={16} className={subIconClass} />, permission: 'purchases.read' },
         { label: 'Sales', to: '/app/materials/sales', icon: <Tags size={16} className={subIconClass} />, permission: 'material_sales.read' },
         { label: 'Transportation', to: '/app/materials/transportation', icon: <Truck size={16} className={subIconClass} />, permission: 'transportation.read' },
+        { label: 'Reports', to: '/app/materials/reports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.material.read' },
     ] },
     { label: 'Governance', icon: <IconMenuCharts className={iconClass} />, items: [
         { label: 'Reports', to: '/app/reports', feature: 'advancedReports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.read' },

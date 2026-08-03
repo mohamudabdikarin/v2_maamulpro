@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { AccountingService } from '../accounting/accounting.service';
+import { AccountMappingsService } from '../accounting/account-mappings.service';
 import {
   AccountDto,
   CategoryDto,
@@ -9,6 +11,12 @@ import {
 
 @Injectable()
 export class FinancialsService {
+  private readonly logger = new Logger(FinancialsService.name);
+
+  constructor(
+    private readonly accounting: AccountingService,
+    private readonly mappings: AccountMappingsService,
+  ) {}
 
   async getTransactions(tenantDb: any, query: TransactionQueryDto) {
     if (!tenantDb) return [];
@@ -44,12 +52,12 @@ export class FinancialsService {
 
   async createTransaction(
     tenantDb: any,
-    data: CreateTransactionDto & { idempotencyKey?: string; userId?: string },
+    data: CreateTransactionDto & { idempotencyKey?: string; userId?: string; tenantId?: string },
   ) {
     if (!tenantDb) throw new BadRequestException('Tenant DB not available');
 
     return tenantDb.$transaction(async (tx: any) => {
-      // 1. Double transaction check if idempotencyKey supplied
+      // 1. Idempotency check — matching referenceId returns the prior row.
       if (data.idempotencyKey) {
         const existing = await tx.transaction.findFirst({
           where: { referenceId: data.idempotencyKey },
@@ -57,8 +65,56 @@ export class FinancialsService {
         if (existing) return existing;
       }
 
-      // Create the unified ledger entry. Account journals are maintained by
-      // the source-specific ledger workflows, not by the core transaction row.
+      const date = data.date ? new Date(data.date) : new Date();
+      // 2. Post the balanced journal batch first. Runs inside the same
+      //    tx as the transaction insert, so a posting failure rolls the
+      //    whole thing back and we never end up with an orphan row.
+      let journalBatchId: string | null = null;
+      let postingStatus: 'POSTED' | 'UNPOSTED' | 'FAILED' = 'UNPOSTED';
+      try {
+        // Resolve the four keys this hook uses in one round-trip. If a
+        // tenant has re-pointed any of them from Settings, the new
+        // account codes take effect immediately for the next post.
+        const resolved = await this.mappings.resolveMany(tenantDb, [
+          'TRANSACTION_INCOME_CASH',
+          'TRANSACTION_INCOME_REVENUE',
+          'TRANSACTION_EXPENSE_CASH',
+          'TRANSACTION_EXPENSE_ACCOUNT',
+        ]);
+        const lines =
+          data.type === 'INCOME'
+            ? [
+                { accountCode: resolved.TRANSACTION_INCOME_CASH, debit: data.amount, credit: 0 },
+                { accountCode: resolved.TRANSACTION_INCOME_REVENUE, debit: 0, credit: data.amount },
+              ]
+            : [
+                { accountCode: resolved.TRANSACTION_EXPENSE_ACCOUNT, debit: data.amount, credit: 0 },
+                { accountCode: resolved.TRANSACTION_EXPENSE_CASH, debit: 0, credit: data.amount },
+              ];
+        const batch = await this.accounting.postJournalBatch(tenantDb, {
+          tenantId: data.tenantId || 'system',
+          userId: data.userId,
+          dto: {
+            date,
+            memo: data.description,
+            sourceType: 'TRANSACTION',
+            sourceRef: data.idempotencyKey,
+            lines,
+          },
+          tx,
+        });
+        journalBatchId = batch.id;
+        postingStatus = 'POSTED';
+      } catch (err) {
+        // Failing to post shouldn't block recording the transaction —
+        // the row is created UNPOSTED so it can be posted later once
+        // the missing default account is created. Users see the flag
+        // in the Financials UI.
+        const message = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`Auto-post failed for transaction (${data.type} ${data.amount}): ${message}`);
+        postingStatus = 'UNPOSTED';
+      }
+
       const transaction = await tx.transaction.create({
         data: {
           referenceId: data.idempotencyKey || undefined,
@@ -71,8 +127,10 @@ export class FinancialsService {
           userId: data.userId || null,
           description: data.description,
           notes: data.notes,
-          date: data.date ? new Date(data.date) : new Date(),
+          date,
           status: (data.status as any) || 'PENDING',
+          journalBatchId,
+          postingStatus,
         },
       });
 

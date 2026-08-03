@@ -432,7 +432,9 @@ export const ModelName = {
   Client: 'Client',
   Deal: 'Deal',
   Account: 'Account',
+  JournalBatch: 'JournalBatch',
   JournalEntry: 'JournalEntry',
+  AccountMapping: 'AccountMapping',
   WorkforceContract: 'WorkforceContract',
   WorkforceContractWorker: 'WorkforceContractWorker',
   WorkforceContractPayment: 'WorkforceContractPayment',
@@ -454,7 +456,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "project" | "projectTask" | "material" | "inventoryTransaction" | "reportSchedule" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "client" | "deal" | "account" | "journalEntry" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
+    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "project" | "projectTask" | "material" | "inventoryTransaction" | "reportSchedule" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "client" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3048,6 +3050,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    JournalBatch: {
+      payload: Prisma.$JournalBatchPayload<ExtArgs>
+      fields: Prisma.JournalBatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.JournalBatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.JournalBatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>
+        }
+        findFirst: {
+          args: Prisma.JournalBatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.JournalBatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>
+        }
+        findMany: {
+          args: Prisma.JournalBatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>[]
+        }
+        create: {
+          args: Prisma.JournalBatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>
+        }
+        createMany: {
+          args: Prisma.JournalBatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.JournalBatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>[]
+        }
+        delete: {
+          args: Prisma.JournalBatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>
+        }
+        update: {
+          args: Prisma.JournalBatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.JournalBatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.JournalBatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.JournalBatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.JournalBatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JournalBatchPayload>
+        }
+        aggregate: {
+          args: Prisma.JournalBatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateJournalBatch>
+        }
+        groupBy: {
+          args: Prisma.JournalBatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.JournalBatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.JournalBatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.JournalBatchCountAggregateOutputType> | number
+        }
+      }
+    }
     JournalEntry: {
       payload: Prisma.$JournalEntryPayload<ExtArgs>
       fields: Prisma.JournalEntryFieldRefs
@@ -3119,6 +3195,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.JournalEntryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.JournalEntryCountAggregateOutputType> | number
+        }
+      }
+    }
+    AccountMapping: {
+      payload: Prisma.$AccountMappingPayload<ExtArgs>
+      fields: Prisma.AccountMappingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccountMappingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccountMappingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>
+        }
+        findFirst: {
+          args: Prisma.AccountMappingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccountMappingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>
+        }
+        findMany: {
+          args: Prisma.AccountMappingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>[]
+        }
+        create: {
+          args: Prisma.AccountMappingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>
+        }
+        createMany: {
+          args: Prisma.AccountMappingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AccountMappingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>[]
+        }
+        delete: {
+          args: Prisma.AccountMappingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>
+        }
+        update: {
+          args: Prisma.AccountMappingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>
+        }
+        deleteMany: {
+          args: Prisma.AccountMappingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccountMappingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AccountMappingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>[]
+        }
+        upsert: {
+          args: Prisma.AccountMappingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMappingPayload>
+        }
+        aggregate: {
+          args: Prisma.AccountMappingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccountMapping>
+        }
+        groupBy: {
+          args: Prisma.AccountMappingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMappingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccountMappingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMappingCountAggregateOutputType> | number
         }
       }
     }
@@ -3757,6 +3907,8 @@ export const TransactionScalarFieldEnum = {
   dealId: 'dealId',
   notes: 'notes',
   version: 'version',
+  journalBatchId: 'journalBatchId',
+  postingStatus: 'postingStatus',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -4162,6 +4314,11 @@ export const AccountScalarFieldEnum = {
   parentCode: 'parentCode',
   type: 'type',
   tenantId: 'tenantId',
+  description: 'description',
+  isActive: 'isActive',
+  allowNegative: 'allowNegative',
+  normalBalance: 'normalBalance',
+  isSystem: 'isSystem',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -4169,8 +4326,34 @@ export const AccountScalarFieldEnum = {
 export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
 
 
+export const JournalBatchScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  batchNumber: 'batchNumber',
+  date: 'date',
+  memo: 'memo',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  sourceRef: 'sourceRef',
+  status: 'status',
+  totalDebit: 'totalDebit',
+  totalCredit: 'totalCredit',
+  postedById: 'postedById',
+  postedAt: 'postedAt',
+  reversesBatchId: 'reversesBatchId',
+  reversedByBatchId: 'reversedByBatchId',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type JournalBatchScalarFieldEnum = (typeof JournalBatchScalarFieldEnum)[keyof typeof JournalBatchScalarFieldEnum]
+
+
 export const JournalEntryScalarFieldEnum = {
   id: 'id',
+  batchId: 'batchId',
   tenantId: 'tenantId',
   accountCode: 'accountCode',
   type: 'type',
@@ -4180,11 +4363,24 @@ export const JournalEntryScalarFieldEnum = {
   splitAccountCode: 'splitAccountCode',
   debit: 'debit',
   credit: 'credit',
+  lineNumber: 'lineNumber',
   clearedStatus: 'clearedStatus',
   createdAt: 'createdAt'
 } as const
 
 export type JournalEntryScalarFieldEnum = (typeof JournalEntryScalarFieldEnum)[keyof typeof JournalEntryScalarFieldEnum]
+
+
+export const AccountMappingScalarFieldEnum = {
+  key: 'key',
+  accountCode: 'accountCode',
+  description: 'description',
+  updatedById: 'updatedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountMappingScalarFieldEnum = (typeof AccountMappingScalarFieldEnum)[keyof typeof AccountMappingScalarFieldEnum]
 
 
 export const WorkforceContractScalarFieldEnum = {
@@ -4912,7 +5108,9 @@ export type GlobalOmitConfig = {
   client?: Prisma.ClientOmit
   deal?: Prisma.DealOmit
   account?: Prisma.AccountOmit
+  journalBatch?: Prisma.JournalBatchOmit
   journalEntry?: Prisma.JournalEntryOmit
+  accountMapping?: Prisma.AccountMappingOmit
   workforceContract?: Prisma.WorkforceContractOmit
   workforceContractWorker?: Prisma.WorkforceContractWorkerOmit
   workforceContractPayment?: Prisma.WorkforceContractPaymentOmit

@@ -237,6 +237,7 @@ model User {
   workforceContractAdjustments WorkforceContractAdjustment[]
   createdPayrolls             Payroll[] @relation("PayrollCreator")
   approvedPayrolls            Payroll[] @relation("PayrollApprover")
+  postedJournalBatches        JournalBatch[] @relation("JournalBatchPoster")
 
 
   @@index([email])
@@ -429,15 +430,19 @@ model Transaction {
   notes         String?
   version       Int               @default(0)
 
+  journalBatchId String? @map("journal_batch_id")
+  postingStatus  String  @default("UNPOSTED") @map("posting_status")
+
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  project  Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-  deal     Deal?     @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  property     Property?     @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  deal         Deal?         @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  journalBatch JournalBatch? @relation(fields: [journalBatchId], references: [id], onDelete: SetNull)
 
   @@index([type])
   @@index([date])
@@ -448,6 +453,7 @@ model Transaction {
   @@index([deletedAt, type, date])
   @@index([deletedAt, status, date])
   @@index([deletedAt, projectId, date])
+  @@index([journalBatchId])
   @@map("transactions")
 }
 
@@ -1011,39 +1017,102 @@ enum AccountType {
 }
 
 model Account {
-  code       String      @id
-  name       String
-  parentCode String?     @map("parent_code")
-  type       AccountType
-  tenantId   String      @map("tenant_id")
+  code          String      @id
+  name          String
+  parentCode    String?     @map("parent_code")
+  type          AccountType
+  tenantId      String      @map("tenant_id")
+  description   String?
+  isActive      Boolean     @default(true) @map("is_active")
+  allowNegative Boolean     @default(true) @map("allow_negative")
+  normalBalance String      @default("DEBIT") @map("normal_balance")
+  isSystem      Boolean     @default(false) @map("is_system")
 
   createdAt  DateTime    @default(now()) @map("created_at")
   updatedAt  DateTime    @updatedAt @map("updated_at")
 
+  parent   Account?  @relation("AccountParent", fields: [parentCode], references: [code], onDelete: Restrict)
+  children Account[] @relation("AccountParent")
+
   journalEntries JournalEntry[]
   payrolls       Payroll[]
+  mappings       AccountMapping[]
 
-
+  @@index([isActive])
   @@map("accounts")
+}
+
+model JournalBatch {
+  id                  String    @id @default(cuid())
+  tenantId            String    @map("tenant_id")
+  batchNumber         String    @unique @map("batch_number")
+  date                DateTime
+  memo                String?
+  sourceType          String    @default("MANUAL") @map("source_type")
+  sourceId            String?   @map("source_id")
+  sourceRef           String?   @map("source_ref")
+  status              String    @default("POSTED")
+  totalDebit          Decimal   @default(0) @db.Decimal(14, 2) @map("total_debit")
+  totalCredit         Decimal   @default(0) @db.Decimal(14, 2) @map("total_credit")
+  postedById          String?   @map("posted_by_id")
+  postedAt            DateTime? @map("posted_at")
+  reversesBatchId     String?   @map("reverses_batch_id")
+  reversedByBatchId   String?   @map("reversed_by_batch_id")
+  version             Int       @default(0)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  postedBy        User?          @relation("JournalBatchPoster", fields: [postedById], references: [id], onDelete: SetNull)
+  reverses        JournalBatch?  @relation("JournalBatchReversal", fields: [reversesBatchId], references: [id], onDelete: SetNull)
+  reversedBy      JournalBatch[] @relation("JournalBatchReversal")
+  entries         JournalEntry[]
+  transactions    Transaction[]
+
+  @@index([date])
+  @@index([status])
+  @@index([sourceType, sourceId])
+  @@index([deletedAt, date])
+  @@map("journal_batches")
 }
 
 model JournalEntry {
   id               String   @id @default(cuid())
+  batchId          String?  @map("batch_id")
   tenantId         String   @map("tenant_id")
   accountCode      String   @map("account_code")
-  type             String   
+  type             String
   date             DateTime
   contactName      String?  @map("contact_name")
   memo             String?
   splitAccountCode String?  @map("split_account_code")
   debit            Decimal  @db.Decimal(12, 2)
   credit           Decimal  @db.Decimal(12, 2)
+  lineNumber       Int      @default(0) @map("line_number")
   clearedStatus    Boolean  @default(false) @map("cleared_status")
   createdAt        DateTime @default(now()) @map("created_at")
 
-  account          Account  @relation(fields: [accountCode], references: [code], onDelete: Cascade)
+  account          Account       @relation(fields: [accountCode], references: [code], onDelete: Cascade)
+  batch            JournalBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
+  @@index([batchId])
   @@map("journal_entries")
+}
+
+model AccountMapping {
+  key         String   @id
+  accountCode String   @map("account_code")
+  description String?
+  updatedById String?  @map("updated_by_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  account   Account @relation(fields: [accountCode], references: [code], onDelete: Restrict)
+
+  @@index([accountCode])
+  @@map("account_mappings")
 }
 
 // ──────────────────────────────────────────────────────────────

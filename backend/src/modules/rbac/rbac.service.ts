@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import {
   AssignUserRolesDto,
   CreateRoleDto,
@@ -13,6 +14,26 @@ import {
 
 @Injectable()
 export class RbacService {
+  constructor(private readonly centralPrisma: CentralPrismaService) {}
+
+  private get central(): any {
+    return this.centralPrisma as any;
+  }
+
+  private async bumpSessionVersions(userIds: string[]) {
+    const unique = Array.from(new Set(userIds.filter(Boolean)));
+    if (!unique.length) return;
+    await this.central.companyUser.updateMany({
+      where: { id: { in: unique } },
+      data: { sessionVersion: { increment: 1 } },
+    });
+  }
+
+  private async usersHoldingRole(tenantDb: any, roleId: string): Promise<string[]> {
+    const rows = await tenantDb.rbacUserRole.findMany({ where: { roleId }, select: { userId: true } });
+    return rows.map((row: { userId: string }) => row.userId);
+  }
+
   listPermissions(tenantDb: any) {
     return tenantDb.rbacPermission.findMany({
       orderBy: [{ workspace: 'asc' }, { module: 'asc' }, { action: 'asc' }],
@@ -52,7 +73,8 @@ export class RbacService {
     const role = await tenantDb.rbacRole.findUnique({ where: { id } });
     if (!role || role.deletedAt) throw new NotFoundException('Role not found');
     if (data.permissionIds) await this.validatePermissions(tenantDb, data.permissionIds);
-    return tenantDb.$transaction(async (tx: any) => {
+    const affected = await this.usersHoldingRole(tenantDb, id);
+    const updated = await tenantDb.$transaction(async (tx: any) => {
       if (data.permissionIds) {
         await tx.rbacRolePermission.deleteMany({ where: { roleId: id } });
         if (data.permissionIds.length) {
@@ -71,6 +93,8 @@ export class RbacService {
         include: { rolePermissions: { include: { permission: true } } },
       });
     });
+    await this.bumpSessionVersions(affected);
+    return updated;
   }
 
   async deleteRole(tenantDb: any, id: string) {
@@ -118,6 +142,7 @@ export class RbacService {
         data: data.roleIds.map((roleId) => ({ userId, roleId })),
       }),
     ]);
+    await this.bumpSessionVersions([userId]);
     return this.getUserAccess(tenantDb, userId);
   }
 
@@ -143,11 +168,13 @@ export class RbacService {
         reason: data.reason,
       },
     });
+    await this.bumpSessionVersions([userId]);
     return this.getUserAccess(tenantDb, userId);
   }
 
   async removeDirectPermission(tenantDb: any, userId: string, permissionId: string) {
     await tenantDb.rbacUserPermission.deleteMany({ where: { userId, permissionId } });
+    await this.bumpSessionVersions([userId]);
     return this.getUserAccess(tenantDb, userId);
   }
 

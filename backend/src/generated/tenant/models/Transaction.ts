@@ -51,6 +51,8 @@ export type TransactionMinAggregateOutputType = {
   dealId: string | null
   notes: string | null
   version: number | null
+  journalBatchId: string | null
+  postingStatus: string | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -71,6 +73,8 @@ export type TransactionMaxAggregateOutputType = {
   dealId: string | null
   notes: string | null
   version: number | null
+  journalBatchId: string | null
+  postingStatus: string | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -91,6 +95,8 @@ export type TransactionCountAggregateOutputType = {
   dealId: number
   notes: number
   version: number
+  journalBatchId: number
+  postingStatus: number
   createdAt: number
   updatedAt: number
   deletedAt: number
@@ -123,6 +129,8 @@ export type TransactionMinAggregateInputType = {
   dealId?: true
   notes?: true
   version?: true
+  journalBatchId?: true
+  postingStatus?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -143,6 +151,8 @@ export type TransactionMaxAggregateInputType = {
   dealId?: true
   notes?: true
   version?: true
+  journalBatchId?: true
+  postingStatus?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -163,6 +173,8 @@ export type TransactionCountAggregateInputType = {
   dealId?: true
   notes?: true
   version?: true
+  journalBatchId?: true
+  postingStatus?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -270,6 +282,8 @@ export type TransactionGroupByOutputType = {
   dealId: string | null
   notes: string | null
   version: number
+  journalBatchId: string | null
+  postingStatus: string
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -313,6 +327,8 @@ export type TransactionWhereInput = {
   dealId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   version?: Prisma.IntFilter<"Transaction"> | number
+  journalBatchId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  postingStatus?: Prisma.StringFilter<"Transaction"> | string
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
@@ -321,6 +337,7 @@ export type TransactionWhereInput = {
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   property?: Prisma.XOR<Prisma.PropertyNullableScalarRelationFilter, Prisma.PropertyWhereInput> | null
   deal?: Prisma.XOR<Prisma.DealNullableScalarRelationFilter, Prisma.DealWhereInput> | null
+  journalBatch?: Prisma.XOR<Prisma.JournalBatchNullableScalarRelationFilter, Prisma.JournalBatchWhereInput> | null
 }
 
 export type TransactionOrderByWithRelationInput = {
@@ -338,6 +355,8 @@ export type TransactionOrderByWithRelationInput = {
   dealId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   version?: Prisma.SortOrder
+  journalBatchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  postingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -346,6 +365,7 @@ export type TransactionOrderByWithRelationInput = {
   project?: Prisma.ProjectOrderByWithRelationInput
   property?: Prisma.PropertyOrderByWithRelationInput
   deal?: Prisma.DealOrderByWithRelationInput
+  journalBatch?: Prisma.JournalBatchOrderByWithRelationInput
 }
 
 export type TransactionWhereUniqueInput = Prisma.AtLeast<{
@@ -366,6 +386,8 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   dealId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   version?: Prisma.IntFilter<"Transaction"> | number
+  journalBatchId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  postingStatus?: Prisma.StringFilter<"Transaction"> | string
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
@@ -374,6 +396,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   property?: Prisma.XOR<Prisma.PropertyNullableScalarRelationFilter, Prisma.PropertyWhereInput> | null
   deal?: Prisma.XOR<Prisma.DealNullableScalarRelationFilter, Prisma.DealWhereInput> | null
+  journalBatch?: Prisma.XOR<Prisma.JournalBatchNullableScalarRelationFilter, Prisma.JournalBatchWhereInput> | null
 }, "id" | "referenceId">
 
 export type TransactionOrderByWithAggregationInput = {
@@ -391,6 +414,8 @@ export type TransactionOrderByWithAggregationInput = {
   dealId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   version?: Prisma.SortOrder
+  journalBatchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  postingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -419,6 +444,8 @@ export type TransactionScalarWhereWithAggregatesInput = {
   dealId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   version?: Prisma.IntWithAggregatesFilter<"Transaction"> | number
+  journalBatchId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  postingStatus?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
@@ -434,6 +461,7 @@ export type TransactionCreateInput = {
   date?: Date | string
   notes?: string | null
   version?: number
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -442,6 +470,7 @@ export type TransactionCreateInput = {
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateInput = {
@@ -459,6 +488,8 @@ export type TransactionUncheckedCreateInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -474,6 +505,7 @@ export type TransactionUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -482,6 +514,7 @@ export type TransactionUpdateInput = {
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateInput = {
@@ -499,6 +532,8 @@ export type TransactionUncheckedUpdateInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -519,6 +554,8 @@ export type TransactionCreateManyInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -534,6 +571,7 @@ export type TransactionUpdateManyMutationInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -554,6 +592,8 @@ export type TransactionUncheckedUpdateManyInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -584,6 +624,8 @@ export type TransactionCountOrderByAggregateInput = {
   dealId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  journalBatchId?: Prisma.SortOrder
+  postingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -609,6 +651,8 @@ export type TransactionMaxOrderByAggregateInput = {
   dealId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  journalBatchId?: Prisma.SortOrder
+  postingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -629,6 +673,8 @@ export type TransactionMinOrderByAggregateInput = {
   dealId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  journalBatchId?: Prisma.SortOrder
+  postingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -865,6 +911,48 @@ export type TransactionUncheckedUpdateManyWithoutDealNestedInput = {
   deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
 }
 
+export type TransactionCreateNestedManyWithoutJournalBatchInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutJournalBatchInput, Prisma.TransactionUncheckedCreateWithoutJournalBatchInput> | Prisma.TransactionCreateWithoutJournalBatchInput[] | Prisma.TransactionUncheckedCreateWithoutJournalBatchInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutJournalBatchInput | Prisma.TransactionCreateOrConnectWithoutJournalBatchInput[]
+  createMany?: Prisma.TransactionCreateManyJournalBatchInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUncheckedCreateNestedManyWithoutJournalBatchInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutJournalBatchInput, Prisma.TransactionUncheckedCreateWithoutJournalBatchInput> | Prisma.TransactionCreateWithoutJournalBatchInput[] | Prisma.TransactionUncheckedCreateWithoutJournalBatchInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutJournalBatchInput | Prisma.TransactionCreateOrConnectWithoutJournalBatchInput[]
+  createMany?: Prisma.TransactionCreateManyJournalBatchInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUpdateManyWithoutJournalBatchNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutJournalBatchInput, Prisma.TransactionUncheckedCreateWithoutJournalBatchInput> | Prisma.TransactionCreateWithoutJournalBatchInput[] | Prisma.TransactionUncheckedCreateWithoutJournalBatchInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutJournalBatchInput | Prisma.TransactionCreateOrConnectWithoutJournalBatchInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutJournalBatchInput | Prisma.TransactionUpsertWithWhereUniqueWithoutJournalBatchInput[]
+  createMany?: Prisma.TransactionCreateManyJournalBatchInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutJournalBatchInput | Prisma.TransactionUpdateWithWhereUniqueWithoutJournalBatchInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutJournalBatchInput | Prisma.TransactionUpdateManyWithWhereWithoutJournalBatchInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
+export type TransactionUncheckedUpdateManyWithoutJournalBatchNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutJournalBatchInput, Prisma.TransactionUncheckedCreateWithoutJournalBatchInput> | Prisma.TransactionCreateWithoutJournalBatchInput[] | Prisma.TransactionUncheckedCreateWithoutJournalBatchInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutJournalBatchInput | Prisma.TransactionCreateOrConnectWithoutJournalBatchInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutJournalBatchInput | Prisma.TransactionUpsertWithWhereUniqueWithoutJournalBatchInput[]
+  createMany?: Prisma.TransactionCreateManyJournalBatchInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutJournalBatchInput | Prisma.TransactionUpdateWithWhereUniqueWithoutJournalBatchInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutJournalBatchInput | Prisma.TransactionUpdateManyWithWhereWithoutJournalBatchInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
 export type TransactionCreateWithoutUserInput = {
   id?: string
   referenceId?: string
@@ -875,6 +963,7 @@ export type TransactionCreateWithoutUserInput = {
   date?: Date | string
   notes?: string | null
   version?: number
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -882,6 +971,7 @@ export type TransactionCreateWithoutUserInput = {
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutUserInput = {
@@ -898,6 +988,8 @@ export type TransactionUncheckedCreateWithoutUserInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -947,6 +1039,8 @@ export type TransactionScalarWhereInput = {
   dealId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   version?: Prisma.IntFilter<"Transaction"> | number
+  journalBatchId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  postingStatus?: Prisma.StringFilter<"Transaction"> | string
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
@@ -962,6 +1056,7 @@ export type TransactionCreateWithoutCategoryInput = {
   date?: Date | string
   notes?: string | null
   version?: number
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -969,6 +1064,7 @@ export type TransactionCreateWithoutCategoryInput = {
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutCategoryInput = {
@@ -985,6 +1081,8 @@ export type TransactionUncheckedCreateWithoutCategoryInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1026,6 +1124,7 @@ export type TransactionCreateWithoutProjectInput = {
   date?: Date | string
   notes?: string | null
   version?: number
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1033,6 +1132,7 @@ export type TransactionCreateWithoutProjectInput = {
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutProjectInput = {
@@ -1049,6 +1149,8 @@ export type TransactionUncheckedCreateWithoutProjectInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1090,6 +1192,7 @@ export type TransactionCreateWithoutPropertyInput = {
   date?: Date | string
   notes?: string | null
   version?: number
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1097,6 +1200,7 @@ export type TransactionCreateWithoutPropertyInput = {
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutPropertyInput = {
@@ -1113,6 +1217,8 @@ export type TransactionUncheckedCreateWithoutPropertyInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1154,6 +1260,7 @@ export type TransactionCreateWithoutDealInput = {
   date?: Date | string
   notes?: string | null
   version?: number
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1161,6 +1268,7 @@ export type TransactionCreateWithoutDealInput = {
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
+  journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutDealInput = {
@@ -1177,6 +1285,8 @@ export type TransactionUncheckedCreateWithoutDealInput = {
   propertyId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1208,6 +1318,74 @@ export type TransactionUpdateManyWithWhereWithoutDealInput = {
   data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutDealInput>
 }
 
+export type TransactionCreateWithoutJournalBatchInput = {
+  id?: string
+  referenceId?: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  notes?: string | null
+  version?: number
+  postingStatus?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
+  user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
+  deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+}
+
+export type TransactionUncheckedCreateWithoutJournalBatchInput = {
+  id?: string
+  referenceId?: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  categoryId?: string | null
+  userId?: string | null
+  projectId?: string | null
+  propertyId?: string | null
+  dealId?: string | null
+  notes?: string | null
+  version?: number
+  postingStatus?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type TransactionCreateOrConnectWithoutJournalBatchInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutJournalBatchInput, Prisma.TransactionUncheckedCreateWithoutJournalBatchInput>
+}
+
+export type TransactionCreateManyJournalBatchInputEnvelope = {
+  data: Prisma.TransactionCreateManyJournalBatchInput | Prisma.TransactionCreateManyJournalBatchInput[]
+  skipDuplicates?: boolean
+}
+
+export type TransactionUpsertWithWhereUniqueWithoutJournalBatchInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.TransactionUpdateWithoutJournalBatchInput, Prisma.TransactionUncheckedUpdateWithoutJournalBatchInput>
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutJournalBatchInput, Prisma.TransactionUncheckedCreateWithoutJournalBatchInput>
+}
+
+export type TransactionUpdateWithWhereUniqueWithoutJournalBatchInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.TransactionUpdateWithoutJournalBatchInput, Prisma.TransactionUncheckedUpdateWithoutJournalBatchInput>
+}
+
+export type TransactionUpdateManyWithWhereWithoutJournalBatchInput = {
+  where: Prisma.TransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutJournalBatchInput>
+}
+
 export type TransactionCreateManyUserInput = {
   id?: string
   referenceId?: string
@@ -1222,6 +1400,8 @@ export type TransactionCreateManyUserInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1237,6 +1417,7 @@ export type TransactionUpdateWithoutUserInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1244,6 +1425,7 @@ export type TransactionUpdateWithoutUserInput = {
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutUserInput = {
@@ -1260,6 +1442,8 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1279,6 +1463,8 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1298,6 +1484,8 @@ export type TransactionCreateManyCategoryInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1313,6 +1501,7 @@ export type TransactionUpdateWithoutCategoryInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1320,6 +1509,7 @@ export type TransactionUpdateWithoutCategoryInput = {
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutCategoryInput = {
@@ -1336,6 +1526,8 @@ export type TransactionUncheckedUpdateWithoutCategoryInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1355,6 +1547,8 @@ export type TransactionUncheckedUpdateManyWithoutCategoryInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1374,6 +1568,8 @@ export type TransactionCreateManyProjectInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1389,6 +1585,7 @@ export type TransactionUpdateWithoutProjectInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1396,6 +1593,7 @@ export type TransactionUpdateWithoutProjectInput = {
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutProjectInput = {
@@ -1412,6 +1610,8 @@ export type TransactionUncheckedUpdateWithoutProjectInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1431,6 +1631,8 @@ export type TransactionUncheckedUpdateManyWithoutProjectInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1450,6 +1652,8 @@ export type TransactionCreateManyPropertyInput = {
   dealId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1465,6 +1669,7 @@ export type TransactionUpdateWithoutPropertyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1472,6 +1677,7 @@ export type TransactionUpdateWithoutPropertyInput = {
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutPropertyInput = {
@@ -1488,6 +1694,8 @@ export type TransactionUncheckedUpdateWithoutPropertyInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1507,6 +1715,8 @@ export type TransactionUncheckedUpdateManyWithoutPropertyInput = {
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1526,6 +1736,8 @@ export type TransactionCreateManyDealInput = {
   propertyId?: string | null
   notes?: string | null
   version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1541,6 +1753,7 @@ export type TransactionUpdateWithoutDealInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1548,6 +1761,7 @@ export type TransactionUpdateWithoutDealInput = {
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
+  journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutDealInput = {
@@ -1564,6 +1778,8 @@ export type TransactionUncheckedUpdateWithoutDealInput = {
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1583,6 +1799,92 @@ export type TransactionUncheckedUpdateManyWithoutDealInput = {
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type TransactionCreateManyJournalBatchInput = {
+  id?: string
+  referenceId?: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  categoryId?: string | null
+  userId?: string | null
+  projectId?: string | null
+  propertyId?: string | null
+  dealId?: string | null
+  notes?: string | null
+  version?: number
+  postingStatus?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type TransactionUpdateWithoutJournalBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  referenceId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
+  user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
+  property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
+  deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+}
+
+export type TransactionUncheckedUpdateWithoutJournalBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  referenceId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type TransactionUncheckedUpdateManyWithoutJournalBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  referenceId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1605,6 +1907,8 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   dealId?: boolean
   notes?: boolean
   version?: boolean
+  journalBatchId?: boolean
+  postingStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1613,6 +1917,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1630,6 +1935,8 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   dealId?: boolean
   notes?: boolean
   version?: boolean
+  journalBatchId?: boolean
+  postingStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1638,6 +1945,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1655,6 +1963,8 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   dealId?: boolean
   notes?: boolean
   version?: boolean
+  journalBatchId?: boolean
+  postingStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1663,6 +1973,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectScalar = {
@@ -1680,18 +1991,21 @@ export type TransactionSelectScalar = {
   dealId?: boolean
   notes?: boolean
   version?: boolean
+  journalBatchId?: boolean
+  postingStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "type" | "status" | "description" | "amount" | "date" | "categoryId" | "userId" | "projectId" | "propertyId" | "dealId" | "notes" | "version" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "type" | "status" | "description" | "amount" | "date" | "categoryId" | "userId" | "projectId" | "propertyId" | "dealId" | "notes" | "version" | "journalBatchId" | "postingStatus" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }
 export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
@@ -1699,6 +2013,7 @@ export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }
 export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
@@ -1706,6 +2021,7 @@ export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }
 
 export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1716,6 +2032,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     project: Prisma.$ProjectPayload<ExtArgs> | null
     property: Prisma.$PropertyPayload<ExtArgs> | null
     deal: Prisma.$DealPayload<ExtArgs> | null
+    journalBatch: Prisma.$JournalBatchPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1732,6 +2049,8 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     dealId: string | null
     notes: string | null
     version: number
+    journalBatchId: string | null
+    postingStatus: string
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -2134,6 +2453,7 @@ export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runt
   project<T extends Prisma.Transaction$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   property<T extends Prisma.Transaction$propertyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$propertyArgs<ExtArgs>>): Prisma.Prisma__PropertyClient<runtime.Types.Result.GetResult<Prisma.$PropertyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   deal<T extends Prisma.Transaction$dealArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$dealArgs<ExtArgs>>): Prisma.Prisma__DealClient<runtime.Types.Result.GetResult<Prisma.$DealPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  journalBatch<T extends Prisma.Transaction$journalBatchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$journalBatchArgs<ExtArgs>>): Prisma.Prisma__JournalBatchClient<runtime.Types.Result.GetResult<Prisma.$JournalBatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2177,6 +2497,8 @@ export interface TransactionFieldRefs {
   readonly dealId: Prisma.FieldRef<"Transaction", 'String'>
   readonly notes: Prisma.FieldRef<"Transaction", 'String'>
   readonly version: Prisma.FieldRef<"Transaction", 'Int'>
+  readonly journalBatchId: Prisma.FieldRef<"Transaction", 'String'>
+  readonly postingStatus: Prisma.FieldRef<"Transaction", 'String'>
   readonly createdAt: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"Transaction", 'DateTime'>
@@ -2673,6 +2995,25 @@ export type Transaction$dealArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   include?: Prisma.DealInclude<ExtArgs> | null
   where?: Prisma.DealWhereInput
+}
+
+/**
+ * Transaction.journalBatch
+ */
+export type Transaction$journalBatchArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the JournalBatch
+   */
+  select?: Prisma.JournalBatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the JournalBatch
+   */
+  omit?: Prisma.JournalBatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.JournalBatchInclude<ExtArgs> | null
+  where?: Prisma.JournalBatchWhereInput
 }
 
 /**

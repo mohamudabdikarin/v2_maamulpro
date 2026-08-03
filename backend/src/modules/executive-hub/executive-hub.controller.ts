@@ -10,7 +10,7 @@ export class ExecutiveHubController {
   constructor(private readonly executiveHubService: ExecutiveHubService) {}
 
   @Get('summary')
-  @RequirePermissions('analytics.read')
+  @RequirePermissions('dashboard.executive.read')
   async getDashboardSummary(@GetTenantDb() tenantDb: any, @GetTenantContext() tenant: any) {
     return this.executiveHubService.getDashboardSummary(tenantDb, tenant.entitlements);
   }

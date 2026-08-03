@@ -9,7 +9,6 @@ import {
   UpdateCompanySettingsDto,
   UpdateLanguageDto,
   UpdateProfileDto,
-  UpdateSubdomainDto,
 } from './dto/settings.dto';
 import { SettingsService } from './settings.service';
 
@@ -29,13 +28,6 @@ export class SettingsController {
   updateSettings(@GetTenantDb() db: any, @Body() body: UpdateCompanySettingsDto) {
     return this.settings.updateSettings(db, body);
   }
-
-  @Patch('subdomain')
-  @RequirePermissions('settings.update')
-  updateSubdomain(@GetTenantContext() tenant: any, @Body() body: UpdateSubdomainDto) {
-    return this.settings.updateSubdomain(tenant, body.subdomain);
-  }
-
 
   @Get('profile')
   getProfile(@GetTenantDb() db: any, @CurrentUser('id') userId: string) {

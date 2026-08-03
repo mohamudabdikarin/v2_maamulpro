@@ -29,15 +29,18 @@ export type AggregateJournalEntry = {
 export type JournalEntryAvgAggregateOutputType = {
   debit: runtime.Decimal | null
   credit: runtime.Decimal | null
+  lineNumber: number | null
 }
 
 export type JournalEntrySumAggregateOutputType = {
   debit: runtime.Decimal | null
   credit: runtime.Decimal | null
+  lineNumber: number | null
 }
 
 export type JournalEntryMinAggregateOutputType = {
   id: string | null
+  batchId: string | null
   tenantId: string | null
   accountCode: string | null
   type: string | null
@@ -47,12 +50,14 @@ export type JournalEntryMinAggregateOutputType = {
   splitAccountCode: string | null
   debit: runtime.Decimal | null
   credit: runtime.Decimal | null
+  lineNumber: number | null
   clearedStatus: boolean | null
   createdAt: Date | null
 }
 
 export type JournalEntryMaxAggregateOutputType = {
   id: string | null
+  batchId: string | null
   tenantId: string | null
   accountCode: string | null
   type: string | null
@@ -62,12 +67,14 @@ export type JournalEntryMaxAggregateOutputType = {
   splitAccountCode: string | null
   debit: runtime.Decimal | null
   credit: runtime.Decimal | null
+  lineNumber: number | null
   clearedStatus: boolean | null
   createdAt: Date | null
 }
 
 export type JournalEntryCountAggregateOutputType = {
   id: number
+  batchId: number
   tenantId: number
   accountCode: number
   type: number
@@ -77,6 +84,7 @@ export type JournalEntryCountAggregateOutputType = {
   splitAccountCode: number
   debit: number
   credit: number
+  lineNumber: number
   clearedStatus: number
   createdAt: number
   _all: number
@@ -86,15 +94,18 @@ export type JournalEntryCountAggregateOutputType = {
 export type JournalEntryAvgAggregateInputType = {
   debit?: true
   credit?: true
+  lineNumber?: true
 }
 
 export type JournalEntrySumAggregateInputType = {
   debit?: true
   credit?: true
+  lineNumber?: true
 }
 
 export type JournalEntryMinAggregateInputType = {
   id?: true
+  batchId?: true
   tenantId?: true
   accountCode?: true
   type?: true
@@ -104,12 +115,14 @@ export type JournalEntryMinAggregateInputType = {
   splitAccountCode?: true
   debit?: true
   credit?: true
+  lineNumber?: true
   clearedStatus?: true
   createdAt?: true
 }
 
 export type JournalEntryMaxAggregateInputType = {
   id?: true
+  batchId?: true
   tenantId?: true
   accountCode?: true
   type?: true
@@ -119,12 +132,14 @@ export type JournalEntryMaxAggregateInputType = {
   splitAccountCode?: true
   debit?: true
   credit?: true
+  lineNumber?: true
   clearedStatus?: true
   createdAt?: true
 }
 
 export type JournalEntryCountAggregateInputType = {
   id?: true
+  batchId?: true
   tenantId?: true
   accountCode?: true
   type?: true
@@ -134,6 +149,7 @@ export type JournalEntryCountAggregateInputType = {
   splitAccountCode?: true
   debit?: true
   credit?: true
+  lineNumber?: true
   clearedStatus?: true
   createdAt?: true
   _all?: true
@@ -227,6 +243,7 @@ export type JournalEntryGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 
 export type JournalEntryGroupByOutputType = {
   id: string
+  batchId: string | null
   tenantId: string
   accountCode: string
   type: string
@@ -236,6 +253,7 @@ export type JournalEntryGroupByOutputType = {
   splitAccountCode: string | null
   debit: runtime.Decimal
   credit: runtime.Decimal
+  lineNumber: number
   clearedStatus: boolean
   createdAt: Date
   _count: JournalEntryCountAggregateOutputType | null
@@ -265,6 +283,7 @@ export type JournalEntryWhereInput = {
   OR?: Prisma.JournalEntryWhereInput[]
   NOT?: Prisma.JournalEntryWhereInput | Prisma.JournalEntryWhereInput[]
   id?: Prisma.StringFilter<"JournalEntry"> | string
+  batchId?: Prisma.StringNullableFilter<"JournalEntry"> | string | null
   tenantId?: Prisma.StringFilter<"JournalEntry"> | string
   accountCode?: Prisma.StringFilter<"JournalEntry"> | string
   type?: Prisma.StringFilter<"JournalEntry"> | string
@@ -274,13 +293,16 @@ export type JournalEntryWhereInput = {
   splitAccountCode?: Prisma.StringNullableFilter<"JournalEntry"> | string | null
   debit?: Prisma.DecimalFilter<"JournalEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFilter<"JournalEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFilter<"JournalEntry"> | number
   clearedStatus?: Prisma.BoolFilter<"JournalEntry"> | boolean
   createdAt?: Prisma.DateTimeFilter<"JournalEntry"> | Date | string
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
+  batch?: Prisma.XOR<Prisma.JournalBatchNullableScalarRelationFilter, Prisma.JournalBatchWhereInput> | null
 }
 
 export type JournalEntryOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  batchId?: Prisma.SortOrderInput | Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   accountCode?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -290,9 +312,11 @@ export type JournalEntryOrderByWithRelationInput = {
   splitAccountCode?: Prisma.SortOrderInput | Prisma.SortOrder
   debit?: Prisma.SortOrder
   credit?: Prisma.SortOrder
+  lineNumber?: Prisma.SortOrder
   clearedStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   account?: Prisma.AccountOrderByWithRelationInput
+  batch?: Prisma.JournalBatchOrderByWithRelationInput
 }
 
 export type JournalEntryWhereUniqueInput = Prisma.AtLeast<{
@@ -300,6 +324,7 @@ export type JournalEntryWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.JournalEntryWhereInput | Prisma.JournalEntryWhereInput[]
   OR?: Prisma.JournalEntryWhereInput[]
   NOT?: Prisma.JournalEntryWhereInput | Prisma.JournalEntryWhereInput[]
+  batchId?: Prisma.StringNullableFilter<"JournalEntry"> | string | null
   tenantId?: Prisma.StringFilter<"JournalEntry"> | string
   accountCode?: Prisma.StringFilter<"JournalEntry"> | string
   type?: Prisma.StringFilter<"JournalEntry"> | string
@@ -309,13 +334,16 @@ export type JournalEntryWhereUniqueInput = Prisma.AtLeast<{
   splitAccountCode?: Prisma.StringNullableFilter<"JournalEntry"> | string | null
   debit?: Prisma.DecimalFilter<"JournalEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFilter<"JournalEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFilter<"JournalEntry"> | number
   clearedStatus?: Prisma.BoolFilter<"JournalEntry"> | boolean
   createdAt?: Prisma.DateTimeFilter<"JournalEntry"> | Date | string
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
+  batch?: Prisma.XOR<Prisma.JournalBatchNullableScalarRelationFilter, Prisma.JournalBatchWhereInput> | null
 }, "id">
 
 export type JournalEntryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  batchId?: Prisma.SortOrderInput | Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   accountCode?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -325,6 +353,7 @@ export type JournalEntryOrderByWithAggregationInput = {
   splitAccountCode?: Prisma.SortOrderInput | Prisma.SortOrder
   debit?: Prisma.SortOrder
   credit?: Prisma.SortOrder
+  lineNumber?: Prisma.SortOrder
   clearedStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.JournalEntryCountOrderByAggregateInput
@@ -339,6 +368,7 @@ export type JournalEntryScalarWhereWithAggregatesInput = {
   OR?: Prisma.JournalEntryScalarWhereWithAggregatesInput[]
   NOT?: Prisma.JournalEntryScalarWhereWithAggregatesInput | Prisma.JournalEntryScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"JournalEntry"> | string
+  batchId?: Prisma.StringNullableWithAggregatesFilter<"JournalEntry"> | string | null
   tenantId?: Prisma.StringWithAggregatesFilter<"JournalEntry"> | string
   accountCode?: Prisma.StringWithAggregatesFilter<"JournalEntry"> | string
   type?: Prisma.StringWithAggregatesFilter<"JournalEntry"> | string
@@ -348,6 +378,7 @@ export type JournalEntryScalarWhereWithAggregatesInput = {
   splitAccountCode?: Prisma.StringNullableWithAggregatesFilter<"JournalEntry"> | string | null
   debit?: Prisma.DecimalWithAggregatesFilter<"JournalEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalWithAggregatesFilter<"JournalEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntWithAggregatesFilter<"JournalEntry"> | number
   clearedStatus?: Prisma.BoolWithAggregatesFilter<"JournalEntry"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"JournalEntry"> | Date | string
 }
@@ -362,13 +393,16 @@ export type JournalEntryCreateInput = {
   splitAccountCode?: string | null
   debit: runtime.Decimal | runtime.DecimalJsLike | number | string
   credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
   clearedStatus?: boolean
   createdAt?: Date | string
   account: Prisma.AccountCreateNestedOneWithoutJournalEntriesInput
+  batch?: Prisma.JournalBatchCreateNestedOneWithoutEntriesInput
 }
 
 export type JournalEntryUncheckedCreateInput = {
   id?: string
+  batchId?: string | null
   tenantId: string
   accountCode: string
   type: string
@@ -378,6 +412,7 @@ export type JournalEntryUncheckedCreateInput = {
   splitAccountCode?: string | null
   debit: runtime.Decimal | runtime.DecimalJsLike | number | string
   credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
   clearedStatus?: boolean
   createdAt?: Date | string
 }
@@ -392,13 +427,16 @@ export type JournalEntryUpdateInput = {
   splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
   clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   account?: Prisma.AccountUpdateOneRequiredWithoutJournalEntriesNestedInput
+  batch?: Prisma.JournalBatchUpdateOneWithoutEntriesNestedInput
 }
 
 export type JournalEntryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   accountCode?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
@@ -408,12 +446,14 @@ export type JournalEntryUncheckedUpdateInput = {
   splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
   clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type JournalEntryCreateManyInput = {
   id?: string
+  batchId?: string | null
   tenantId: string
   accountCode: string
   type: string
@@ -423,6 +463,7 @@ export type JournalEntryCreateManyInput = {
   splitAccountCode?: string | null
   debit: runtime.Decimal | runtime.DecimalJsLike | number | string
   credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
   clearedStatus?: boolean
   createdAt?: Date | string
 }
@@ -437,12 +478,14 @@ export type JournalEntryUpdateManyMutationInput = {
   splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
   clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type JournalEntryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   accountCode?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
@@ -452,6 +495,7 @@ export type JournalEntryUncheckedUpdateManyInput = {
   splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
   clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -468,6 +512,7 @@ export type JournalEntryOrderByRelationAggregateInput = {
 
 export type JournalEntryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  batchId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   accountCode?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -477,6 +522,7 @@ export type JournalEntryCountOrderByAggregateInput = {
   splitAccountCode?: Prisma.SortOrder
   debit?: Prisma.SortOrder
   credit?: Prisma.SortOrder
+  lineNumber?: Prisma.SortOrder
   clearedStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -484,10 +530,12 @@ export type JournalEntryCountOrderByAggregateInput = {
 export type JournalEntryAvgOrderByAggregateInput = {
   debit?: Prisma.SortOrder
   credit?: Prisma.SortOrder
+  lineNumber?: Prisma.SortOrder
 }
 
 export type JournalEntryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  batchId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   accountCode?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -497,12 +545,14 @@ export type JournalEntryMaxOrderByAggregateInput = {
   splitAccountCode?: Prisma.SortOrder
   debit?: Prisma.SortOrder
   credit?: Prisma.SortOrder
+  lineNumber?: Prisma.SortOrder
   clearedStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type JournalEntryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  batchId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   accountCode?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -512,6 +562,7 @@ export type JournalEntryMinOrderByAggregateInput = {
   splitAccountCode?: Prisma.SortOrder
   debit?: Prisma.SortOrder
   credit?: Prisma.SortOrder
+  lineNumber?: Prisma.SortOrder
   clearedStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -519,6 +570,7 @@ export type JournalEntryMinOrderByAggregateInput = {
 export type JournalEntrySumOrderByAggregateInput = {
   debit?: Prisma.SortOrder
   credit?: Prisma.SortOrder
+  lineNumber?: Prisma.SortOrder
 }
 
 export type JournalEntryCreateNestedManyWithoutAccountInput = {
@@ -563,6 +615,48 @@ export type JournalEntryUncheckedUpdateManyWithoutAccountNestedInput = {
   deleteMany?: Prisma.JournalEntryScalarWhereInput | Prisma.JournalEntryScalarWhereInput[]
 }
 
+export type JournalEntryCreateNestedManyWithoutBatchInput = {
+  create?: Prisma.XOR<Prisma.JournalEntryCreateWithoutBatchInput, Prisma.JournalEntryUncheckedCreateWithoutBatchInput> | Prisma.JournalEntryCreateWithoutBatchInput[] | Prisma.JournalEntryUncheckedCreateWithoutBatchInput[]
+  connectOrCreate?: Prisma.JournalEntryCreateOrConnectWithoutBatchInput | Prisma.JournalEntryCreateOrConnectWithoutBatchInput[]
+  createMany?: Prisma.JournalEntryCreateManyBatchInputEnvelope
+  connect?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+}
+
+export type JournalEntryUncheckedCreateNestedManyWithoutBatchInput = {
+  create?: Prisma.XOR<Prisma.JournalEntryCreateWithoutBatchInput, Prisma.JournalEntryUncheckedCreateWithoutBatchInput> | Prisma.JournalEntryCreateWithoutBatchInput[] | Prisma.JournalEntryUncheckedCreateWithoutBatchInput[]
+  connectOrCreate?: Prisma.JournalEntryCreateOrConnectWithoutBatchInput | Prisma.JournalEntryCreateOrConnectWithoutBatchInput[]
+  createMany?: Prisma.JournalEntryCreateManyBatchInputEnvelope
+  connect?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+}
+
+export type JournalEntryUpdateManyWithoutBatchNestedInput = {
+  create?: Prisma.XOR<Prisma.JournalEntryCreateWithoutBatchInput, Prisma.JournalEntryUncheckedCreateWithoutBatchInput> | Prisma.JournalEntryCreateWithoutBatchInput[] | Prisma.JournalEntryUncheckedCreateWithoutBatchInput[]
+  connectOrCreate?: Prisma.JournalEntryCreateOrConnectWithoutBatchInput | Prisma.JournalEntryCreateOrConnectWithoutBatchInput[]
+  upsert?: Prisma.JournalEntryUpsertWithWhereUniqueWithoutBatchInput | Prisma.JournalEntryUpsertWithWhereUniqueWithoutBatchInput[]
+  createMany?: Prisma.JournalEntryCreateManyBatchInputEnvelope
+  set?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+  disconnect?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+  delete?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+  connect?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+  update?: Prisma.JournalEntryUpdateWithWhereUniqueWithoutBatchInput | Prisma.JournalEntryUpdateWithWhereUniqueWithoutBatchInput[]
+  updateMany?: Prisma.JournalEntryUpdateManyWithWhereWithoutBatchInput | Prisma.JournalEntryUpdateManyWithWhereWithoutBatchInput[]
+  deleteMany?: Prisma.JournalEntryScalarWhereInput | Prisma.JournalEntryScalarWhereInput[]
+}
+
+export type JournalEntryUncheckedUpdateManyWithoutBatchNestedInput = {
+  create?: Prisma.XOR<Prisma.JournalEntryCreateWithoutBatchInput, Prisma.JournalEntryUncheckedCreateWithoutBatchInput> | Prisma.JournalEntryCreateWithoutBatchInput[] | Prisma.JournalEntryUncheckedCreateWithoutBatchInput[]
+  connectOrCreate?: Prisma.JournalEntryCreateOrConnectWithoutBatchInput | Prisma.JournalEntryCreateOrConnectWithoutBatchInput[]
+  upsert?: Prisma.JournalEntryUpsertWithWhereUniqueWithoutBatchInput | Prisma.JournalEntryUpsertWithWhereUniqueWithoutBatchInput[]
+  createMany?: Prisma.JournalEntryCreateManyBatchInputEnvelope
+  set?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+  disconnect?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+  delete?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+  connect?: Prisma.JournalEntryWhereUniqueInput | Prisma.JournalEntryWhereUniqueInput[]
+  update?: Prisma.JournalEntryUpdateWithWhereUniqueWithoutBatchInput | Prisma.JournalEntryUpdateWithWhereUniqueWithoutBatchInput[]
+  updateMany?: Prisma.JournalEntryUpdateManyWithWhereWithoutBatchInput | Prisma.JournalEntryUpdateManyWithWhereWithoutBatchInput[]
+  deleteMany?: Prisma.JournalEntryScalarWhereInput | Prisma.JournalEntryScalarWhereInput[]
+}
+
 export type JournalEntryCreateWithoutAccountInput = {
   id?: string
   tenantId: string
@@ -573,12 +667,15 @@ export type JournalEntryCreateWithoutAccountInput = {
   splitAccountCode?: string | null
   debit: runtime.Decimal | runtime.DecimalJsLike | number | string
   credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
   clearedStatus?: boolean
   createdAt?: Date | string
+  batch?: Prisma.JournalBatchCreateNestedOneWithoutEntriesInput
 }
 
 export type JournalEntryUncheckedCreateWithoutAccountInput = {
   id?: string
+  batchId?: string | null
   tenantId: string
   type: string
   date: Date | string
@@ -587,6 +684,7 @@ export type JournalEntryUncheckedCreateWithoutAccountInput = {
   splitAccountCode?: string | null
   debit: runtime.Decimal | runtime.DecimalJsLike | number | string
   credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
   clearedStatus?: boolean
   createdAt?: Date | string
 }
@@ -622,6 +720,7 @@ export type JournalEntryScalarWhereInput = {
   OR?: Prisma.JournalEntryScalarWhereInput[]
   NOT?: Prisma.JournalEntryScalarWhereInput | Prisma.JournalEntryScalarWhereInput[]
   id?: Prisma.StringFilter<"JournalEntry"> | string
+  batchId?: Prisma.StringNullableFilter<"JournalEntry"> | string | null
   tenantId?: Prisma.StringFilter<"JournalEntry"> | string
   accountCode?: Prisma.StringFilter<"JournalEntry"> | string
   type?: Prisma.StringFilter<"JournalEntry"> | string
@@ -631,11 +730,12 @@ export type JournalEntryScalarWhereInput = {
   splitAccountCode?: Prisma.StringNullableFilter<"JournalEntry"> | string | null
   debit?: Prisma.DecimalFilter<"JournalEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFilter<"JournalEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFilter<"JournalEntry"> | number
   clearedStatus?: Prisma.BoolFilter<"JournalEntry"> | boolean
   createdAt?: Prisma.DateTimeFilter<"JournalEntry"> | Date | string
 }
 
-export type JournalEntryCreateManyAccountInput = {
+export type JournalEntryCreateWithoutBatchInput = {
   id?: string
   tenantId: string
   type: string
@@ -645,6 +745,66 @@ export type JournalEntryCreateManyAccountInput = {
   splitAccountCode?: string | null
   debit: runtime.Decimal | runtime.DecimalJsLike | number | string
   credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
+  clearedStatus?: boolean
+  createdAt?: Date | string
+  account: Prisma.AccountCreateNestedOneWithoutJournalEntriesInput
+}
+
+export type JournalEntryUncheckedCreateWithoutBatchInput = {
+  id?: string
+  tenantId: string
+  accountCode: string
+  type: string
+  date: Date | string
+  contactName?: string | null
+  memo?: string | null
+  splitAccountCode?: string | null
+  debit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
+  clearedStatus?: boolean
+  createdAt?: Date | string
+}
+
+export type JournalEntryCreateOrConnectWithoutBatchInput = {
+  where: Prisma.JournalEntryWhereUniqueInput
+  create: Prisma.XOR<Prisma.JournalEntryCreateWithoutBatchInput, Prisma.JournalEntryUncheckedCreateWithoutBatchInput>
+}
+
+export type JournalEntryCreateManyBatchInputEnvelope = {
+  data: Prisma.JournalEntryCreateManyBatchInput | Prisma.JournalEntryCreateManyBatchInput[]
+  skipDuplicates?: boolean
+}
+
+export type JournalEntryUpsertWithWhereUniqueWithoutBatchInput = {
+  where: Prisma.JournalEntryWhereUniqueInput
+  update: Prisma.XOR<Prisma.JournalEntryUpdateWithoutBatchInput, Prisma.JournalEntryUncheckedUpdateWithoutBatchInput>
+  create: Prisma.XOR<Prisma.JournalEntryCreateWithoutBatchInput, Prisma.JournalEntryUncheckedCreateWithoutBatchInput>
+}
+
+export type JournalEntryUpdateWithWhereUniqueWithoutBatchInput = {
+  where: Prisma.JournalEntryWhereUniqueInput
+  data: Prisma.XOR<Prisma.JournalEntryUpdateWithoutBatchInput, Prisma.JournalEntryUncheckedUpdateWithoutBatchInput>
+}
+
+export type JournalEntryUpdateManyWithWhereWithoutBatchInput = {
+  where: Prisma.JournalEntryScalarWhereInput
+  data: Prisma.XOR<Prisma.JournalEntryUpdateManyMutationInput, Prisma.JournalEntryUncheckedUpdateManyWithoutBatchInput>
+}
+
+export type JournalEntryCreateManyAccountInput = {
+  id?: string
+  batchId?: string | null
+  tenantId: string
+  type: string
+  date: Date | string
+  contactName?: string | null
+  memo?: string | null
+  splitAccountCode?: string | null
+  debit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
   clearedStatus?: boolean
   createdAt?: Date | string
 }
@@ -659,12 +819,15 @@ export type JournalEntryUpdateWithoutAccountInput = {
   splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
   clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  batch?: Prisma.JournalBatchUpdateOneWithoutEntriesNestedInput
 }
 
 export type JournalEntryUncheckedUpdateWithoutAccountInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -673,12 +836,14 @@ export type JournalEntryUncheckedUpdateWithoutAccountInput = {
   splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
   clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type JournalEntryUncheckedUpdateManyWithoutAccountInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -687,6 +852,71 @@ export type JournalEntryUncheckedUpdateManyWithoutAccountInput = {
   splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type JournalEntryCreateManyBatchInput = {
+  id?: string
+  tenantId: string
+  accountCode: string
+  type: string
+  date: Date | string
+  contactName?: string | null
+  memo?: string | null
+  splitAccountCode?: string | null
+  debit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  credit: runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: number
+  clearedStatus?: boolean
+  createdAt?: Date | string
+}
+
+export type JournalEntryUpdateWithoutBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  account?: Prisma.AccountUpdateOneRequiredWithoutJournalEntriesNestedInput
+}
+
+export type JournalEntryUncheckedUpdateWithoutBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  accountCode?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type JournalEntryUncheckedUpdateManyWithoutBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  accountCode?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  debit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  credit?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  lineNumber?: Prisma.IntFieldUpdateOperationsInput | number
   clearedStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -695,6 +925,7 @@ export type JournalEntryUncheckedUpdateManyWithoutAccountInput = {
 
 export type JournalEntrySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  batchId?: boolean
   tenantId?: boolean
   accountCode?: boolean
   type?: boolean
@@ -704,13 +935,16 @@ export type JournalEntrySelect<ExtArgs extends runtime.Types.Extensions.Internal
   splitAccountCode?: boolean
   debit?: boolean
   credit?: boolean
+  lineNumber?: boolean
   clearedStatus?: boolean
   createdAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.JournalEntry$batchArgs<ExtArgs>
 }, ExtArgs["result"]["journalEntry"]>
 
 export type JournalEntrySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  batchId?: boolean
   tenantId?: boolean
   accountCode?: boolean
   type?: boolean
@@ -720,13 +954,16 @@ export type JournalEntrySelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   splitAccountCode?: boolean
   debit?: boolean
   credit?: boolean
+  lineNumber?: boolean
   clearedStatus?: boolean
   createdAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.JournalEntry$batchArgs<ExtArgs>
 }, ExtArgs["result"]["journalEntry"]>
 
 export type JournalEntrySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  batchId?: boolean
   tenantId?: boolean
   accountCode?: boolean
   type?: boolean
@@ -736,13 +973,16 @@ export type JournalEntrySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   splitAccountCode?: boolean
   debit?: boolean
   credit?: boolean
+  lineNumber?: boolean
   clearedStatus?: boolean
   createdAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.JournalEntry$batchArgs<ExtArgs>
 }, ExtArgs["result"]["journalEntry"]>
 
 export type JournalEntrySelectScalar = {
   id?: boolean
+  batchId?: boolean
   tenantId?: boolean
   accountCode?: boolean
   type?: boolean
@@ -752,28 +992,34 @@ export type JournalEntrySelectScalar = {
   splitAccountCode?: boolean
   debit?: boolean
   credit?: boolean
+  lineNumber?: boolean
   clearedStatus?: boolean
   createdAt?: boolean
 }
 
-export type JournalEntryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "accountCode" | "type" | "date" | "contactName" | "memo" | "splitAccountCode" | "debit" | "credit" | "clearedStatus" | "createdAt", ExtArgs["result"]["journalEntry"]>
+export type JournalEntryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "batchId" | "tenantId" | "accountCode" | "type" | "date" | "contactName" | "memo" | "splitAccountCode" | "debit" | "credit" | "lineNumber" | "clearedStatus" | "createdAt", ExtArgs["result"]["journalEntry"]>
 export type JournalEntryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.JournalEntry$batchArgs<ExtArgs>
 }
 export type JournalEntryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.JournalEntry$batchArgs<ExtArgs>
 }
 export type JournalEntryIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.JournalEntry$batchArgs<ExtArgs>
 }
 
 export type $JournalEntryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "JournalEntry"
   objects: {
     account: Prisma.$AccountPayload<ExtArgs>
+    batch: Prisma.$JournalBatchPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    batchId: string | null
     tenantId: string
     accountCode: string
     type: string
@@ -783,6 +1029,7 @@ export type $JournalEntryPayload<ExtArgs extends runtime.Types.Extensions.Intern
     splitAccountCode: string | null
     debit: runtime.Decimal
     credit: runtime.Decimal
+    lineNumber: number
     clearedStatus: boolean
     createdAt: Date
   }, ExtArgs["result"]["journalEntry"]>
@@ -1180,6 +1427,7 @@ readonly fields: JournalEntryFieldRefs;
 export interface Prisma__JournalEntryClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   account<T extends Prisma.AccountDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AccountDefaultArgs<ExtArgs>>): Prisma.Prisma__AccountClient<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  batch<T extends Prisma.JournalEntry$batchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.JournalEntry$batchArgs<ExtArgs>>): Prisma.Prisma__JournalBatchClient<runtime.Types.Result.GetResult<Prisma.$JournalBatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1210,6 +1458,7 @@ export interface Prisma__JournalEntryClient<T, Null = never, ExtArgs extends run
  */
 export interface JournalEntryFieldRefs {
   readonly id: Prisma.FieldRef<"JournalEntry", 'String'>
+  readonly batchId: Prisma.FieldRef<"JournalEntry", 'String'>
   readonly tenantId: Prisma.FieldRef<"JournalEntry", 'String'>
   readonly accountCode: Prisma.FieldRef<"JournalEntry", 'String'>
   readonly type: Prisma.FieldRef<"JournalEntry", 'String'>
@@ -1219,6 +1468,7 @@ export interface JournalEntryFieldRefs {
   readonly splitAccountCode: Prisma.FieldRef<"JournalEntry", 'String'>
   readonly debit: Prisma.FieldRef<"JournalEntry", 'Decimal'>
   readonly credit: Prisma.FieldRef<"JournalEntry", 'Decimal'>
+  readonly lineNumber: Prisma.FieldRef<"JournalEntry", 'Int'>
   readonly clearedStatus: Prisma.FieldRef<"JournalEntry", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"JournalEntry", 'DateTime'>
 }
@@ -1619,6 +1869,25 @@ export type JournalEntryDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many JournalEntries to delete.
    */
   limit?: number
+}
+
+/**
+ * JournalEntry.batch
+ */
+export type JournalEntry$batchArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the JournalBatch
+   */
+  select?: Prisma.JournalBatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the JournalBatch
+   */
+  omit?: Prisma.JournalBatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.JournalBatchInclude<ExtArgs> | null
+  where?: Prisma.JournalBatchWhereInput
 }
 
 /**

@@ -86,3 +86,13 @@ export class StaffPasswordDto {
 export class AccountStatusDto {
   @IsBoolean() isActive: boolean;
 }
+
+export class StaffRoleDto {
+  @IsIn([
+    'GENERAL_MANAGER', 'ADMIN', 'MANAGER', 'STAFF',
+    'CONSTRUCTION_MANAGER', 'SITE_ENGINEER', 'PROJECT_SUPERVISOR',
+    'PROCUREMENT_OFFICER', 'STOREKEEPER', 'MANPOWER_SUPERVISOR',
+    'REAL_ESTATE_MANAGER', 'SALES_AGENT', 'RENTAL_OFFICER', 'PROPERTY_SUPERVISOR',
+    'MATERIAL_MANAGER', 'SALES_STAFF', 'INVENTORY_OFFICER', 'SUPPLIER_OFFICER', 'DELIVERY_OFFICER',
+  ]) role: string;
+}

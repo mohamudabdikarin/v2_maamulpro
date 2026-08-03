@@ -31,6 +31,7 @@ export class FinancialsController {
   @RequirePermissions('transactions.create')
   async createTransaction(
     @GetTenantDb() tenantDb: any,
+    @GetTenantContext('companyId') tenantId: string,
     @Body() body: CreateTransactionDto,
     @CurrentUser('id') userId: string,
     @Headers('x-idempotency-key') idempotencyKey?: string,
@@ -39,6 +40,7 @@ export class FinancialsController {
       ...body,
       idempotencyKey,
       userId,
+      tenantId,
     });
   }
 

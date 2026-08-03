@@ -18,6 +18,8 @@ import { SubscriptionEntitlementService } from '../../common/subscriptions/subsc
 import { hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
 import { ENTERPRISE_CONFIG_KEY, parseEnterpriseModuleConfiguration } from '../../common/database/enterprise-config';
 import { assertStrongPassword } from '../../common/security/password-policy';
+import { ROLE_PERMISSIONS } from '../../common/database/registry';
+import type { AppRole } from '../../common/database/roles';
 
 @Injectable()
 export class AuthService {
@@ -101,7 +103,8 @@ export class AuthService {
 
         if (tenantUser) {
           const permSet = new Set<string>();
-          for (const ur of (tenantUser as any).rbacUserRoles || []) {
+          const rbacRoles = (tenantUser as any).rbacUserRoles || [];
+          for (const ur of rbacRoles) {
             for (const rp of ur.role.rolePermissions || []) {
               if (rp?.permission?.key) permSet.add(rp.permission.key);
             }
@@ -113,11 +116,23 @@ export class AuthService {
           for (const up of directPermissions.filter((item: any) => item.effect === 'DENY')) {
             if (up.permission?.key) permSet.delete(up.permission.key);
           }
+          if (rbacRoles.length === 0 && directPermissions.length === 0) {
+            const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
+            if (roleTemplate) roleTemplate.forEach((p: string) => permSet.add(p));
+          }
           userPermissions = Array.from(permSet);
+        } else {
+          const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
+          if (roleTemplate) userPermissions = [...roleTemplate];
         }
       } catch (err) {
         this.logger.warn(`Tenant permissions resolution failed for company "${company.name}" (${company.id}): ${err instanceof Error ? err.message : String(err)}`);
       }
+    }
+
+    if (userPermissions.length === 0) {
+      const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
+      if (roleTemplate) userPermissions = [...roleTemplate];
     }
 
     // 4. Update last login
@@ -257,23 +272,38 @@ export class AuthService {
         });
         if (tenantUser) {
           const permSet = new Set<string>();
-          for (const ur of (tenantUser as any).rbacUserRoles || []) {
+          const rbacRoles = (tenantUser as any).rbacUserRoles || [];
+          for (const ur of rbacRoles) {
             for (const rp of ur.role.rolePermissions || []) {
               if (rp?.permission?.key) permSet.add(rp.permission.key);
             }
           }
-          for (const up of ((tenantUser as any).rbacUserPermissions || []).filter((item: any) => item.effect === 'ALLOW')) {
+          const directPermissions = (tenantUser as any).rbacUserPermissions || [];
+          for (const up of directPermissions.filter((item: any) => item.effect === 'ALLOW')) {
             if (up.permission?.key) permSet.add(up.permission.key);
           }
-          for (const up of ((tenantUser as any).rbacUserPermissions || []).filter((item: any) => item.effect === 'DENY')) {
+          for (const up of directPermissions.filter((item: any) => item.effect === 'DENY')) {
             if (up.permission?.key) permSet.delete(up.permission.key);
           }
+          if (rbacRoles.length === 0 && directPermissions.length === 0) {
+            const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
+            if (roleTemplate) roleTemplate.forEach((p: string) => permSet.add(p));
+          }
           userPermissions = Array.from(permSet);
+        } else {
+          const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
+          if (roleTemplate) userPermissions = [...roleTemplate];
         }
       } catch (err) {
         this.logger.warn(`Session permissions resolution failed: ${err instanceof Error ? err.message : String(err)}`);
-        userPermissions = user.permissions || [];
+        const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
+        userPermissions = roleTemplate ? [...roleTemplate] : (user.permissions || []);
       }
+    }
+
+    if (userPermissions.length === 0) {
+      const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
+      if (roleTemplate) userPermissions = [...roleTemplate];
     }
 
     return {
