@@ -18,6 +18,57 @@ export const looksLikeSystemId = (value: unknown) =>
     typeof value === 'string'
     && /^c[a-z0-9]{20,}$/i.test(value.trim());
 
+/** Clean display reference for system transaction keys, CUIDs, or formatted refs */
+export const formatReference = (value: unknown, fallbackId?: string): string => {
+    if (!value && !fallbackId) return '—';
+    const str = String(value || fallbackId || '').trim();
+    if (!str) return '—';
+    if (str.startsWith('rentpayment:')) {
+        const parts = str.split(':');
+        const cuid = parts[1] || '';
+        const tag = parts[2] ? parts[2].toUpperCase() : 'PMT';
+        return `RENT-${tag}-${cuid.slice(-6).toUpperCase()}`;
+    }
+    if (str.startsWith('deal:')) {
+        const parts = str.split(':');
+        const cuid = parts[1] || '';
+        const tag = parts[2] ? parts[2].toUpperCase() : 'DEAL';
+        return `DEAL-${tag}-${cuid.slice(-6).toUpperCase()}`;
+    }
+    if (str.startsWith('wfcontract:') || str.startsWith('wfpayment:')) {
+        const parts = str.split(':');
+        const prefix = parts[0] === 'wfcontract' ? 'WFC' : 'WFP';
+        return `${prefix}-${(parts[1] || '').slice(-6).toUpperCase()}`;
+    }
+    if (str.startsWith('sale:')) {
+        const parts = str.split(':');
+        const tag = parts[2] ? parts[2].toUpperCase() : 'SALE';
+        return `SALE-${tag}-${(parts[1] || '').slice(-6).toUpperCase()}`;
+    }
+    if (/^(transport|purchase|expense|ledger):/.test(str)) {
+        const parts = str.split(':');
+        const prefix = parts[0].substring(0, 3).toUpperCase();
+        return `${prefix}-${(parts[1] || '').slice(-6).toUpperCase()}`;
+    }
+    if (/^c[a-z0-9]{20,}$/i.test(str)) {
+        return `REF-${str.slice(-6).toUpperCase()}`;
+    }
+    if (/c[a-z0-9]{20,}/i.test(str)) {
+        return str.replace(/c[a-z0-9]{20,}/gi, (match) => match.slice(-6).toUpperCase()).toUpperCase();
+    }
+    return str;
+};
+
+/** Sanitize descriptions that contain internal debug CUID strings */
+export const formatDescription = (value: unknown): string => {
+    if (!value) return '—';
+    let str = String(value);
+    str = str.replace(/\((?:rent payment|sale|deal|payment|contract)?\s*c[a-z0-9]{20,}\)/gi, '');
+    str = str.replace(/\bc[a-z0-9]{20,}\b/gi, '');
+    str = str.replace(/\s+/g, ' ').trim();
+    return str || 'Transaction';
+};
+
 const entityLabel = (value: Record<string, any>) => {
     if (value.name) return value.name;
     if (value.title) return value.title;

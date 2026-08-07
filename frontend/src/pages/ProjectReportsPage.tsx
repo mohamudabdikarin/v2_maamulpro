@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
-import { EmptyState, ErrorAlert, LoadingState, money, shortDate, StatusPill } from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, LoadingState, formatDescription, money, shortDate, StatusPill } from '../components/maamulpro/PageKit';
 import { api, sessionStore } from '../lib/api';
 
 type ReportWorkspace = 'construction' | 'real_estate' | 'material_management' | 'payroll' | 'core';
@@ -586,7 +586,7 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                             <div className="sm:col-span-2"><div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">{cfg.entitySingular}</div><div className="mt-1 font-medium capitalize">{detail.project.name}</div></div>
                             {(t.worker || t.item) && <div><div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">{t.item ? 'Item' : 'Party'}</div><div className="mt-1 font-medium">{t.item || t.worker}</div></div>}
                             {(t.role || t.status || t.expenseCategory) && <div><div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">Status</div><div className="mt-1 font-medium">{t.status || t.role || t.expenseCategory}</div></div>}
-                            {t.description && <div className="sm:col-span-2"><div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">Description</div><div className="mt-1 font-medium">{t.description}</div></div>}
+                            {t.description && <div className="sm:col-span-2"><div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">Description</div><div className="mt-1 font-medium">{formatDescription(t.description)}</div></div>}
                             {t.quantity != null && <div><div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">Quantity</div><div className="mt-1 font-medium">{t.quantity}{t.unit ? ` ${t.unit}` : ''}</div></div>}
                             {t.unitCost != null && <div><div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">Unit cost</div><div className={`mt-1 ${amountClass}`}>{money(t.unitCost)}</div></div>}
                             <div><div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">Date</div><div className="mt-1 font-medium">{shortDate(t.date)}</div></div>

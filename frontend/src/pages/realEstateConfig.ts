@@ -38,7 +38,6 @@ export const tenantFields: CrudField[] = [
     { name: 'email', label: 'Email', type: 'email' },
     { name: 'phone', label: 'Phone' },
     { name: 'nationalIdPassport', label: 'National ID / Passport' },
-    { name: 'propertyId', label: 'Property', lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'] } },
     { name: 'notes', label: 'Notes', type: 'textarea' },
 ];
 
@@ -54,8 +53,8 @@ export const rentalContractFields: CrudField[] = [
 ];
 
 export const rentPaymentFields: CrudField[] = [
+    { name: 'contractId', label: 'Rental contract', lookup: { endpoint: '/api/real-estate/rental-contracts', labelKeys: ['tenant.name', 'property.title', 'startDate'], populate: { tenantId: 'tenantId', monthlyRent: 'amountDue' } } },
     { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'] } },
-    { name: 'contractId', label: 'Rental contract', lookup: { endpoint: '/api/real-estate/rental-contracts', labelKeys: ['tenant.name', 'property.title', 'startDate'] } },
     { name: 'dueDate', label: 'Due date', type: 'date', required: true },
     { name: 'paidDate', label: 'Paid date', type: 'date' },
     { name: 'amountDue', label: 'Amount due', type: 'number', required: true },

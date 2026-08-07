@@ -613,6 +613,7 @@ export class AccountingService {
         },
         postedBy: { select: { id: true, name: true, email: true } },
         reverses: { select: { id: true, batchNumber: true } },
+        reversedBy: { select: { id: true, batchNumber: true } },
       },
     });
     if (!batch) throw new NotFoundException('Batch not found');
@@ -632,13 +633,27 @@ export class AccountingService {
     if (!account) throw new NotFoundException('Account not found');
     const normal = account.normalBalance as 'DEBIT' | 'CREDIT';
     const page = args.page || 1;
-    const limit = args.limit || 50;
+    const limit = args.limit || 100;
+
+    const allAccounts = await tenantDb.account.findMany({ select: { code: true, parentCode: true } });
+    const targetCodesSet = new Set<string>([code]);
+    let added = true;
+    while (added) {
+      added = false;
+      for (const acc of allAccounts) {
+        if (acc.parentCode && targetCodesSet.has(acc.parentCode) && !targetCodesSet.has(acc.code)) {
+          targetCodesSet.add(acc.code);
+          added = true;
+        }
+      }
+    }
+    const targetCodes = Array.from(targetCodesSet);
 
     // Opening balance: everything strictly before startDate.
     let opening = 0;
     if (args.startDate) {
       const agg = await tenantDb.journalEntry.aggregate({
-        where: { accountCode: code, date: { lt: args.startDate } },
+        where: { accountCode: { in: targetCodes }, date: { lt: args.startDate } },
         _sum: { debit: true, credit: true },
       });
       const dr = Number(agg._sum.debit || 0);
@@ -646,7 +661,7 @@ export class AccountingService {
       opening = roundToCents(normal === 'CREDIT' ? cr - dr : dr - cr);
     }
 
-    const where: any = { accountCode: code };
+    const where: any = { accountCode: { in: targetCodes } };
     if (args.startDate || args.endDate) {
       where.date = { gte: args.startDate, lte: args.endDate };
     }

@@ -21,8 +21,7 @@ export const taskFields: CrudField[] = [
     { name: 'priority', label: 'Priority', type: 'select', options: options(['LOW', 'MEDIUM', 'HIGH', 'URGENT']) },
     { name: 'progress', label: 'Progress %', type: 'number', placeholder: '50', hint: 'Geli boqolkiiba u dhexeeya 0 iyo 100.' },
     { name: 'dueDate', label: 'Due date', type: 'date' },
-    { name: 'assigneeId', label: 'Account assignee', lookup: { endpoint: '/api/staff/accounts', labelKeys: ['name', 'email'] } },
-    { name: 'staffId', label: 'Staff assignee', lookup: { endpoint: '/api/staff', labelKeys: ['firstName', 'lastName'] } },
+    { name: 'staffId', label: 'Assigned staff member', lookup: { endpoint: '/api/staff', labelKeys: ['firstName', 'lastName'] } },
     { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Sharax shaqada, natiijada la filayo, iyo wixii caqabad ah.' },
 ];
 

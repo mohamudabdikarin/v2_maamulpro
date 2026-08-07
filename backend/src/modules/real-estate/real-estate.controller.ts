@@ -185,6 +185,12 @@ export class RealEstateController {
     return this.service.getRentPayments(db, status);
   }
 
+  @Post('generate-rent-invoices')
+  @RequirePermissions('rentals.create')
+  generateMonthlyRentInvoices(@GetTenantDb() db: any, @Body('date') date?: string) {
+    return this.service.generateMonthlyRentInvoices(db, date);
+  }
+
   @Post('rent-payments')
   @RequirePermissions('rentals.create')
   createRentPayment(@GetTenantDb() db: any, @Body() body: RentPaymentDto) {

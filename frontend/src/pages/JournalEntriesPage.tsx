@@ -7,6 +7,8 @@ import {
     Modal,
     PageHeader,
     StatGrid,
+    formatDescription,
+    formatReference,
     money,
     shortDate,
 } from '../components/maamulpro/PageKit';
@@ -38,6 +40,7 @@ type BatchDetail = BatchListItem & {
         account?: { code: string; name: string; type: string };
     }>;
     reverses?: { id: string; batchNumber: string } | null;
+    reversedBy?: { id: string; batchNumber: string } | null;
 };
 
 const statusTone: Record<BatchListItem['status'], string> = {
@@ -200,12 +203,12 @@ const JournalEntriesPage = () => {
                                                 {row.sourceType}
                                             </span>
                                             {row.sourceRef && (
-                                                <span className="ml-1 text-xs text-white-dark">
-                                                    {row.sourceRef}
+                                                <span className="ml-1 text-xs text-white-dark font-mono">
+                                                    {formatReference(row.sourceRef)}
                                                 </span>
                                             )}
                                         </td>
-                                        <td>{row.memo || '—'}</td>
+                                        <td>{formatDescription(row.memo)}</td>
                                         <td className="text-right font-mono">
                                             {money(Number(row.totalDebit))}
                                         </td>
@@ -256,8 +259,8 @@ const JournalEntriesPage = () => {
                                         {detail.sourceType}
                                     </span>
                                     {detail.sourceRef && (
-                                        <span className="ml-1 text-xs text-white-dark">
-                                            {detail.sourceRef}
+                                        <span className="ml-1 text-xs text-white-dark font-mono">
+                                            {formatReference(detail.sourceRef)}
                                         </span>
                                     )}
                                 </div>
@@ -269,9 +272,14 @@ const JournalEntriesPage = () => {
                                 <div>{detail.memo}</div>
                             </div>
                         )}
+                        {detail.reversedBy && (
+                            <div className="rounded-md bg-danger-light p-3 text-sm font-semibold text-danger">
+                                ⚠️ This transaction was reversed by batch <span className="font-mono underline">{detail.reversedBy.batchNumber}</span>.
+                            </div>
+                        )}
                         {detail.reverses && (
-                            <div className="rounded bg-warning-light p-2 text-sm text-warning">
-                                This is a reversal of batch {detail.reverses.batchNumber}.
+                            <div className="rounded-md bg-info-light p-3 text-sm font-semibold text-info">
+                                ℹ️ This is a reversing entry for batch <span className="font-mono underline">{detail.reverses.batchNumber}</span>.
                             </div>
                         )}
                         <div className="overflow-x-auto">

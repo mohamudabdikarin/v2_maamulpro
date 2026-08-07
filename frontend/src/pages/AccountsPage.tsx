@@ -9,7 +9,10 @@ import {
     Modal,
     PageHeader,
     StatGrid,
+    formatDescription,
+    formatReference,
     money,
+    shortDate,
 } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 import { useApiRows } from '../hooks/useApiData';
@@ -53,6 +56,60 @@ const AccountsPage = () => {
     const [deleteCode, setDeleteCode] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
     const [showInactive, setShowInactive] = useState(false);
+
+    const [viewAccount, setViewAccount] = useState<Account | null>(null);
+    const [ledgerLoading, setLedgerLoading] = useState(false);
+    const [ledgerData, setLedgerData] = useState<{
+        openingBalance: number;
+        lines: Array<{
+            id: string;
+            accountCode?: string;
+            date: string;
+            batchNumber?: string;
+            sourceType?: string;
+            sourceRef?: string;
+            memo?: string;
+            debit: number;
+            credit: number;
+            balance: number;
+        }>;
+        total: number;
+    } | null>(null);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
+    const openDetail = async (acc: Account, start = startDate, end = endDate) => {
+        setViewAccount(acc);
+        setLedgerLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (start) params.set('startDate', start);
+            if (end) params.set('endDate', end);
+            const res = await api<{
+                account: Account;
+                openingBalance: number;
+                lines: any[];
+                total: number;
+            }>(`/api/accounting/accounts/${acc.code}/ledger?${params.toString()}`);
+            setLedgerData({
+                openingBalance: res.openingBalance || 0,
+                lines: res.lines || [],
+                total: res.total || 0,
+            });
+        } catch (err) {
+            console.error('Failed to load account ledger:', err);
+        } finally {
+            setLedgerLoading(false);
+        }
+    };
+
+    const applyLedgerDates = (start: string, end: string) => {
+        setStartDate(start);
+        setEndDate(end);
+        if (viewAccount) {
+            openDetail(viewAccount, start, end);
+        }
+    };
 
     const rows = useMemo(
         () => (showInactive ? state.rows : state.rows.filter((r) => r.isActive)),
@@ -212,12 +269,19 @@ const AccountsPage = () => {
                             </thead>
                             <tbody>
                                 {tree.map((row) => (
-                                    <tr key={row.code} className={row.isActive ? '' : 'opacity-60'}>
-                                        <td className="font-mono font-bold">{row.code}</td>
+                                    <tr
+                                        key={row.code}
+                                        className={`group cursor-pointer ${row.isActive ? '' : 'opacity-60'} transition-all duration-150 hover:bg-primary/10 dark:hover:bg-primary/20`}
+                                        onClick={() => openDetail(row)}
+                                        title={`Click to view ledger for account ${row.code} · ${row.name}`}
+                                    >
+                                        <td className="font-mono font-bold text-primary group-hover:underline">
+                                            <span className="inline-block transition-transform duration-150 group-hover:translate-x-0.5">{row.code}</span>
+                                        </td>
                                         <td>
                                             <span style={{ paddingLeft: row.depth * 20 }}>
                                                 {row.depth > 0 && <span className="text-white-dark">↳ </span>}
-                                                {row.name}
+                                                <span className="font-semibold text-secondary dark:text-white group-hover:text-primary transition-colors duration-150">{row.name}</span>
                                                 {row.isSystem && (
                                                     <span className="ml-2 rounded bg-secondary-light px-1 py-0.5 text-[10px] uppercase text-secondary">
                                                         system
@@ -234,9 +298,11 @@ const AccountsPage = () => {
                                             )}
                                         </td>
                                         <td>
-                                            <span className={`badge ${typeTone[row.type]}`}>{row.type}</span>
+                                            <span className={`badge ${typeTone[row.type]} group-hover:shadow-sm`}>{row.type}</span>
                                         </td>
-                                        <td className="text-right font-mono">{money(row.currentBalance)}</td>
+                                        <td className="text-right font-mono font-bold group-hover:text-primary transition-colors duration-150">
+                                            {money(row.currentBalance)}
+                                        </td>
                                         <td>
                                             {row.isActive ? (
                                                 <span className="badge bg-success-light text-success">Active</span>
@@ -250,23 +316,29 @@ const AccountsPage = () => {
                                             )}
                                         </td>
                                         <td>
-                                            <div className="flex gap-1">
+                                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    className="btn btn-sm btn-outline-info"
+                                                    onClick={(e) => { e.stopPropagation(); openDetail(row); }}
+                                                >
+                                                    Ledger
+                                                </button>
                                                 <button
                                                     className="btn btn-sm btn-outline-primary"
-                                                    onClick={() => openEdit(row)}
+                                                    onClick={(e) => { e.stopPropagation(); openEdit(row); }}
                                                 >
                                                     Edit
                                                 </button>
                                                 <button
                                                     className="btn btn-sm btn-outline-secondary"
-                                                    onClick={() => toggleActive(row)}
+                                                    onClick={(e) => { e.stopPropagation(); toggleActive(row); }}
                                                 >
                                                     {row.isActive ? 'Deactivate' : 'Activate'}
                                                 </button>
                                                 {!row.isSystem && (
                                                     <button
                                                         className="btn btn-sm btn-outline-danger"
-                                                        onClick={() => setDeleteCode(row.code)}
+                                                        onClick={(e) => { e.stopPropagation(); setDeleteCode(row.code); }}
                                                     >
                                                         Delete
                                                     </button>
@@ -384,6 +456,138 @@ const AccountsPage = () => {
                         </button>
                     </div>
                 </div>
+            </Modal>
+
+            <Modal open={Boolean(viewAccount)} onClose={() => setViewAccount(null)} title={`Account Detail · ${viewAccount?.code || ''}`} wide>
+                {viewAccount && (
+                    <div className="space-y-5">
+                        <div className="rounded-lg border border-white-light bg-slate-50 p-4 dark:border-dark dark:bg-[#0e1726]">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="font-mono text-lg font-bold text-primary">{viewAccount.code}</span>
+                                        <h3 className="text-lg font-bold text-secondary dark:text-white">{viewAccount.name}</h3>
+                                        <span className={`badge ${typeTone[viewAccount.type]}`}>{viewAccount.type}</span>
+                                        {viewAccount.isSystem && <span className="badge bg-secondary-light text-secondary">System</span>}
+                                    </div>
+                                    {viewAccount.description && (
+                                        <p className="mt-1 text-sm text-white-dark">{viewAccount.description}</p>
+                                    )}
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-xs uppercase text-white-dark">Current Balance</div>
+                                    <div className="text-2xl font-extrabold text-secondary dark:text-white">{money(viewAccount.currentBalance)}</div>
+                                </div>
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-4 border-t border-white-light pt-3 text-xs text-white-dark dark:border-dark">
+                                <div>Normal Balance: <strong className="text-secondary dark:text-white">{viewAccount.normalBalance}</strong></div>
+                                {viewAccount.parentCode && <div>Parent Account: <strong className="text-secondary dark:text-white">{viewAccount.parentCode}</strong></div>}
+                                <div>Status: <strong className={viewAccount.isActive ? 'text-success' : 'text-danger'}>{viewAccount.isActive ? 'Active' : 'Inactive'}</strong></div>
+                                <div>Allow Negative: <strong className="text-secondary dark:text-white">{viewAccount.allowNegative ? 'Yes' : 'No'}</strong></div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white-light p-3 dark:border-dark">
+                            <div className="text-sm font-bold text-secondary dark:text-white">Account Ledger & Transactions</div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <input
+                                    type="date"
+                                    className="form-input text-xs"
+                                    value={startDate}
+                                    onChange={(e) => applyLedgerDates(e.target.value, endDate)}
+                                />
+                                <span className="text-xs text-white-dark">to</span>
+                                <input
+                                    type="date"
+                                    className="form-input text-xs"
+                                    value={endDate}
+                                    onChange={(e) => applyLedgerDates(startDate, e.target.value)}
+                                />
+                                {(startDate || endDate) && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-xs btn-outline-dark"
+                                        onClick={() => applyLedgerDates('', '')}
+                                    >
+                                        Clear dates
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {ledgerLoading ? (
+                            <LoadingState label="Loading account ledger…" />
+                        ) : !ledgerData || !ledgerData.lines.length ? (
+                            <EmptyState title="No transactions posted to this account" description="Post journal entries or record synchronized operational transactions to see ledger activity." />
+                        ) : (
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                    <div className="rounded-md bg-primary-light p-3 text-center">
+                                        <div className="text-[10px] font-bold uppercase text-primary">Opening Balance</div>
+                                        <div className="text-base font-bold text-primary">{money(ledgerData.openingBalance)}</div>
+                                    </div>
+                                    <div className="rounded-md bg-success-light p-3 text-center">
+                                        <div className="text-[10px] font-bold uppercase text-success">Total Debits</div>
+                                        <div className="text-base font-bold text-success">{money(ledgerData.lines.reduce((s, l) => s + (l.debit || 0), 0))}</div>
+                                    </div>
+                                    <div className="rounded-md bg-danger-light p-3 text-center">
+                                        <div className="text-[10px] font-bold uppercase text-danger">Total Credits</div>
+                                        <div className="text-base font-bold text-danger">{money(ledgerData.lines.reduce((s, l) => s + (l.credit || 0), 0))}</div>
+                                    </div>
+                                    <div className="rounded-md bg-secondary-light p-3 text-center">
+                                        <div className="text-[10px] font-bold uppercase text-secondary">Ending Balance</div>
+                                        <div className="text-base font-bold text-secondary">{money(ledgerData.lines[ledgerData.lines.length - 1]?.balance ?? ledgerData.openingBalance)}</div>
+                                    </div>
+                                </div>
+
+                                <div className="overflow-x-auto rounded-lg border border-white-light dark:border-dark">
+                                    <table className="table-hover w-full text-xs">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Account</th>
+                                                <th>Batch #</th>
+                                                <th>Source</th>
+                                                <th>Reference</th>
+                                                <th>Description / Memo</th>
+                                                <th className="text-right">Debit</th>
+                                                <th className="text-right">Credit</th>
+                                                <th className="text-right">Running Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {ledgerData.lines.map((line) => (
+                                                <tr key={line.id}>
+                                                    <td>{shortDate(line.date)}</td>
+                                                    <td className="font-mono text-xs font-bold text-primary">{line.accountCode || viewAccount.code}</td>
+                                                    <td className="font-mono font-semibold">{line.batchNumber || '—'}</td>
+                                                    <td>
+                                                        {line.sourceType && (
+                                                            <span className="badge bg-primary-light text-primary text-[10px]">
+                                                                {line.sourceType}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="font-mono text-white-dark">{formatReference(line.sourceRef, line.id)}</td>
+                                                    <td>{formatDescription(line.memo)}</td>
+                                                    <td className="text-right font-mono font-semibold text-success">
+                                                        {line.debit > 0 ? money(line.debit) : '—'}
+                                                    </td>
+                                                    <td className="text-right font-mono font-semibold text-danger">
+                                                        {line.credit > 0 ? money(line.credit) : '—'}
+                                                    </td>
+                                                    <td className="text-right font-mono font-bold">
+                                                        {money(line.balance)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </Modal>
         </AppShell>
     );

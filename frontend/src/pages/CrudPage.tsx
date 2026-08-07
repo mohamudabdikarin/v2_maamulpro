@@ -15,7 +15,7 @@ export type CrudField = {
     hint?: string;
     options?: { value: string; label: string }[];
     uploadFolder?: 'avatars' | 'staff' | 'projects' | 'properties' | 'materials' | 'branding';
-    lookup?: { endpoint: string; valueKey?: string; labelKeys: string[] };
+    lookup?: { endpoint: string; valueKey?: string; labelKeys: string[]; populate?: Record<string, string> };
     lineItems?: LineItemConfig;
 };
 
@@ -75,6 +75,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const [viewing, setViewing] = useState<Record<string, any> | null>(null);
     const [filterValue, setFilterValue] = useState('');
     const [lookups, setLookups] = useState<Record<string, { value: string; label: string }[]>>({});
+    const [rawLookups, setRawLookups] = useState<Record<string, Record<string, any>[]>>({});
     const [confirmation, setConfirmation] = useState<{ row: Record<string, any>; transition?: NonNullable<CrudPageProps['transitions']>[number] } | null>(null);
     const [confirmationReason, setConfirmationReason] = useState('');
     const [confirming, setConfirming] = useState(false);
@@ -88,15 +89,19 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         if (!lookupFields.length) return;
         Promise.allSettled(lookupFields.map(async (field) => {
             const rows = unwrap(await api<unknown>(field.lookup!.endpoint));
-            return [field.name, rows.map((row) => ({
+            const options = rows.map((row) => ({
                 value: String(row[field.lookup!.valueKey || 'id']),
                 label: lookupLabel(row, field.lookup!.labelKeys),
-            }))] as const;
+            }));
+            return [field.name, options, rows] as const;
         })).then((results) => {
-            const entries = results
-                .filter((r): r is PromiseFulfilledResult<readonly [string, { value: string; label: string }[]]> => r.status === 'fulfilled')
+            const fulfilled = results
+                .filter((r): r is PromiseFulfilledResult<readonly [string, { value: string; label: string }[], Record<string, any>[]]> => r.status === 'fulfilled')
                 .map((r) => r.value);
-            if (entries.length) setLookups(Object.fromEntries(entries));
+            if (fulfilled.length) {
+                setLookups(Object.fromEntries(fulfilled.map(([name, opts]) => [name, opts])));
+                setRawLookups(Object.fromEntries(fulfilled.map(([name, _, rawRows]) => [name, rawRows])));
+            }
         });
     }, [fields]);
     const filterKey = useMemo(() => ['status', 'type', 'priority', 'category'].find((key) => new Set(rows.map((row) => row[key]).filter(Boolean)).size > 1), [rows]);
@@ -267,7 +272,21 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                 {error && <ErrorAlert message={error} />}
                 <div className="grid gap-4 sm:grid-cols-2">{fields.map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
                     <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
-                    {field.type === 'select' || field.lookup ? <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                    {field.type === 'select' || field.lookup ? <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} onChange={(e) => {
+                        const val = e.target.value;
+                        const updates: Record<string, any> = { [field.name]: val };
+                        if (field.lookup?.populate && val) {
+                            const rawRow = rawLookups[field.name]?.find((r) => String(r[field.lookup?.valueKey || 'id']) === val);
+                            if (rawRow) {
+                                Object.entries(field.lookup.populate).forEach(([srcPath, targetField]) => {
+                                    const srcVal = nestedValue(rawRow, srcPath);
+                                    if (srcVal !== undefined && srcVal !== null) updates[targetField] = srcVal;
+                                });
+                            }
+                        }
+                        setForm((current) => ({ ...current, ...updates }));
+                        setFieldErrors((current) => ({ ...current, [field.name]: '' }));
+                    }}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
                         : field.type === 'textarea' || field.type === 'json' ? <textarea id={field.name} className={`form-textarea mt-1 ${field.type === 'json' ? 'min-h-40 font-mono text-xs' : ''} ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
                         : field.type === 'lineItems' && field.lineItems ? <div className="mt-1"><LineItemsEditor value={form[field.name]} onChange={(items) => setForm({ ...form, [field.name]: items })} config={field.lineItems} /></div>
                         : field.type === 'image' ? <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">{form[field.name] && <img className="h-20 w-20 rounded-lg border border-white-light object-cover dark:border-[#191e3a]" src={form[field.name]} alt="" />}<div className="flex-1"><input id={field.name} className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === field.name} onChange={(e) => uploadImage(field, e.target.files?.[0])} />{uploading === field.name && <p className="mt-1 text-xs text-primary">Uploading…</p>}{form[field.name] && <button type="button" className="mt-2 text-xs text-danger hover:underline" onClick={() => setForm({ ...form, [field.name]: '' })}>Remove from record</button>}</div></div>

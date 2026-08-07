@@ -6,10 +6,37 @@ import { api } from '../lib/api';
 import { unwrapRows } from '../hooks/useApiData';
 
 const RentalHubPage = () => {
-    const [data, setData] = useState<{ tenants: any[]; contracts: any[]; payments: any[] } | null>(null); const [error, setError] = useState('');
+    const [data, setData] = useState<{ tenants: any[]; contracts: any[]; payments: any[] } | null>(null);
+    const [error, setError] = useState('');
+    const [message, setMessage] = useState('');
+    const [generating, setGenerating] = useState(false);
+
     const load = () => Promise.all([api<unknown>('/api/real-estate/tenants'), api<unknown>('/api/real-estate/rental-contracts'), api<unknown>('/api/real-estate/rent-payments')]).then(([a, b, c]) => setData({ tenants: unwrapRows(a), contracts: unwrapRows(b), payments: unwrapRows(c) })).catch((reason) => setError(reason.message));
     useEffect(() => { load(); }, []);
-    return <AppShell><PageHeader eyebrow="Rental management" title="Rentals" description="Tenants, leases, renewals, payment obligations and collections in one workspace." actions={<><Link className="btn btn-outline-primary" to="/app/real-estate/tenants">Manage tenants</Link><Link className="btn btn-outline-primary" to="/app/real-estate/rent-payments">Rent payments</Link><Link className="btn btn-primary" to="/app/real-estate/rental-contracts/new">New lease</Link></>} />
+
+    const generateInvoices = async () => {
+        setGenerating(true);
+        setError('');
+        setMessage('');
+        try {
+            const res = await api<{ message: string }>('/api/real-estate/generate-rent-invoices', { method: 'POST' });
+            setMessage(res.message);
+            await load();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to generate monthly invoices');
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+    return <AppShell>
+        <PageHeader eyebrow="Rental management" title="Rentals" description="Tenants, leases, renewals, payment obligations and collections in one workspace." actions={<>
+            <button className="btn btn-outline-success" disabled={generating} onClick={generateInvoices}>{generating ? 'Generating…' : 'Generate monthly invoices'}</button>
+            <Link className="btn btn-outline-primary" to="/app/real-estate/tenants">Manage tenants</Link>
+            <Link className="btn btn-outline-primary" to="/app/real-estate/rent-payments">Rent payments</Link>
+            <Link className="btn btn-primary" to="/app/real-estate/rental-contracts/new">New lease</Link>
+        </>} />
+        {message && <div className="mb-5 rounded-md bg-success-light p-4 text-sm font-semibold text-success">{message}</div>}
         {error && <ErrorAlert message={error} onRetry={load} />}{!data ? <div className="panel"><LoadingState /></div> : <><StatGrid items={[
             { label: 'Tenants', value: data.tenants.length }, { label: 'Active leases', value: data.contracts.filter((row) => row.status === 'ACTIVE').length, tone: 'success' },
             { label: 'Monthly contracted', value: money(data.contracts.filter((row) => row.status === 'ACTIVE').reduce((sum, row) => sum + Number(row.monthlyRent || 0), 0)), tone: 'info' },

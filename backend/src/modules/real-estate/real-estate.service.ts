@@ -328,6 +328,71 @@ export class RealEstateService {
     });
   }
 
+  async generateMonthlyRentInvoices(tenantDb: any, dateStr?: string) {
+    const targetDate = dateStr ? new Date(dateStr) : new Date();
+    const year = targetDate.getFullYear();
+    const month = targetDate.getMonth();
+    const startOfMonth = new Date(Date.UTC(year, month, 1));
+    const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+
+    const activeContracts = await tenantDb.rentalContract.findMany({
+      where: { status: 'ACTIVE', deletedAt: null },
+      include: { tenant: true, property: true },
+    });
+
+    let generatedCount = 0;
+    let skippedCount = 0;
+    let totalAmount = 0;
+
+    await tenantDb.$transaction(async (tx: any) => {
+      for (const contract of activeContracts) {
+        const existing = await tx.rentPayment.findFirst({
+          where: {
+            contractId: contract.id,
+            deletedAt: null,
+            dueDate: { gte: startOfMonth, lte: endOfMonth },
+          },
+        });
+
+        if (existing) {
+          skippedCount++;
+          continue;
+        }
+
+        const monthlyRent = Number(contract.monthlyRent || 0);
+        if (monthlyRent <= 0) {
+          skippedCount++;
+          continue;
+        }
+
+        const dueDate = new Date(Date.UTC(year, month, 1));
+        const payment = await tx.rentPayment.create({
+          data: {
+            tenantId: contract.tenantId,
+            contractId: contract.id,
+            amountDue: monthlyRent,
+            amountPaid: 0,
+            dueDate,
+            status: 'UNPAID',
+            receiptNo: `INV-${year}${(month + 1).toString().padStart(2, '0')}-${contract.id.slice(-4).toUpperCase()}`,
+            notes: `Automated monthly rent invoice for ${contract.tenant?.name || 'Tenant'} · ${contract.property?.title || 'Property'}`,
+          },
+        });
+
+        await this.syncRentPaymentLedger(tx, payment);
+        generatedCount++;
+        totalAmount += monthlyRent;
+      }
+    });
+
+    return {
+      message: `Generated ${generatedCount} rent invoice(s) for ${targetDate.toLocaleString('default', { month: 'long', year: 'numeric' })}.`,
+      generatedCount,
+      skippedCount,
+      totalAmount,
+    };
+  }
+
   async createRentPayment(tenantDb: any, data: RentPaymentDto) {
     this.validatePayment(data);
     return tenantDb.$transaction(async (tx: any) => {
@@ -468,17 +533,28 @@ export class RealEstateService {
     });
     await this.safePost(() => this.accounting.retractPriorForSource(tx, 'DEAL', deal.id));
     if (deal.paymentStatus === 'REFUNDED' || Number(deal.totalAmount) <= 0) return;
+
+    const fullDeal = await tx.deal.findUnique({
+      where: { id: deal.id },
+      include: { property: true, client: true },
+    });
+    const propTitle = fullDeal?.property?.title || 'Property';
+    const clientName = fullDeal?.client ? (fullDeal.client.fullName || fullDeal.client.name) : '';
+    const label = clientName ? `${propTitle} (${clientName})` : propTitle;
+
     const paid = Number(deal.paidAmount);
     const total = Number(deal.totalAmount);
-    const description = deal.type === 'RENTAL' ? 'Rental' : 'Sale';
+    const typeLabel = deal.type === 'RENTAL' ? 'Rental' : 'Sale';
     const isRental = deal.type === 'RENTAL';
+    const shortId = deal.id.slice(-6).toUpperCase();
+
     if (paid > 0) {
       await tx.transaction.create({
         data: {
           referenceId: `deal:${deal.id}:paid:${deal.version}`,
           type: 'INCOME',
           status: 'CLEARED',
-          description: `${description} payment received for deal ${deal.id}`,
+          description: `${typeLabel} payment received for ${label}`,
           amount: paid,
           dealId: deal.id,
           propertyId: deal.propertyId,
@@ -489,8 +565,8 @@ export class RealEstateService {
           tx, tenantId: 'system',
           sourceType: 'DEAL',
           sourceId: deal.id,
-          sourceRef: `deal ${deal.id} · paid`,
-          memo: `${description} payment received for deal ${deal.id}`,
+          sourceRef: `DEAL-PAID-${shortId}`,
+          memo: `${typeLabel} payment received for ${label}`,
           drKey: isRental ? 'RENTAL_RECEIPT_CASH' : 'DEAL_SALE_CASH',
           crKey: isRental ? 'RENTAL_INVOICE_REVENUE' : 'DEAL_SALE_REVENUE',
           amount: paid,
@@ -503,7 +579,7 @@ export class RealEstateService {
           referenceId: `deal:${deal.id}:due:${deal.version}`,
           type: 'INCOME',
           status: deal.paymentStatus === 'OVERDUE' ? 'PROCESSING' : 'PENDING',
-          description: `Pending balance for ${description.toLowerCase()} deal ${deal.id}`,
+          description: `Pending balance for ${typeLabel.toLowerCase()} deal - ${label}`,
           amount: total - paid,
           dealId: deal.id,
           propertyId: deal.propertyId,
@@ -514,8 +590,8 @@ export class RealEstateService {
           tx, tenantId: 'system',
           sourceType: 'DEAL',
           sourceId: deal.id,
-          sourceRef: `deal ${deal.id} · due`,
-          memo: `Outstanding balance on ${description.toLowerCase()} deal ${deal.id}`,
+          sourceRef: `DEAL-DUE-${shortId}`,
+          memo: `Outstanding balance on ${typeLabel.toLowerCase()} deal - ${label}`,
           drKey: isRental ? 'RENTAL_INVOICE_AR' : 'SALES_INVOICE_AR',
           crKey: isRental ? 'RENTAL_INVOICE_REVENUE' : 'DEAL_SALE_REVENUE',
           amount: total - paid,
@@ -549,9 +625,18 @@ export class RealEstateService {
     // Legacy source key used by older posts
     await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', payment.id));
 
-    const propertyId = payment.contractId
-      ? (await tx.rentalContract.findUnique({ where: { id: payment.contractId } }))?.propertyId
+    const contract = payment.contractId
+      ? await tx.rentalContract.findUnique({
+          where: { id: payment.contractId },
+          include: { property: true, tenant: true },
+        })
       : null;
+    const propertyId = contract?.propertyId || null;
+    const propertyTitle = contract?.property?.title || 'Property';
+    const tenantName = contract?.tenant ? (contract.tenant.fullName || contract.tenant.name) : '';
+    const label = tenantName ? `${propertyTitle} (${tenantName})` : propertyTitle;
+    const shortId = payment.id.slice(-6).toUpperCase();
+
     const paid = Number(payment.amountPaid);
     const due = Number(payment.amountDue);
 
@@ -561,9 +646,9 @@ export class RealEstateService {
           tx, tenantId: 'system',
           sourceType: 'RENT_INVOICE',
           sourceId: payment.id,
-          sourceRef: `rent ${payment.id} · invoice`,
+          sourceRef: `RENT-INV-${shortId}`,
           date: payment.dueDate,
-          memo: `Rent invoice (${payment.id})`,
+          memo: `Rent invoice - ${label}`,
           drKey: 'RENTAL_INVOICE_AR',
           crKey: 'RENTAL_INVOICE_REVENUE',
           amount: due,
@@ -577,7 +662,7 @@ export class RealEstateService {
           referenceId: `${prefix}paid:${payment.updatedAt.getTime()}`,
           type: 'INCOME',
           status: 'CLEARED',
-          description: `Rent payment received (rent payment ${payment.id})`,
+          description: `Rent payment received for ${label}`,
           amount: paid,
           date: payment.paidDate || new Date(),
           propertyId,
@@ -588,9 +673,9 @@ export class RealEstateService {
           tx, tenantId: 'system',
           sourceType: 'RENT_RECEIPT',
           sourceId: payment.id,
-          sourceRef: `rent ${payment.id} · paid`,
+          sourceRef: `RENT-REC-${shortId}`,
           date: payment.paidDate || new Date(),
-          memo: `Rent payment received (${payment.id})`,
+          memo: `Rent payment received for ${label}`,
           drKey: 'RENTAL_RECEIPT_CASH',
           crKey: 'RENTAL_RECEIPT_AR',
           amount: paid,

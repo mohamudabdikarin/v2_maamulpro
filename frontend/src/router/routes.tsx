@@ -156,7 +156,7 @@ const routes = [
     { path: '/app/real-estate/rentals', element: <RentalHubPage />, layout: 'blank', permission: 'rentals.read' },
     { path: '/app/real-estate/tenants', element: <CrudPage title="Tenants" description="Tenant identity, contact and assigned property records." endpoint="/api/real-estate/tenants" fields={[
         { name: 'name', label: 'Name', required: true }, { name: 'email', label: 'Email', type: 'email' }, { name: 'phone', label: 'Phone' },
-        { name: 'nationalIdPassport', label: 'National ID / Passport' }, { name: 'propertyId', label: 'Property', lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'] } }, { name: 'notes', label: 'Notes', type: 'textarea' },
+        { name: 'nationalIdPassport', label: 'National ID / Passport' }, { name: 'notes', label: 'Notes', type: 'textarea' },
     ]} />, layout: 'blank', permission: 'rentals.read' },
     { path: '/app/real-estate/rental-contracts', element: <CrudPage title="Rental Contracts" description="Lease periods, rent values, renewals and contract status." endpoint="/api/real-estate/rental-contracts" fields={[
         { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'] } }, { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'] } },
@@ -172,7 +172,8 @@ const routes = [
         { action: 'partial', label: 'Mark partial', tone: 'warning', path: 'status', body: { status: 'PARTIAL' }, when: ['UNPAID', 'LATE'] },
         { action: 'late', label: 'Mark late', tone: 'danger', path: 'status', body: { status: 'LATE' }, when: ['UNPAID', 'PARTIAL'] },
     ]} fields={[
-        { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'] } }, { name: 'contractId', label: 'Rental contract', lookup: { endpoint: '/api/real-estate/rental-contracts', labelKeys: ['tenant.name', 'property.title', 'startDate'] } },
+        { name: 'contractId', label: 'Rental contract', lookup: { endpoint: '/api/real-estate/rental-contracts', labelKeys: ['tenant.name', 'property.title', 'startDate'], populate: { tenantId: 'tenantId', monthlyRent: 'amountDue' } } },
+        { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'] } },
         { name: 'dueDate', label: 'Due date', type: 'date', required: true }, { name: 'paidDate', label: 'Paid date', type: 'date' },
         { name: 'amountDue', label: 'Amount due', type: 'number', required: true }, { name: 'amountPaid', label: 'Amount paid', type: 'number' },
         { name: 'status', label: 'Status', type: 'select', options: ['PAID', 'UNPAID', 'LATE', 'PARTIAL'].map((value) => ({ value, label: value })) },

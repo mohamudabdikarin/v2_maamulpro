@@ -490,8 +490,8 @@ export class MaterialManagementService {
     const paid = Number(sale.paidAmount);
     const revenue = await this.category(tx, 'Material Sales', '#10b981');
     const receivable = await this.category(tx, 'Accounts Receivable', '#f59e0b');
-    if (paid > 0) await tx.transaction.create({ data: { referenceId: `${prefix}paid:${sale.updatedAt.getTime()}`, type: 'INCOME', status: 'CLEARED', description: `Payment received for material sale invoice ${sale.invoiceNo} (sale ${sale.id})`, amount: paid, categoryId: revenue.id, userId: sale.userId, date: sale.date } });
-    if (total - paid > 0) await tx.transaction.create({ data: { referenceId: `${prefix}due:${sale.updatedAt.getTime()}`, type: 'INCOME', status: 'PENDING', description: `Accounts receivable for material sale invoice ${sale.invoiceNo} (sale ${sale.id})`, amount: total - paid, categoryId: receivable.id, userId: sale.userId, date: sale.date } });
+    if (paid > 0) await tx.transaction.create({ data: { referenceId: `${prefix}paid:${sale.updatedAt.getTime()}`, type: 'INCOME', status: 'CLEARED', description: `Payment received for material sale invoice ${sale.invoiceNo}`, amount: paid, categoryId: revenue.id, userId: sale.userId, date: sale.date } });
+    if (total - paid > 0) await tx.transaction.create({ data: { referenceId: `${prefix}due:${sale.updatedAt.getTime()}`, type: 'INCOME', status: 'PENDING', description: `Accounts receivable for material sale invoice ${sale.invoiceNo}`, amount: total - paid, categoryId: receivable.id, userId: sale.userId, date: sale.date } });
     // Retract any prior sale batches for this sale, then post fresh:
     // one batch for the paid portion (cash side) and one for the due
     // portion (AR side). Keeping them as separate batches makes the
@@ -503,7 +503,7 @@ export class MaterialManagementService {
           tx, tenantId: 'system',
           sourceType: 'MATERIAL_SALE',
           sourceId: sale.id,
-          sourceRef: `${sale.invoiceNo} · paid`,
+          sourceRef: `MAT-SALE-${sale.invoiceNo}`,
           date: sale.date, userId: sale.userId,
           memo: `Payment received on sale ${sale.invoiceNo}`,
           drKey: 'CUSTOMER_PAYMENT_CASH',
