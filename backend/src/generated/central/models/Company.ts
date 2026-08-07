@@ -44,6 +44,8 @@ export type CompanyMinAggregateOutputType = {
   subdomain: string | null
   companyType: string | null
   dbUrl: string | null
+  dbProvider: string | null
+  dbCreatedByMaamulPro: boolean | null
   logoUrl: string | null
   phone: string | null
   address: string | null
@@ -75,6 +77,8 @@ export type CompanyMaxAggregateOutputType = {
   subdomain: string | null
   companyType: string | null
   dbUrl: string | null
+  dbProvider: string | null
+  dbCreatedByMaamulPro: boolean | null
   logoUrl: string | null
   phone: string | null
   address: string | null
@@ -106,6 +110,8 @@ export type CompanyCountAggregateOutputType = {
   subdomain: number
   companyType: number
   dbUrl: number
+  dbProvider: number
+  dbCreatedByMaamulPro: number
   logoUrl: number
   phone: number
   address: number
@@ -152,6 +158,8 @@ export type CompanyMinAggregateInputType = {
   subdomain?: true
   companyType?: true
   dbUrl?: true
+  dbProvider?: true
+  dbCreatedByMaamulPro?: true
   logoUrl?: true
   phone?: true
   address?: true
@@ -183,6 +191,8 @@ export type CompanyMaxAggregateInputType = {
   subdomain?: true
   companyType?: true
   dbUrl?: true
+  dbProvider?: true
+  dbCreatedByMaamulPro?: true
   logoUrl?: true
   phone?: true
   address?: true
@@ -214,6 +224,8 @@ export type CompanyCountAggregateInputType = {
   subdomain?: true
   companyType?: true
   dbUrl?: true
+  dbProvider?: true
+  dbCreatedByMaamulPro?: true
   logoUrl?: true
   phone?: true
   address?: true
@@ -333,6 +345,8 @@ export type CompanyGroupByOutputType = {
   subdomain: string
   companyType: string | null
   dbUrl: string
+  dbProvider: string | null
+  dbCreatedByMaamulPro: boolean
   logoUrl: string | null
   phone: string | null
   address: string | null
@@ -388,6 +402,8 @@ export type CompanyWhereInput = {
   subdomain?: Prisma.StringFilter<"Company"> | string
   companyType?: Prisma.StringNullableFilter<"Company"> | string | null
   dbUrl?: Prisma.StringFilter<"Company"> | string
+  dbProvider?: Prisma.StringNullableFilter<"Company"> | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFilter<"Company"> | boolean
   logoUrl?: Prisma.StringNullableFilter<"Company"> | string | null
   phone?: Prisma.StringNullableFilter<"Company"> | string | null
   address?: Prisma.StringNullableFilter<"Company"> | string | null
@@ -424,6 +440,8 @@ export type CompanyOrderByWithRelationInput = {
   subdomain?: Prisma.SortOrder
   companyType?: Prisma.SortOrderInput | Prisma.SortOrder
   dbUrl?: Prisma.SortOrder
+  dbProvider?: Prisma.SortOrderInput | Prisma.SortOrder
+  dbCreatedByMaamulPro?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -464,6 +482,8 @@ export type CompanyWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Company"> | string
   companyType?: Prisma.StringNullableFilter<"Company"> | string | null
   dbUrl?: Prisma.StringFilter<"Company"> | string
+  dbProvider?: Prisma.StringNullableFilter<"Company"> | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFilter<"Company"> | boolean
   logoUrl?: Prisma.StringNullableFilter<"Company"> | string | null
   phone?: Prisma.StringNullableFilter<"Company"> | string | null
   address?: Prisma.StringNullableFilter<"Company"> | string | null
@@ -499,6 +519,8 @@ export type CompanyOrderByWithAggregationInput = {
   subdomain?: Prisma.SortOrder
   companyType?: Prisma.SortOrderInput | Prisma.SortOrder
   dbUrl?: Prisma.SortOrder
+  dbProvider?: Prisma.SortOrderInput | Prisma.SortOrder
+  dbCreatedByMaamulPro?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -539,6 +561,8 @@ export type CompanyScalarWhereWithAggregatesInput = {
   subdomain?: Prisma.StringWithAggregatesFilter<"Company"> | string
   companyType?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
   dbUrl?: Prisma.StringWithAggregatesFilter<"Company"> | string
+  dbProvider?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolWithAggregatesFilter<"Company"> | boolean
   logoUrl?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
@@ -571,6 +595,8 @@ export type CompanyCreateInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -607,6 +633,8 @@ export type CompanyUncheckedCreateInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -643,6 +671,8 @@ export type CompanyUpdateInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -679,6 +709,8 @@ export type CompanyUncheckedUpdateInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -715,6 +747,8 @@ export type CompanyCreateManyInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -747,6 +781,8 @@ export type CompanyUpdateManyMutationInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -779,6 +815,8 @@ export type CompanyUncheckedUpdateManyInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -811,6 +849,8 @@ export type CompanyCountOrderByAggregateInput = {
   subdomain?: Prisma.SortOrder
   companyType?: Prisma.SortOrder
   dbUrl?: Prisma.SortOrder
+  dbProvider?: Prisma.SortOrder
+  dbCreatedByMaamulPro?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -849,6 +889,8 @@ export type CompanyMaxOrderByAggregateInput = {
   subdomain?: Prisma.SortOrder
   companyType?: Prisma.SortOrder
   dbUrl?: Prisma.SortOrder
+  dbProvider?: Prisma.SortOrder
+  dbCreatedByMaamulPro?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -880,6 +922,8 @@ export type CompanyMinOrderByAggregateInput = {
   subdomain?: Prisma.SortOrder
   companyType?: Prisma.SortOrder
   dbUrl?: Prisma.SortOrder
+  dbProvider?: Prisma.SortOrder
+  dbCreatedByMaamulPro?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -924,16 +968,16 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type EnumModuleModeFieldUpdateOperationsInput = {
   set?: $Enums.ModuleMode
 }
 
 export type EnumCompanyStatusFieldUpdateOperationsInput = {
   set?: $Enums.CompanyStatus
-}
-
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
 }
 
 export type EnumSubscriptionStatusFieldUpdateOperationsInput = {
@@ -1038,6 +1082,8 @@ export type CompanyCreateWithoutSubscriptionTransactionsInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -1073,6 +1119,8 @@ export type CompanyUncheckedCreateWithoutSubscriptionTransactionsInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -1124,6 +1172,8 @@ export type CompanyUpdateWithoutSubscriptionTransactionsInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1159,6 +1209,8 @@ export type CompanyUncheckedUpdateWithoutSubscriptionTransactionsInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1194,6 +1246,8 @@ export type CompanyCreateWithoutUsersInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -1229,6 +1283,8 @@ export type CompanyUncheckedCreateWithoutUsersInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -1280,6 +1336,8 @@ export type CompanyUpdateWithoutUsersInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1315,6 +1373,8 @@ export type CompanyUncheckedUpdateWithoutUsersInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1350,6 +1410,8 @@ export type CompanyCreateWithoutSubscriptionsInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -1385,6 +1447,8 @@ export type CompanyUncheckedCreateWithoutSubscriptionsInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -1436,6 +1500,8 @@ export type CompanyUpdateWithoutSubscriptionsInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1471,6 +1537,8 @@ export type CompanyUncheckedUpdateWithoutSubscriptionsInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1506,6 +1574,8 @@ export type CompanyCreateWithoutInvoicesInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -1541,6 +1611,8 @@ export type CompanyUncheckedCreateWithoutInvoicesInput = {
   subdomain: string
   companyType?: string | null
   dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: string | null
   phone?: string | null
   address?: string | null
@@ -1592,6 +1664,8 @@ export type CompanyUpdateWithoutInvoicesInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1627,6 +1701,8 @@ export type CompanyUncheckedUpdateWithoutInvoicesInput = {
   subdomain?: Prisma.StringFieldUpdateOperationsInput | string
   companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1720,6 +1796,8 @@ export type CompanySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   subdomain?: boolean
   companyType?: boolean
   dbUrl?: boolean
+  dbProvider?: boolean
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: boolean
   phone?: boolean
   address?: boolean
@@ -1757,6 +1835,8 @@ export type CompanySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   subdomain?: boolean
   companyType?: boolean
   dbUrl?: boolean
+  dbProvider?: boolean
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: boolean
   phone?: boolean
   address?: boolean
@@ -1789,6 +1869,8 @@ export type CompanySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   subdomain?: boolean
   companyType?: boolean
   dbUrl?: boolean
+  dbProvider?: boolean
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: boolean
   phone?: boolean
   address?: boolean
@@ -1821,6 +1903,8 @@ export type CompanySelectScalar = {
   subdomain?: boolean
   companyType?: boolean
   dbUrl?: boolean
+  dbProvider?: boolean
+  dbCreatedByMaamulPro?: boolean
   logoUrl?: boolean
   phone?: boolean
   address?: boolean
@@ -1847,7 +1931,7 @@ export type CompanySelectScalar = {
   updatedAt?: boolean
 }
 
-export type CompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "subdomain" | "companyType" | "dbUrl" | "logoUrl" | "phone" | "address" | "description" | "mode" | "status" | "constructionEnabled" | "realEstateEnabled" | "materialManagementEnabled" | "adminEmail" | "adminName" | "subscriptionStatus" | "planTier" | "planKey" | "entitlements" | "subscriptionAmount" | "termDurationMonths" | "subscriptionStartAt" | "subscriptionExpiresAt" | "autoRecur" | "accessGranted" | "version" | "createdAt" | "updatedAt", ExtArgs["result"]["company"]>
+export type CompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "subdomain" | "companyType" | "dbUrl" | "dbProvider" | "dbCreatedByMaamulPro" | "logoUrl" | "phone" | "address" | "description" | "mode" | "status" | "constructionEnabled" | "realEstateEnabled" | "materialManagementEnabled" | "adminEmail" | "adminName" | "subscriptionStatus" | "planTier" | "planKey" | "entitlements" | "subscriptionAmount" | "termDurationMonths" | "subscriptionStartAt" | "subscriptionExpiresAt" | "autoRecur" | "accessGranted" | "version" | "createdAt" | "updatedAt", ExtArgs["result"]["company"]>
 export type CompanyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Company$usersArgs<ExtArgs>
   subscriptionTransactions?: boolean | Prisma.Company$subscriptionTransactionsArgs<ExtArgs>
@@ -1872,6 +1956,8 @@ export type $CompanyPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     subdomain: string
     companyType: string | null
     dbUrl: string
+    dbProvider: string | null
+    dbCreatedByMaamulPro: boolean
     logoUrl: string | null
     phone: string | null
     address: string | null
@@ -2328,6 +2414,8 @@ export interface CompanyFieldRefs {
   readonly subdomain: Prisma.FieldRef<"Company", 'String'>
   readonly companyType: Prisma.FieldRef<"Company", 'String'>
   readonly dbUrl: Prisma.FieldRef<"Company", 'String'>
+  readonly dbProvider: Prisma.FieldRef<"Company", 'String'>
+  readonly dbCreatedByMaamulPro: Prisma.FieldRef<"Company", 'Boolean'>
   readonly logoUrl: Prisma.FieldRef<"Company", 'String'>
   readonly phone: Prisma.FieldRef<"Company", 'String'>
   readonly address: Prisma.FieldRef<"Company", 'String'>

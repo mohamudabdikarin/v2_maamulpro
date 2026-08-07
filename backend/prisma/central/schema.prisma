@@ -53,6 +53,8 @@ model Company {
   subdomain String       @unique
   companyType String?    @map("company_type")
   dbUrl     String       @map("db_url")
+  dbProvider String?     @map("db_provider")
+  dbCreatedByMaamulPro Boolean @default(false) @map("db_created_by_maamulpro")
   logoUrl   String?      @map("logo_url")
   phone     String?
   address   String?

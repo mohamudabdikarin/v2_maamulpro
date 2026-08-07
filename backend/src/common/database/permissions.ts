@@ -103,7 +103,7 @@ export const PERMISSION_MODULES: PermissionModuleDefinition[] = [
   { key: "transactions", label: "Transactions", workspace: "core", permissions: crud("transactions"), checkboxActions: PERMISSION_ACTIONS },
   { key: "financials", label: "Financials", workspace: "core", permissions: [_PERMISSIONS.FINANCIALS_READ] },
   { key: "accounting", label: "Accounting", workspace: "core", permissions: [_PERMISSIONS.ACCOUNTING_READ, _PERMISSIONS.ACCOUNTING_MANAGE, _PERMISSIONS.ACCOUNTING_POST, _PERMISSIONS.ACCOUNTING_APPROVE] },
-  { key: "payroll", label: "Payroll", workspace: "core", permissions: [_PERMISSIONS.PAYROLL_READ, _PERMISSIONS.PAYROLL_MANAGE, _PERMISSIONS.PAYROLL_APPROVE] },
+  { key: "payroll", label: "Payroll", workspace: "core", permissions: [_PERMISSIONS.PAYROLL_READ, _PERMISSIONS.PAYROLL_MANAGE, _PERMISSIONS.PAYROLL_APPROVE, _PERMISSIONS.PAYROLL_PAY] },
   { key: "dashboard_executive", label: "Executive Dashboard", workspace: "core", permissions: [_PERMISSIONS.DASHBOARD_EXECUTIVE_READ] },
 ];
 

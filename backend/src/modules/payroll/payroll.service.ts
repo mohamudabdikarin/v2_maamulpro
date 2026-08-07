@@ -3,6 +3,10 @@ import { PayrollItemDto, PayrollTransitionDto, SavePayrollDto } from './dto/payr
 import { AccountingService } from '../accounting/accounting.service';
 import { AccountMappingsService } from '../accounting/account-mappings.service';
 
+// Money math: always work in cents so parent totals equal the sum of item
+// totals after the DB stores them as Decimal(12, 2).
+const roundToCents = (n: number): number => Math.round(n * 100) / 100;
+
 @Injectable()
 export class PayrollService {
   private readonly logger = new Logger(PayrollService.name);
@@ -20,7 +24,7 @@ export class PayrollService {
   }
 
   /** Cashbook + GL for a paid payroll (gross expense, net cash, tax/deduction payables). */
-  private async recordPayrollPayment(tx: any, payroll: any, userId: string, description: string) {
+  private async recordPayrollPayment(tx: any, payroll: any, userId: string, description: string, cashAccountCode?: string | null) {
     const gross = Number(payroll.totalGrossSalary || 0);
     const net = Number(payroll.totalNetSalary || 0);
     const tax = Number(payroll.totalTax || 0);
@@ -59,17 +63,20 @@ export class PayrollService {
         'PAYROLL_TAX_PAYABLE',
         'PAYROLL_DEDUCTIONS_PAYABLE',
       ]);
+      // Honor an explicit cash/payout account when one is supplied; fall back
+      // to the PAYROLL_CASH mapping otherwise.
+      const cashCode = cashAccountCode || resolved.PAYROLL_CASH;
       const expenseCode = payroll.expenseAccountCode || resolved.PAYROLL_EXPENSE;
       const expenseAmount = gross > 0 ? gross : net;
       const lines: { accountCode: string; debit: number; credit: number }[] = [
         { accountCode: expenseCode, debit: expenseAmount, credit: 0 },
       ];
-      if (net > 0) lines.push({ accountCode: resolved.PAYROLL_CASH, debit: 0, credit: net });
+      if (net > 0) lines.push({ accountCode: cashCode, debit: 0, credit: net });
       if (tax > 0) lines.push({ accountCode: resolved.PAYROLL_TAX_PAYABLE, debit: 0, credit: tax });
       if (deductions > 0) lines.push({ accountCode: resolved.PAYROLL_DEDUCTIONS_PAYABLE, debit: 0, credit: deductions });
       // If withholdings weren't broken out, credit cash for the full expense.
       if (lines.length === 1) {
-        lines.push({ accountCode: resolved.PAYROLL_CASH, debit: 0, credit: expenseAmount });
+        lines.push({ accountCode: cashCode, debit: 0, credit: expenseAmount });
       }
       await this.accounting.postJournalBatch(tx, {
         tenantId: 'system',
@@ -146,30 +153,40 @@ export class PayrollService {
   }
 
   async createPayroll(tenantDb: any, data: SavePayrollDto, userId: string) {
-    const duplicate = await this.validatePeriod(tenantDb, data.year, data.month);
-    if (duplicate.isDuplicate) throw new ConflictException('A payroll already exists for this period');
+    if (!tenantDb) throw new BadRequestException('Tenant DB not available');
     this.ensureUniqueStaff(data.items);
     if (data.expenseAccountCode) await this.ensureExpenseAccount(tenantDb, data.expenseAccountCode);
     const calculated = this.calculate(data.items);
-    return tenantDb.payroll.create({
-      data: {
-        name: data.name,
-        year: data.year,
-        month: data.month,
-        payPeriod: data.payPeriod || `${data.year}-${String(data.month).padStart(2, '0')}`,
-        paymentDate: data.paymentDate,
-        status: (data.status as any) || 'DRAFT',
-        expenseAccountCode: data.expenseAccountCode || null,
-        createdById: userId,
-        ...calculated.totals,
-        items: {
-          create: calculated.items.map((item) => ({
-            ...item,
-            status: (data.status as any) || 'DRAFT',
-          })),
+    return tenantDb.$transaction(async (tx: any) => {
+      // Serialize creation for the same (year, month) so two concurrent
+      // requests cannot both create an active run for the period. The
+      // partial unique index on active payrolls is the backstop.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(${data.year * 100 + data.month})`;
+      const duplicate = await tx.payroll.findFirst({
+        where: { year: data.year, month: data.month, deletedAt: null },
+        select: { id: true, name: true, status: true },
+      });
+      if (duplicate) throw new ConflictException('A payroll already exists for this period');
+      return tx.payroll.create({
+        data: {
+          name: data.name,
+          year: data.year,
+          month: data.month,
+          payPeriod: data.payPeriod || `${data.year}-${String(data.month).padStart(2, '0')}`,
+          paymentDate: data.paymentDate,
+          status: (data.status as any) || 'DRAFT',
+          expenseAccountCode: data.expenseAccountCode || null,
+          createdById: userId,
+          ...calculated.totals,
+          items: {
+            create: calculated.items.map((item) => ({
+              ...item,
+              status: (data.status as any) || 'DRAFT',
+            })),
+          },
         },
-      },
-      include: { items: true },
+        include: { items: true },
+      });
     });
   }
 
@@ -178,13 +195,16 @@ export class PayrollService {
     if (!['DRAFT', 'REJECTED'].includes(payroll.status)) {
       throw new BadRequestException(`Payroll in ${payroll.status} status cannot be edited`);
     }
-    if ((await this.validatePeriod(tenantDb, data.year, data.month, id)).isDuplicate) {
-      throw new ConflictException('Another payroll exists for this period');
-    }
     this.ensureUniqueStaff(data.items);
     if (data.expenseAccountCode) await this.ensureExpenseAccount(tenantDb, data.expenseAccountCode);
     const calculated = this.calculate(data.items);
     return tenantDb.$transaction(async (tx: any) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(${data.year * 100 + data.month})`;
+      const duplicate = await tx.payroll.findFirst({
+        where: { year: data.year, month: data.month, deletedAt: null, id: { not: id } },
+        select: { id: true },
+      });
+      if (duplicate) throw new ConflictException('Another payroll exists for this period');
       await tx.payrollItem.deleteMany({ where: { payrollId: id } });
       return tx.payroll.update({
         where: { id },
@@ -231,18 +251,14 @@ export class PayrollService {
       reopen: 'DRAFT',
     }[data.action];
     return tenantDb.$transaction(async (tx: any) => {
-      for (let index = 0; index < payroll.items.length; index++) {
-        const item = payroll.items[index];
-        await tx.payrollItem.update({
-          where: { id: item.id },
-          data: {
-            status,
-            payslipNumber: ['approve', 'pay'].includes(data.action)
-              ? item.payslipNumber || `PAY-${payroll.year}${String(payroll.month).padStart(2, '0')}-${String(index + 1).padStart(3, '0')}`
-              : item.payslipNumber,
-          },
-        });
-      }
+      await this.applyStatusToItems(
+        tx,
+        payroll.items,
+        status,
+        payroll.year,
+        payroll.month,
+        data.action === 'approve' || data.action === 'pay',
+      );
       const updated = await tx.payroll.update({
         where: { id },
         data: {
@@ -254,11 +270,13 @@ export class PayrollService {
         },
       });
       if (data.action === 'pay') {
+        if (data.accountId) await this.validatePayoutAccount(tx, data.accountId);
         await this.recordPayrollPayment(
           tx,
           payroll,
           userId,
           `Payroll Payment — ${payroll.name} (${payroll.year}-${String(payroll.month).padStart(2, '0')})`,
+          data.accountId,
         );
       }
       return updated;
@@ -288,20 +306,34 @@ export class PayrollService {
     });
   }
 
+  /**
+   * Approve a payroll run atomically: parent status + every item status and
+   * payslip number in the same transaction as the parent write.
+   */
   async approvePayroll(tenantDb: any, id: string, userId: string) {
-    const payroll = await this.getPayrollById(tenantDb, id);
+    if (!tenantDb) throw new BadRequestException('Tenant DB not available');
 
-    if (payroll.status !== 'DRAFT' && payroll.status !== 'PENDING_APPROVAL') {
-      throw new BadRequestException(`Payroll status is '${payroll.status}' and cannot be approved`);
-    }
+    return tenantDb.$transaction(async (tx: any) => {
+      const payroll = await tx.payroll.findFirst({
+        where: { id, deletedAt: null },
+        include: { items: true },
+      });
+      if (!payroll) throw new NotFoundException(`Payroll run with ID '${id}' not found`);
 
-    return tenantDb.payroll.update({
-      where: { id },
-      data: {
-        status: 'APPROVED',
-        approvedById: userId,
-        approvedAt: new Date(),
-      },
+      if (payroll.status !== 'DRAFT' && payroll.status !== 'PENDING_APPROVAL') {
+        throw new BadRequestException(`Payroll status is '${payroll.status}' and cannot be approved`);
+      }
+
+      await this.applyStatusToItems(tx, payroll.items, 'APPROVED', payroll.year, payroll.month, true);
+
+      return tx.payroll.update({
+        where: { id },
+        data: {
+          status: 'APPROVED',
+          approvedById: userId,
+          approvedAt: new Date(),
+        },
+      });
     });
   }
 
@@ -309,14 +341,16 @@ export class PayrollService {
    * Process Payroll Payment Transactionally
    * Uses atomic Prisma transaction & status verification to ensure
    * a payroll run can NEVER be paid twice even under concurrent requests.
+   * Parent + all items are flipped to PAID and every item receives its
+   * payslip number atomically. An explicit payout account, when supplied,
+   * is validated against the tenant chart and used as the GL cash credit.
    */
   async processPayrollPayment(tenantDb: any, id: string, accountId: string, userId: string) {
     if (!tenantDb) throw new BadRequestException('Tenant DB not available');
 
     return tenantDb.$transaction(async (tx: any) => {
-      // Fetch with lock check
-      const payroll = await tx.payroll.findUnique({
-        where: { id },
+      const payroll = await tx.payroll.findFirst({
+        where: { id, deletedAt: null },
         include: { items: true },
       });
 
@@ -332,7 +366,10 @@ export class PayrollService {
         throw new BadRequestException(`Payroll must be APPROVED before payment processing.`);
       }
 
-      // 1. Mark Payroll as PAID
+      if (accountId) await this.validatePayoutAccount(tx, accountId);
+
+      // 1. Mark every item PAID with its payslip number, then the payroll PAID.
+      await this.applyStatusToItems(tx, payroll.items, 'PAID', payroll.year, payroll.month, true);
       const updatedPayroll = await tx.payroll.update({
         where: { id },
         data: {
@@ -346,6 +383,7 @@ export class PayrollService {
         payroll,
         userId,
         `Payroll salary payment for ${payroll.name} (${payroll.items.length} employees)`,
+        accountId,
       );
 
       return updatedPayroll;
@@ -362,13 +400,19 @@ export class PayrollService {
       totalNetSalary: 0,
     };
     const processed = items.map((item) => {
-      const grossSalary = item.baseSalary + item.bonuses;
-      const netSalary = grossSalary - item.deductions - item.tax;
+      // Round every input and derived value to cents before summing so the
+      // parent totals equal the sum of the (Decimal(12,2)) item rows.
+      const baseSalary = roundToCents(item.baseSalary);
+      const bonuses = roundToCents(item.bonuses);
+      const deductions = roundToCents(item.deductions);
+      const tax = roundToCents(item.tax);
+      const grossSalary = roundToCents(baseSalary + bonuses);
+      const netSalary = roundToCents(grossSalary - deductions - tax);
       if (netSalary < 0) throw new BadRequestException(`Net salary cannot be negative for ${item.employeeName}`);
-      totals.totalBaseSalary += item.baseSalary;
-      totals.totalBonuses += item.bonuses;
-      totals.totalDeductions += item.deductions;
-      totals.totalTax += item.tax;
+      totals.totalBaseSalary += baseSalary;
+      totals.totalBonuses += bonuses;
+      totals.totalDeductions += deductions;
+      totals.totalTax += tax;
       totals.totalGrossSalary += grossSalary;
       totals.totalNetSalary += netSalary;
       return {
@@ -376,16 +420,58 @@ export class PayrollService {
         employeeName: item.employeeName,
         employeePosition: item.employeePosition || null,
         employeeDepartment: (item.employeeDepartment as any) || 'GENERAL',
-        baseSalary: item.baseSalary,
-        bonuses: item.bonuses,
-        deductions: item.deductions,
-        tax: item.tax,
+        baseSalary,
+        bonuses,
+        deductions,
+        tax,
         grossSalary,
         netSalary,
         notes: item.notes || null,
       };
     });
+    (Object.keys(totals) as (keyof typeof totals)[]).forEach((key) => {
+      totals[key] = roundToCents(totals[key]);
+    });
     return { items: processed, totals };
+  }
+
+  /**
+   * Flip every payroll item to a new status inside the caller's transaction.
+   * When `assignPayslip` is true, items that still lack a payslip number are
+   * assigned a deterministic PAY-{year}{month}-{seq} number so approved/paid
+   * runs always carry payslips.
+   */
+  private async applyStatusToItems(
+    tx: any,
+    items: any[],
+    status: string,
+    year: number,
+    month: number,
+    assignPayslip: boolean,
+  ) {
+    for (let index = 0; index < items.length; index++) {
+      const item = items[index];
+      await tx.payrollItem.update({
+        where: { id: item.id },
+        data: {
+          status,
+          payslipNumber: assignPayslip
+            ? item.payslipNumber || `PAY-${year}${String(month).padStart(2, '0')}-${String(index + 1).padStart(3, '0')}`
+            : item.payslipNumber,
+        },
+      });
+    }
+  }
+
+  /**
+   * Validate that a requested payout (cash credit) account exists, is active
+   * and belongs to this tenant chart. Called with the transaction client so
+   * an invalid account aborts the whole payroll payment.
+   */
+  private async validatePayoutAccount(tx: any, accountId: string) {
+    const account = await tx.account.findUnique({ where: { code: accountId } });
+    if (!account) throw new BadRequestException(`Payment account '${accountId}' does not exist`);
+    if (!account.isActive) throw new BadRequestException(`Payment account '${accountId}' is inactive`);
   }
 
   private ensureUniqueStaff(items: PayrollItemDto[]) {

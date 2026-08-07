@@ -12,6 +12,12 @@ import { CentralPrismaService } from '../database/central-prisma.service';
 @Injectable()
 export class TenantAccessGuard implements CanActivate {
   private readonly principalCache = new Map<string, { expiresAt: number; role: string; companyId: string }>();
+  private readonly tenantUserCache = new Map<string, {
+    expiresAt: number;
+    constructionAccess: boolean;
+    realEstateAccess: boolean;
+    materialManagementAccess: boolean;
+  }>();
   private readonly configurationCache = new Map<string, { expiresAt: number; configuration: EnterpriseModuleConfiguration }>();
 
   constructor(private readonly centralPrisma: CentralPrismaService) {}
@@ -29,6 +35,30 @@ export class TenantAccessGuard implements CanActivate {
     return principal;
   }
 
+  private async currentTenantUser(tenantDb: any, userId: string) {
+    if (!tenantDb) return null;
+    const cached = this.tenantUserCache.get(userId);
+    if (cached && cached.expiresAt > Date.now()) return cached;
+    const tenantUser = await tenantDb.user.findFirst({
+      where: { id: userId, isActive: true, deletedAt: null },
+      select: {
+        id: true,
+        constructionAccess: true,
+        realEstateAccess: true,
+        materialManagementAccess: true,
+      },
+    });
+    if (!tenantUser) return null;
+    const current = {
+      constructionAccess: tenantUser.constructionAccess,
+      realEstateAccess: tenantUser.realEstateAccess,
+      materialManagementAccess: tenantUser.materialManagementAccess,
+      expiresAt: Date.now() + 2_000,
+    };
+    this.tenantUserCache.set(userId, current);
+    return current;
+  }
+
   private async enterpriseConfiguration(tenant: any, tenantDb: any) {
     const cached = this.configurationCache.get(tenant.companyId);
     if (cached && cached.expiresAt > Date.now()) return cached.configuration;
@@ -42,6 +72,7 @@ export class TenantAccessGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const tenant = request.tenantContext;
     const user = request.user as any;
+    const path = request.path;
 
     if (!user) {
       throw new UnauthorizedException('Authentication is required');
@@ -80,9 +111,23 @@ export class TenantAccessGuard implements CanActivate {
       if (principal.companyId !== tenant.companyId) throw new ForbiddenException('Cross-tenant data access denied');
       // JWT claims are only an initial identity assertion; use the current role for every protected request.
       user.role = principal.role;
+      // A central CompanyUser record alone is not proof of tenant membership.
+      // Fail closed unless an active tenant user exists for this request.
+      const tenantUser = await this.currentTenantUser(request.tenantDb, user.id);
+      if (!tenantUser) throw new UnauthorizedException('User account is not active in this company');
+      user.tenantUser = tenantUser;
+      const path = request.path;
+      if (path.startsWith('/api/construction') && !tenantUser.constructionAccess) {
+        throw new ForbiddenException('Your account is not granted access to the construction workspace');
+      }
+      if (path.startsWith('/api/real-estate') && !tenantUser.realEstateAccess) {
+        throw new ForbiddenException('Your account is not granted access to the real-estate workspace');
+      }
+      if (path.startsWith('/api/materials') && !tenantUser.materialManagementAccess) {
+        throw new ForbiddenException('Your account is not granted access to the material-management workspace');
+      }
     }
 
-    const path = request.path;
     if (path.startsWith('/api/construction') &&
         (!tenant.constructionEnabled || !tenant.entitlements.features.construction)) {
       throw new ForbiddenException('The construction workspace is not enabled');

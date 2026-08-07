@@ -148,14 +148,43 @@ export class StaffService {
     if (currentUserId && staff.userId === currentUserId) {
       throw new BadRequestException('You cannot delete your own staff record.');
     }
-    await tenantDb.$transaction(async (tx: any) => {
-      await tx.staff.delete({ where: { id } });
-      if (staff.userId) {
-        await tx.user.delete({ where: { id: staff.userId } });
-      }
-    });
+    const now = new Date();
     if (staff.userId) {
-      await this.central.companyUser.delete({ where: { id: staff.userId } });
+      // Revoke central authorization FIRST so the user can never remain
+      // authenticated without tenant membership if a later write fails.
+      try {
+        await this.central.companyUser.update({
+          where: { id: staff.userId },
+          data: { isActive: false, deletedAt: now, sessionVersion: { increment: 1 } },
+        });
+      } catch (error) {
+        throw new ConflictException('Failed to revoke the staff account; deletion was rolled back');
+      }
+    }
+    try {
+      // Soft-delete instead of hard-delete so WorkforceContractPayment (and all
+      // other payroll/history records) keyed to this staff row are preserved.
+      await tenantDb.$transaction(async (tx: any) => {
+        await tx.staff.update({
+          where: { id },
+          data: { status: 'INACTIVE', deletedAt: now },
+        });
+        if (staff.userId) {
+          await tx.user.update({
+            where: { id: staff.userId },
+            data: { isActive: false, deletedAt: now },
+          });
+        }
+      });
+    } catch (error) {
+      // Compensation: the tenant write failed, so restore the central account to
+      // keep central authorization and tenant membership in sync.
+      if (staff.userId) {
+        await this.central.companyUser
+          .update({ where: { id: staff.userId }, data: { isActive: true, deletedAt: null } })
+          .catch(() => undefined);
+      }
+      throw error;
     }
     return { deleted: true };
   }
@@ -170,6 +199,9 @@ export class StaffService {
       if (await centralTx.companyUser.findUnique({ where: { email } })) {
         throw new ConflictException('Email is already in use');
       }
+      // Tenant membership is created first; the central record references the same
+      // id so central authorization is never granted to a user lacking tenant
+      // membership. If the central write fails, the tenant user is removed.
       const user = await tenantDb.user.create({
         data: { email, name: `${staff.firstName} ${staff.lastName}`, passwordHash, role: data.role as any },
       });
@@ -179,7 +211,7 @@ export class StaffService {
         });
         await tenantDb.staff.update({ where: { id: staffId }, data: { userId: user.id } });
       } catch (error) {
-        await tenantDb.user.delete({ where: { id: user.id } });
+        await tenantDb.user.delete({ where: { id: user.id } }).catch(() => undefined);
         throw error;
       }
       return this.getStaffById(tenantDb, staffId);
@@ -190,14 +222,34 @@ export class StaffService {
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
     if (Boolean(staff.user?.isActive) === isActive) return { isActive };
-    const update = async (centralDb: any) => {
-      await Promise.all([
-        tenantDb.user.update({ where: { id: staff.userId }, data: { isActive } }),
-        centralDb.companyUser.update({ where: { id: staff.userId }, data: { isActive } }),
-      ]);
-    };
-    if (isActive) await this.entitlements.withUserQuota(companyId, update);
-    else await update(this.central);
+    if (isActive) {
+      // Activation: grant tenant membership first, then central authorization, so
+      // we never create an authorized central user without tenant membership.
+      await this.entitlements.withUserQuota(companyId, async (centralDb: any) => {
+        await tenantDb.user.update({ where: { id: staff.userId }, data: { isActive: true } });
+        try {
+          await centralDb.companyUser.update({ where: { id: staff.userId }, data: { isActive: true } });
+        } catch (error) {
+          await tenantDb.user.update({ where: { id: staff.userId }, data: { isActive: false } }).catch(() => undefined);
+          throw error;
+        }
+      });
+    } else {
+      // Deactivation: revoke central authorization first so the user is locked
+      // out even if the tenant write fails.
+      await this.central.companyUser.update({
+        where: { id: staff.userId },
+        data: { isActive: false, sessionVersion: { increment: 1 } },
+      });
+      try {
+        await tenantDb.user.update({ where: { id: staff.userId }, data: { isActive: false } });
+      } catch (error) {
+        await this.central.companyUser
+          .update({ where: { id: staff.userId }, data: { isActive: true } })
+          .catch(() => undefined);
+        throw error;
+      }
+    }
     return { isActive };
   }
 

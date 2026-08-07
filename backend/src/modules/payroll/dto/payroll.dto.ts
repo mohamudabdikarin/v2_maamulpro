@@ -42,4 +42,5 @@ export class PayrollTransitionDto {
   @IsIn(['submit', 'approve', 'reject', 'pay', 'reopen'])
   action: 'submit' | 'approve' | 'reject' | 'pay' | 'reopen';
   @IsOptional() @IsString() @MaxLength(500) reason?: string;
+  @IsOptional() @IsString() @MaxLength(30) accountId?: string;
 }

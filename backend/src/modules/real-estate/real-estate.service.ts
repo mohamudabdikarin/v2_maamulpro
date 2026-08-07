@@ -170,7 +170,7 @@ export class RealEstateService {
   async createDeal(tenantDb: any, userId: string, data: DealDto) {
     this.validateDealAmounts(data);
     return tenantDb.$transaction(async (tx: any) => {
-      await this.assertPropertyAvailable(tx, data.propertyId);
+      await this.claimAvailableProperty(tx, data.propertyId);
       const client = await tx.client.findFirst({ where: { id: data.clientId, deletedAt: null } });
       if (!client) throw new NotFoundException('Client not found');
       const paidAmount = Number(data.paidAmount || 0);
@@ -195,7 +195,7 @@ export class RealEstateService {
     return tenantDb.$transaction(async (tx: any) => {
       const existing = await tx.deal.findFirst({ where: { id, deletedAt: null } });
       if (!existing) throw new NotFoundException('Deal not found');
-      if (data.propertyId !== existing.propertyId) await this.assertPropertyAvailable(tx, data.propertyId);
+      if (data.propertyId !== existing.propertyId) await this.claimAvailableProperty(tx, data.propertyId);
       const where: any = { id, deletedAt: null };
       if (data.version !== undefined) where.version = data.version;
       const paidAmount = Number(data.paidAmount ?? existing.paidAmount ?? 0);
@@ -278,9 +278,16 @@ export class RealEstateService {
   async createRentalContract(tenantDb: any, data: RentalContractDto) {
     this.validateDateRange(data.startDate, data.endDate);
     return tenantDb.$transaction(async (tx: any) => {
-      const property = await tx.property.findFirst({ where: { id: data.propertyId, deletedAt: null } });
-      if (!property) throw new NotFoundException('Property not found');
+      const property = await this.lockPropertyRow(tx, data.propertyId);
       if (property.status === 'SOLD') throw new BadRequestException('Sold property cannot be rented');
+      const activeContract = await tx.rentalContract.findFirst({
+        where: {
+          propertyId: data.propertyId,
+          deletedAt: null,
+          status: { in: ['ACTIVE', 'RENEWAL_DUE'] },
+        },
+      });
+      if (activeContract) throw new ConflictException('Property already has an active rental contract');
       const tenant = await tx.tenant.findFirst({ where: { id: data.tenantId, deletedAt: null } });
       if (!tenant) throw new NotFoundException('Tenant not found');
       const contract = await tx.rentalContract.create({
@@ -297,15 +304,36 @@ export class RealEstateService {
 
   async updateRentalContract(tenantDb: any, id: string, data: RentalContractDto) {
     this.validateDateRange(data.startDate, data.endDate);
-    const existing = await tenantDb.rentalContract.findFirst({ where: { id, deletedAt: null } });
-    if (!existing) throw new NotFoundException('Rental contract not found');
-    const contract = await tenantDb.rentalContract.update({
-      where: { id },
-      data: { ...data, status: data.status as any },
+    return tenantDb.$transaction(async (tx: any) => {
+      const existing = await tx.rentalContract.findFirst({ where: { id, deletedAt: null } });
+      if (!existing) throw new NotFoundException('Rental contract not found');
+      const targetPropertyId = data.propertyId || existing.propertyId;
+      const targetStatus = (data.status as any) || existing.status;
+      // Lock every affected property in a deterministic order so concurrent
+      // updates cannot double-assign the same property.
+      const propertyIds = [...new Set([existing.propertyId, targetPropertyId])].sort();
+      for (const propertyId of propertyIds) {
+        await this.lockPropertyRow(tx, propertyId);
+      }
+      if (['ACTIVE', 'RENEWAL_DUE'].includes(targetStatus)) {
+        const activeContract = await tx.rentalContract.findFirst({
+          where: {
+            id: { not: id },
+            propertyId: targetPropertyId,
+            deletedAt: null,
+            status: { in: ['ACTIVE', 'RENEWAL_DUE'] },
+          },
+        });
+        if (activeContract) throw new ConflictException('Property already has an active rental contract');
+      }
+      const contract = await tx.rentalContract.update({
+        where: { id },
+        data: { ...data, status: data.status as any },
+      });
+      await this.syncDealPropertyStatus(tx, contract.propertyId);
+      if (existing.propertyId !== contract.propertyId) await this.syncDealPropertyStatus(tx, existing.propertyId);
+      return contract;
     });
-    await this.syncDealPropertyStatus(tenantDb, contract.propertyId);
-    if (existing.propertyId !== contract.propertyId) await this.syncDealPropertyStatus(tenantDb, existing.propertyId);
-    return contract;
   }
 
   async deleteRentalContract(tenantDb: any, id: string) {
@@ -335,16 +363,24 @@ export class RealEstateService {
     const startOfMonth = new Date(Date.UTC(year, month, 1));
     const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
 
-    const activeContracts = await tenantDb.rentalContract.findMany({
-      where: { status: 'ACTIVE', deletedAt: null },
-      include: { tenant: true, property: true },
-    });
-
     let generatedCount = 0;
     let skippedCount = 0;
     let totalAmount = 0;
 
     await tenantDb.$transaction(async (tx: any) => {
+      // Lock every active contract in a deterministic order so concurrent runs
+      // serialize: the second run blocks here and then sees the invoices the
+      // first run committed, keeping generation idempotent.
+      await tx.$queryRaw`
+        SELECT "id" FROM "rental_contracts"
+        WHERE "status" = 'ACTIVE' AND "deleted_at" IS NULL
+        ORDER BY "id" FOR UPDATE`;
+
+      const activeContracts = await tx.rentalContract.findMany({
+        where: { status: 'ACTIVE', deletedAt: null },
+        include: { tenant: true, property: true },
+      });
+
       for (const contract of activeContracts) {
         const existing = await tx.rentPayment.findFirst({
           where: {
@@ -396,6 +432,7 @@ export class RealEstateService {
   async createRentPayment(tenantDb: any, data: RentPaymentDto) {
     this.validatePayment(data);
     return tenantDb.$transaction(async (tx: any) => {
+      if (data.contractId) await this.assertRentPaymentTenant(tx, data.contractId, data.tenantId);
       const amountPaid = Number(data.amountPaid || 0);
       const amountDue = Number(data.amountDue);
       const status = this.paymentStatus(amountDue, amountPaid, new Date(data.dueDate));
@@ -417,6 +454,9 @@ export class RealEstateService {
     return tenantDb.$transaction(async (tx: any) => {
       const existing = await tx.rentPayment.findFirst({ where: { id, deletedAt: null } });
       if (!existing) throw new NotFoundException('Rent payment not found');
+      const contractId = data.contractId ?? existing.contractId;
+      const tenantId = data.tenantId ?? existing.tenantId;
+      if (contractId) await this.assertRentPaymentTenant(tx, contractId, tenantId);
       const amountPaid = Number(data.amountPaid ?? existing.amountPaid ?? 0);
       const amountDue = Number(data.amountDue ?? existing.amountDue);
       const dueDate = data.dueDate ? new Date(data.dueDate) : existing.dueDate;
@@ -500,11 +540,32 @@ export class RealEstateService {
     if (new Date(end) < new Date(start)) throw new BadRequestException('End date must be on or after start date');
   }
 
-  private async assertPropertyAvailable(tx: any, propertyId: string) {
-    const property = await tx.property.findFirst({ where: { id: propertyId, deletedAt: null } });
-    if (!property) throw new NotFoundException('Property not found');
+  private async lockPropertyRow(tx: any, propertyId: string) {
+    // Row lock: concurrent claims on the same property serialize, and the
+    // waiting transaction re-reads the committed row once the lock releases.
+    const rows: any[] = await tx.$queryRaw`
+      SELECT "id", "status" FROM "properties"
+      WHERE "id" = ${propertyId} AND "deleted_at" IS NULL
+      FOR UPDATE`;
+    if (!rows.length) throw new NotFoundException('Property not found');
+    return rows[0];
+  }
+
+  private async claimAvailableProperty(tx: any, propertyId: string) {
+    const property = await this.lockPropertyRow(tx, propertyId);
     if (['SOLD', 'RENTED'].includes(property.status)) {
       throw new ConflictException('Property is not available for a new deal');
+    }
+  }
+
+  private async assertRentPaymentTenant(tx: any, contractId: string, tenantId: string) {
+    const contract = await tx.rentalContract.findFirst({
+      where: { id: contractId, deletedAt: null },
+      select: { id: true, tenantId: true },
+    });
+    if (!contract) throw new BadRequestException('Rental contract not found');
+    if (contract.tenantId !== tenantId) {
+      throw new BadRequestException('Tenant does not belong to the specified rental contract');
     }
   }
 

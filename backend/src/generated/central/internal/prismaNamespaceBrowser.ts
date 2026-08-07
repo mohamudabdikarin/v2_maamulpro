@@ -83,6 +83,8 @@ export const CompanyScalarFieldEnum = {
   subdomain: 'subdomain',
   companyType: 'companyType',
   dbUrl: 'dbUrl',
+  dbProvider: 'dbProvider',
+  dbCreatedByMaamulPro: 'dbCreatedByMaamulPro',
   logoUrl: 'logoUrl',
   phone: 'phone',
   address: 'address',

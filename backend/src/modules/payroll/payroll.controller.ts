@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, Query, UseGuards, HttpCode, HttpStatus, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, UseGuards, HttpCode, HttpStatus, Patch, Delete, ForbiddenException } from '@nestjs/common';
 import { PayrollService } from './payroll.service';
 import { GetTenantDb } from '../../common/decorators/tenant-context.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -59,10 +59,31 @@ export class PayrollController {
   transition(
     @GetTenantDb() db: any,
     @Param('id') id: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: any,
     @Body() body: PayrollTransitionDto,
   ) {
-    return this.payrollService.transition(db, id, body, userId);
+    this.assertTransitionAuthorized(user, body.action);
+    return this.payrollService.transition(db, id, body, user?.id);
+  }
+
+  /**
+   * The transition endpoint is a convenience gate for manage-level users,
+   * but approve/pay actions must still be guarded by their dedicated
+   * permission keys (payroll.approve / payroll.pay) exactly as if they
+   * were called on the dedicated /approve and /pay endpoints.
+   */
+  private assertTransitionAuthorized(user: any, action: string) {
+    const required: Record<string, string | undefined> = {
+      approve: 'payroll.approve',
+      pay: 'payroll.pay',
+    };
+    const permission = required[action];
+    if (!permission) return;
+    if (user?.isSuperAdmin || user?.role === 'SUPER_ADMIN' || user?.role === 'COMPANY_OWNER') return;
+    const granted: string[] = user?.permissions ?? [];
+    if (!granted.includes(permission)) {
+      throw new ForbiddenException(`Missing required permission: ${permission}`);
+    }
   }
 
   @Delete(':id')
@@ -100,7 +121,7 @@ export class PayrollController {
   }
 
   @Post(':id/pay')
-  @RequirePermissions('payroll.manage')
+  @RequirePermissions('payroll.pay')
   @HttpCode(HttpStatus.OK)
   async processPayrollPayment(
     @GetTenantDb() tenantDb: any,

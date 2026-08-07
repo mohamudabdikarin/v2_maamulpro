@@ -68,7 +68,7 @@ export class AccountingService {
 
   /**
    * Reverse every still-POSTED batch that belongs to (sourceType, sourceId).
-   * Called by module sync hooks before they post a fresh batch — mirrors
+   * Called by module sync hooks after they post a fresh batch — mirrors
    * the "soft-delete prior tx rows, insert fresh" pattern that hooks like
    * syncSaleLedger and syncDealLedger already use for the informal ledger,
    * but preserves audit trail (the reversal batch stays visible).
@@ -78,9 +78,15 @@ export class AccountingService {
     sourceType: string,
     sourceId: string,
     userId?: string,
+    exceptBatchIds?: string[],
   ) {
     const prior = await tx.journalBatch.findMany({
-      where: { sourceType, sourceId, status: 'POSTED' },
+      where: {
+        sourceType,
+        sourceId,
+        status: 'POSTED',
+        ...(exceptBatchIds?.length ? { id: { notIn: exceptBatchIds } } : {}),
+      },
       select: { id: true },
     });
     for (const p of prior) {

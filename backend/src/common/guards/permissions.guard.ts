@@ -45,25 +45,28 @@ export class PermissionsGuard implements CanActivate {
         rbacUserPermissions: { include: { permission: true } },
       },
     });
+    if (!tenantUser) {
+      // Fail closed: without an active tenant user, no tenant permissions are granted.
+      // A central role template must never authorize a user who no longer has an
+      // active tenant membership (owner/superadmin are handled before this call).
+      const denied: string[] = [];
+      this.permissionCache.set(key, { permissions: denied, expiresAt: Date.now() + 2_000 });
+      return denied;
+    }
     const permissions = new Set<string>();
-    if (tenantUser) {
-      const rbacRoles = tenantUser.rbacUserRoles || [];
-      for (const assignment of rbacRoles) {
-        for (const rolePermission of assignment.role?.rolePermissions || []) {
-          if (rolePermission.permission?.key) permissions.add(rolePermission.permission.key);
-        }
+    const rbacRoles = tenantUser.rbacUserRoles || [];
+    for (const assignment of rbacRoles) {
+      for (const rolePermission of assignment.role?.rolePermissions || []) {
+        if (rolePermission.permission?.key) permissions.add(rolePermission.permission.key);
       }
-      const directPerms = tenantUser.rbacUserPermissions || [];
-      for (const direct of directPerms) {
-        if (!direct.permission?.key) continue;
-        if (direct.effect === 'DENY') permissions.delete(direct.permission.key);
-        else permissions.add(direct.permission.key);
-      }
-      if (rbacRoles.length === 0 && directPerms.length === 0) {
-        const roleTemplate = ROLE_PERMISSIONS[user.role as AppRole];
-        if (roleTemplate) roleTemplate.forEach((p: string) => permissions.add(p));
-      }
-    } else {
+    }
+    const directPerms = tenantUser.rbacUserPermissions || [];
+    for (const direct of directPerms) {
+      if (!direct.permission?.key) continue;
+      if (direct.effect === 'DENY') permissions.delete(direct.permission.key);
+      else permissions.add(direct.permission.key);
+    }
+    if (rbacRoles.length === 0 && directPerms.length === 0) {
       const roleTemplate = ROLE_PERMISSIONS[user.role as AppRole];
       if (roleTemplate) roleTemplate.forEach((p: string) => permissions.add(p));
     }

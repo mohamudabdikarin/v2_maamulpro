@@ -1061,6 +1061,8 @@ export const CompanyScalarFieldEnum = {
   subdomain: 'subdomain',
   companyType: 'companyType',
   dbUrl: 'dbUrl',
+  dbProvider: 'dbProvider',
+  dbCreatedByMaamulPro: 'dbCreatedByMaamulPro',
   logoUrl: 'logoUrl',
   phone: 'phone',
   address: 'address',
@@ -1292,6 +1294,13 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'ModuleMode'
  */
 export type EnumModuleModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ModuleMode'>
@@ -1316,13 +1325,6 @@ export type EnumCompanyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'CompanyStatus[]'
  */
 export type ListEnumCompanyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanyStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

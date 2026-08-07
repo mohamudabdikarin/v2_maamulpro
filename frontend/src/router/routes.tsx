@@ -8,6 +8,7 @@ const CrudPage = lazy(() => import('../pages/CrudPage'));
 const ConstructionInventoryPage = lazy(() => import('../pages/ConstructionInventoryPage'));
 const WorkforceContractsPage = lazy(() => import('../pages/WorkforceContractsPage'));
 const ProjectReportsPage = lazy(() => import('../pages/ProjectReportsPage'));
+const CoreReportsPage = lazy(() => import('../pages/CoreReportsPage'));
 const SuperAdminBillingPage = lazy(() => import('../pages/SuperAdminBillingPage'));
 const NotificationsPage = lazy(() => import('../pages/NotificationsPage'));
 const NoAccessPage = lazy(() => import('../pages/NoAccessPage'));
@@ -47,12 +48,19 @@ const LegacyRedirectPage = lazy(() => import('../pages/LegacyRedirectPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
 /** Nested report drill-down routes — each workspace loads different entities/data. */
-const reportRoutes = (basePath: string, permission: string, workspace: 'construction' | 'real_estate' | 'material_management' | 'payroll' | 'core') => [
-    { path: basePath, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
-    { path: `${basePath}/:projectId`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
-    { path: `${basePath}/:projectId/:category`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
-    { path: `${basePath}/:projectId/:category/:txnId`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
-];
+const reportRoutes = (basePath: string, permission: string, workspace: 'construction' | 'real_estate' | 'material_management' | 'payroll' | 'core') => {
+    const entityBased = workspace === 'construction' || workspace === 'real_estate' || workspace === 'material_management';
+    const baseRoute = { path: basePath, element: entityBased
+        ? <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />
+        : <CoreReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission };
+    if (!entityBased) return [baseRoute];
+    return [
+        baseRoute,
+        { path: `${basePath}/:projectId`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
+        { path: `${basePath}/:projectId/:category`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
+        { path: `${basePath}/:projectId/:category/:txnId`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
+    ];
+};
 
 const routes = [
     { path: '/', element: <LoginPage />, layout: 'blank' },
@@ -72,16 +80,16 @@ const routes = [
     { path: '/app/no-access', element: <NoAccessPage />, layout: 'blank' },
     { path: '/app/staff', element: <StaffPage />, layout: 'blank', permission: 'users.read' },
     { path: '/app/financials', element: <FinancialsPage />, layout: 'blank', permission: 'financials.read' },
-    { path: '/app/financials/categories', element: <CrudPage title="Financial Categories" description="Reusable income and expense classifications." endpoint="/api/financials/categories" fields={[
+    { path: '/app/financials/categories', element: <CrudPage title="Financial Categories" description="Reusable income and expense classifications." endpoint="/api/financials/categories" createPermission="transactions.create" updatePermission="transactions.update" deletePermission="transactions.delete" fields={[
         { name: 'name', label: 'Name', required: true }, { name: 'code', label: 'Code' }, { name: 'color', label: 'Color' }, { name: 'description', label: 'Description', type: 'textarea' },
     ]} />, layout: 'blank', permission: 'financials.read' },
     { path: '/app/financials/accounts', element: <AccountsPage />, layout: 'blank', permission: 'accounting.read' },
     { path: '/app/financials/journals', element: <JournalEntriesPage />, layout: 'blank', permission: 'accounting.read' },
     { path: '/app/financials/financial-reports', element: <FinancialReportsPage />, layout: 'blank', permission: 'accounting.read' },
     ...reportRoutes('/app/financials/reports', 'reports.read', 'core'),
-    { path: '/app/financials/profit-loss', element: <ProjectReportsPage key="core" basePath="/app/financials/reports" workspace="core" />, layout: 'blank', permission: 'financials.read' },
-    { path: '/app/financials/transaction-detail', element: <ProjectReportsPage key="core" basePath="/app/financials/reports" workspace="core" />, layout: 'blank', permission: 'financials.read' },
-    { path: '/app/payroll', element: <CrudPage title="Payroll" description="Payroll periods, employee calculations, approvals, rejection and payment state." endpoint="/api/payroll" canEdit={(row) => ['DRAFT', 'REJECTED'].includes(row.status)} canDelete={(row) => row.status === 'DRAFT'} transitions={[
+    { path: '/app/financials/profit-loss', element: <CoreReportsPage key="core-profit" basePath="/app/financials/reports" workspace="core" initialReportId="core-profit-summary" />, layout: 'blank', permission: 'financials.read' },
+    { path: '/app/financials/transaction-detail', element: <CoreReportsPage key="core-detail" basePath="/app/financials/reports" workspace="core" initialReportId="core-transaction-detail" />, layout: 'blank', permission: 'financials.read' },
+    { path: '/app/payroll', element: <CrudPage title="Payroll" description="Payroll periods, employee calculations, approvals, rejection and payment state." endpoint="/api/payroll" createPermission="payroll.manage" updatePermission="payroll.manage" deletePermission="payroll.manage" canEdit={(row) => ['DRAFT', 'REJECTED'].includes(row.status)} canDelete={(row) => row.status === 'DRAFT'} transitions={[
         { action: 'submit', label: 'Submit', tone: 'primary', when: ['DRAFT', 'REJECTED'] }, { action: 'approve', label: 'Approve', tone: 'success', when: ['DRAFT', 'PENDING_APPROVAL'] },
         { action: 'reject', label: 'Reject', tone: 'danger', when: ['PENDING_APPROVAL'] }, { action: 'pay', label: 'Pay', tone: 'success', when: ['APPROVED'] }, { action: 'reopen', label: 'Reopen', tone: 'warning', when: ['PENDING_APPROVAL', 'APPROVED', 'REJECTED'] },
     ]} fields={[
@@ -109,11 +117,11 @@ const routes = [
     { path: '/app/construction/projects/new', element: <CrudRoutePage title="New construction project" description="Set the project identity, budget, schedule, image and initial delivery state." endpoint="/api/construction/projects" fields={projectFields} initialMode="create" returnTo="/app/construction/projects" />, layout: 'blank', permission: 'projects.create' },
     { path: '/app/construction/projects/:id/edit', element: <CrudRoutePage title="Edit construction project" description="Update the budget, schedule, delivery state and project presentation." endpoint="/api/construction/projects" fields={projectFields} initialMode="edit" returnTo="/app/construction/projects" />, layout: 'blank', permission: 'projects.update' },
     { path: '/app/construction/projects/:id', element: <EntityDetailPage titleKey="name" endpoint="/api/construction/projects" backTo="/app/construction/projects" editTo={(id) => `/app/construction/projects/${id}/edit`} imageKey="imageUrl" statusKey="status" primaryFields={['description', 'location', 'budget', 'progress', 'startDate', 'endDate']} moneyKeys={['budget', 'amount', 'originalBudget']} dateKeys={['startDate', 'endDate', 'dueDate', 'date']} sections={[{ key: 'tasks', title: 'Project tasks' }, { key: 'assignedStaff', title: 'Assigned staff' }, { key: 'dailyExpenses', title: 'Operational expenses' }, { key: 'workforceContracts', title: 'Workforce contracts' }]} />, layout: 'blank', permission: 'projects.read' },
-    { path: '/app/construction/tasks', element: <CrudPage title="Project Tasks" description="Task ownership, priority, deadlines and progress." endpoint="/api/construction/tasks" fields={taskFields} />, layout: 'blank', permission: 'construction_tasks.read' },
+    { path: '/app/construction/tasks', element: <CrudPage title="Project Tasks" description="Task ownership, priority, deadlines and progress." endpoint="/api/construction/tasks" createPermission="construction_tasks.create" updatePermission="construction_tasks.update" deletePermission="construction_tasks.delete" fields={taskFields} />, layout: 'blank', permission: 'construction_tasks.read' },
     { path: '/app/construction/tasks/new', element: <CrudRoutePage title="New project task" description="Assign work, priority, schedule and completion targets." endpoint="/api/construction/tasks" fields={taskFields} initialMode="create" returnTo="/app/construction/tasks" />, layout: 'blank', permission: 'construction_tasks.create' },
     { path: '/app/construction/tasks/:id/edit', element: <CrudRoutePage title="Edit project task" description="Update assignment, progress, status and deadline." endpoint="/api/construction/tasks" fields={taskFields} initialMode="edit" returnTo="/app/construction/tasks" />, layout: 'blank', permission: 'construction_tasks.update' },
     { path: '/app/construction/progress', element: <ConstructionProgressPage />, layout: 'blank', permission: 'project_progress.read' },
-    { path: '/app/construction/expenses', element: <CrudPage title="Operational Expenses" description="Daily construction costs synchronized with the unified financial ledger." endpoint="/api/construction/expenses" fields={expenseFields} />, layout: 'blank', permission: 'construction_expenses.read' },
+    { path: '/app/construction/expenses', element: <CrudPage title="Operational Expenses" description="Daily construction costs synchronized with the unified financial ledger." endpoint="/api/construction/expenses" createPermission="construction_expenses.create" updatePermission="construction_expenses.update" deletePermission="construction_expenses.delete" fields={expenseFields} />, layout: 'blank', permission: 'construction_expenses.read' },
     { path: '/app/construction/expenses/new', element: <CrudRoutePage title="Record site expense" description="Record a project or worker-linked construction cost." endpoint="/api/construction/expenses" fields={expenseFields} initialMode="create" returnTo="/app/construction/expenses" />, layout: 'blank', permission: 'construction_expenses.create' },
     { path: '/app/construction/expenses/:id/edit', element: <CrudRoutePage title="Edit site expense" description="Correct the amount, category, assignment or expense date." endpoint="/api/construction/expenses" fields={expenseFields} initialMode="edit" returnTo="/app/construction/expenses" />, layout: 'blank', permission: 'construction_expenses.update' },
     { path: '/app/construction/manpower', element: <ManpowerPage />, layout: 'blank', permission: 'manpower.read' },
@@ -200,13 +208,13 @@ const routes = [
     ]} fields={purchaseFields} />, layout: 'blank', permission: 'purchases.read' },
     { path: '/app/materials/purchases/new', element: <CrudRoutePage title="Create purchase order" description="Draft a material order with supplier and line items." endpoint="/api/materials/purchases" fields={purchaseFields} initialMode="create" returnTo="/app/materials/purchases" />, layout: 'blank', permission: 'purchases.create' },
     { path: '/app/materials/purchases/:id/edit', element: <CrudRoutePage title="Edit purchase order" description="Modify purchase order line items and dates." endpoint="/api/materials/purchases" fields={purchaseFields} initialMode="edit" returnTo="/app/materials/purchases" />, layout: 'blank', permission: 'purchases.update' },
-    { path: '/app/materials/customers', element: <CrudPage title="Material Customers" description="Customer accounts for material sales and invoices." endpoint="/api/materials/customers" fields={customerFields} />, layout: 'blank', permission: 'material_customers.read' },
-    { path: '/app/materials/customers/new', element: <CrudRoutePage title="Add customer" description="Register a customer account for material sales." endpoint="/api/materials/customers" fields={customerFields} initialMode="create" returnTo="/app/materials/customers" />, layout: 'blank', permission: 'material_customers.read' },
+    { path: '/app/materials/customers', element: <CrudPage title="Material Customers" description="Customer accounts for material sales and invoices." endpoint="/api/materials/customers" createPermission="material_sales.create" updatePermission="material_customers.update" deletePermission="material_sales.delete" fields={customerFields} />, layout: 'blank', permission: 'material_customers.read' },
+    { path: '/app/materials/customers/new', element: <CrudRoutePage title="Add customer" description="Register a customer account for material sales." endpoint="/api/materials/customers" fields={customerFields} initialMode="create" returnTo="/app/materials/customers" />, layout: 'blank', permission: 'material_sales.create' },
     { path: '/app/materials/customers/:id/edit', element: <CrudRoutePage title="Edit customer" description="Update customer contact details." endpoint="/api/materials/customers" fields={customerFields} initialMode="edit" returnTo="/app/materials/customers" />, layout: 'blank', permission: 'material_customers.update' },
-    { path: '/app/materials/sales', element: <CrudPage title="Material Sales" description="Invoices with stock reversal, discounts, revenue and receivable synchronization." endpoint="/api/materials/sales" printable fields={saleFields} />, layout: 'blank', permission: 'material_sales.read' },
+    { path: '/app/materials/sales', element: <CrudPage title="Material Sales" description="Invoices with stock reversal, discounts, revenue and receivable synchronization." endpoint="/api/materials/sales" printable createPermission="material_sales.create" updatePermission="material_sales.update" deletePermission="material_sales.delete" fields={saleFields} />, layout: 'blank', permission: 'material_sales.read' },
     { path: '/app/materials/sales/new', element: <CrudRoutePage title="Create sales invoice" description="Issue a material sales invoice to a customer." endpoint="/api/materials/sales" fields={saleFields} initialMode="create" returnTo="/app/materials/sales" />, layout: 'blank', permission: 'material_sales.create' },
     { path: '/app/materials/sales/:id/edit', element: <CrudRoutePage title="Edit sales invoice" description="Update invoice discount or notes." endpoint="/api/materials/sales" fields={saleFields} initialMode="edit" returnTo="/app/materials/sales" />, layout: 'blank', permission: 'material_sales.update' },
-    { path: '/app/materials/transportation', element: <CrudPage title="Transportation" description="Delivery tracking with expense posting when delivered." endpoint="/api/materials/transportation" transitions={[
+    { path: '/app/materials/transportation', element: <CrudPage title="Transportation" description="Delivery tracking with expense posting when delivered." endpoint="/api/materials/transportation" createPermission="transportation.create" updatePermission="transportation.update" deletePermission="transportation.delete" transitions={[
         { action: 'in_transit', label: 'Start transit', tone: 'primary', path: 'status', body: { status: 'IN_TRANSIT' }, when: ['PENDING'] },
         { action: 'delivered', label: 'Mark delivered', tone: 'success', path: 'status', body: { status: 'DELIVERED' }, when: ['PENDING', 'IN_TRANSIT'] },
         { action: 'cancelled', label: 'Cancel', tone: 'danger', path: 'status', body: { status: 'CANCELLED' }, when: ['PENDING', 'IN_TRANSIT'] },

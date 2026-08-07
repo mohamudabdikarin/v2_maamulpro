@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsDate, IsEmail, IsIn, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsDate, IsEmail, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 
 export class MaterialDto {
   @IsString() @MaxLength(180) name: string;
@@ -13,6 +13,7 @@ export class MaterialDto {
   @IsOptional() @IsString() @MaxLength(160) warehouse?: string;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) lowStockThreshold?: number;
   @IsOptional() @IsIn(['ACTIVE', 'INACTIVE', 'DISCONTINUED']) status?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
 export class SupplierDto {
@@ -22,6 +23,7 @@ export class SupplierDto {
   @IsOptional() @IsString() @MaxLength(500) address?: string;
   @IsOptional() @Type(() => Number) @IsNumber() balance?: number;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
 export class PurchaseItemDto {
@@ -38,6 +40,7 @@ export class PurchaseOrderDto {
   @IsOptional() @Type(() => Date) @IsDate() receivedAt?: Date;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => PurchaseItemDto) items: PurchaseItemDto[];
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
 export class PurchaseStatusDto {
@@ -50,6 +53,7 @@ export class MaterialCustomerDto {
   @IsOptional() @IsString() @MaxLength(50) phone?: string;
   @IsOptional() @IsString() @MaxLength(500) address?: string;
   @IsOptional() @Type(() => Number) @IsNumber() balance?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
 export class SaleItemDto {
@@ -66,6 +70,7 @@ export class MaterialSaleDto {
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => SaleItemDto) items: SaleItemDto[];
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
 export class TransportationDto {
@@ -77,6 +82,7 @@ export class TransportationDto {
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @IsString() materialId: string;
   @Type(() => Number) @IsNumber() @Min(0.01) quantity: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
 export class TransportationStatusDto {

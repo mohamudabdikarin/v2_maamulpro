@@ -502,13 +502,28 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
     const renderCategory = () => {
         if (!ledger || !category) return null;
         const meta = cfg.categories[category];
+
+        const sortedRows = [...ledger.rows].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const groups = new Map<string, typeof sortedRows>();
+
+        for (const row of sortedRows) {
+            const groupKey = cfg.primaryValue(category, row) || 'Uncategorized';
+            if (!groups.has(groupKey)) groups.set(groupKey, []);
+            groups.get(groupKey)!.push(row);
+        }
+
+        const groupedEntries = Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
         return (
             <div>
                 <button type="button" className="print:hidden btn btn-outline-secondary mb-3" onClick={() => navigate(`${base}/${entityId}`)}>← Back to {ledger.project.name}</button>
-                <div className="mb-5">
-                    <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{ledger.project.name}</div>
-                    <h1 className="mt-1 text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">{meta.label}</h1>
-                    <p className="mt-1 text-sm text-white-dark">{meta.desc} · {ledger.rows.length} entries · {money(ledger.total)} total</p>
+                <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                    <div>
+                        <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{ledger.project.name}</div>
+                        <h1 className="mt-1 text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">{meta.label}</h1>
+                        <p className="mt-1 text-sm text-white-dark">{meta.desc} · {ledger.rows.length} entries · {money(ledger.total)} total</p>
+                    </div>
+                    <button type="button" className="print:hidden btn btn-primary" onClick={printNow}>Print</button>
                 </div>
                 {ledger.filter && (
                     <div className="print:hidden mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary">
@@ -519,33 +534,82 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                 {!ledger.rows.length ? (
                     <div className="panel"><EmptyState title={`No ${meta.label.toLowerCase()} entries`} description="Nothing recorded for this selection in the period." /></div>
                 ) : (
-                    <div className="panel overflow-hidden p-0">
-                        <div className="table-responsive">
-                            <table className="table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>{cfg.primaryCol(category)}</th>
-                                        <th>{cfg.secondaryCol(category)}</th>
-                                        <th>Date</th>
-                                        <th>Entered by</th>
-                                        <th className="text-right">Amount</th>
-                                        <th className="w-8" />
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {ledger.rows.map((row) => (
-                                        <tr key={row.id} className="cursor-pointer" onClick={() => navigate(`${base}/${entityId}/${category}/${row.id}`)}>
-                                            <td className="font-medium">{cfg.primaryValue(category, row)}</td>
-                                            <td>{cfg.secondaryValue(category, row)}</td>
-                                            <td>{shortDate(row.date)}</td>
-                                            <td>{row.enteredBy || row.recordedBy || row.usedBy || '—'}</td>
-                                            <td className={`text-right ${amountClass}`}>{money(row.amount)}</td>
-                                            <td className="text-white-dark">›</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                    <div className="print-sheet mx-auto max-w-6xl rounded-2xl border border-white-light bg-white p-7 shadow-sm dark:border-dark dark:bg-[#0e1726]">
+                        <div className="mb-6 flex flex-col items-center border-b-2 border-secondary/50 pb-4 dark:border-white/50">
+                            <div className="text-sm font-extrabold tracking-wide text-secondary dark:text-white">MAAMULPRO</div>
+                            <div className="mt-1 text-lg font-bold text-secondary dark:text-white">Transaction Detail By Account</div>
+                            <div className="text-xs text-white-dark">All Transactions</div>
                         </div>
+                        {groupedEntries.map(([groupName, rows]) => {
+                            let runningBalance = 0;
+                            return (
+                                <div key={groupName} className="mb-8 last:mb-0">
+                                    <h3 className="mb-3 text-[13px] font-bold text-secondary dark:text-white">{meta.label} / {groupName}</h3>
+                                    <div className="overflow-hidden">
+                                        <div className="table-responsive">
+                                            <table className="table-hover text-[12px]">
+                                                <thead>
+                                                    <tr className="border-b border-secondary/20 dark:border-white/20">
+                                                        <th>Type</th>
+                                                        <th>Date</th>
+                                                        <th>Adj</th>
+                                                        <th>Name</th>
+                                                        <th>Memo</th>
+                                                        <th>Clr</th>
+                                                        <th>Split</th>
+                                                        <th className="text-right">Debit</th>
+                                                        <th className="text-right">Credit</th>
+                                                        <th className="text-right">Balance</th>
+                                                        <th className="print:hidden w-8" />
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {rows.map((row) => {
+                                                        const amount = Number(row.amount);
+                                                        // Use heuristics to define credit vs debit
+                                                        let debit = 0;
+                                                        let credit = 0;
+                                                        
+                                                        if (row.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals')) {
+                                                            credit = amount;
+                                                        } else {
+                                                            debit = amount;
+                                                        }
+                                                        
+                                                        runningBalance += debit - credit;
+
+                                                        const typeLabel = row.category === 'manpower' ? 'Labor' : row.category === 'materials' ? 'Material' : 'Expense';
+
+                                                        return (
+                                                            <tr key={row.id} className="cursor-pointer" onClick={() => navigate(`${base}/${entityId}/${category}/${row.id}`)}>
+                                                                <td className="whitespace-nowrap">{typeLabel}</td>
+                                                                <td className="whitespace-nowrap">{shortDate(row.date)}</td>
+                                                                <td></td>
+                                                                <td className="whitespace-nowrap font-medium">{cfg.secondaryValue(category, row) !== '—' ? cfg.secondaryValue(category, row) : row.enteredBy}</td>
+                                                                <td className="max-w-[200px] truncate">{row.description || row.notes || '—'}</td>
+                                                                <td></td>
+                                                                <td className="whitespace-nowrap">Cash / AP</td>
+                                                                <td className={`text-right ${amountClass}`}>{debit ? money(debit) : ''}</td>
+                                                                <td className={`text-right ${amountClass}`}>{credit ? money(credit) : ''}</td>
+                                                                <td className={`text-right ${amountClass}`}>{money(runningBalance)}</td>
+                                                                <td className="print:hidden text-white-dark">›</td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                    <tr className="border-t-[3px] border-double border-secondary/30 font-bold dark:border-white/30">
+                                                        <td colSpan={7} className="text-right">Total {groupName}</td>
+                                                        <td className={`text-right ${amountClass}`}>{money(rows.reduce((s, r) => s + (r.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals') ? 0 : Number(r.amount)), 0))}</td>
+                                                        <td className={`text-right ${amountClass}`}>{money(rows.reduce((s, r) => s + (r.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals') ? Number(r.amount) : 0), 0))}</td>
+                                                        <td className={`text-right ${amountClass}`}>{money(runningBalance)}</td>
+                                                        <td className="print:hidden" />
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>

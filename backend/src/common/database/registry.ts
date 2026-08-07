@@ -144,6 +144,7 @@ export const PERMISSIONS = {
   PAYROLL_READ: "payroll.read",
   PAYROLL_MANAGE: "payroll.manage",
   PAYROLL_APPROVE: "payroll.approve",
+  PAYROLL_PAY: "payroll.pay",
 
   // Executive dashboard (unified analytics view)
   DASHBOARD_EXECUTIVE_READ: "dashboard.executive.read",

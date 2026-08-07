@@ -26,6 +26,12 @@ export class MaterialManagementController {
     return this.service.getProducts(db, search);
   }
 
+  @Get('products/:id')
+  @RequirePermissions('materials_products.read')
+  getProduct(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.getProduct(db, id);
+  }
+
   @Post('products')
   @RequirePermissions('materials_products.create')
   createProduct(@GetTenantDb() db: any, @Body() body: MaterialDto) {
@@ -48,6 +54,12 @@ export class MaterialManagementController {
   @RequirePermissions('suppliers.read')
   getSuppliers(@GetTenantDb() db: any) { return this.service.getSuppliers(db); }
 
+  @Get('suppliers/:id')
+  @RequirePermissions('suppliers.read')
+  getSupplier(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.getSupplier(db, id);
+  }
+
   @Post('suppliers')
   @RequirePermissions('suppliers.create')
   createSupplier(@GetTenantDb() db: any, @Body() body: SupplierDto) {
@@ -69,6 +81,23 @@ export class MaterialManagementController {
   @Get('purchases')
   @RequirePermissions('purchases.read')
   getPurchaseOrders(@GetTenantDb() db: any) { return this.service.getPurchaseOrders(db); }
+
+  @Get('purchases/:id')
+  @RequirePermissions('purchases.read')
+  getPurchaseOrder(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.getPurchaseOrder(db, id);
+  }
+
+  @Patch('purchases/:id')
+  @RequirePermissions('purchases.update')
+  updatePurchaseOrder(
+    @GetTenantDb() db: any,
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Body() body: PurchaseOrderDto,
+  ) {
+    return this.service.updatePurchaseOrder(db, id, userId, body);
+  }
 
   @Post('purchases')
   @RequirePermissions('purchases.create')
@@ -105,6 +134,12 @@ export class MaterialManagementController {
   @RequirePermissions('material_customers.read')
   getCustomers(@GetTenantDb() db: any) { return this.service.getCustomers(db); }
 
+  @Get('customers/:id')
+  @RequirePermissions('material_customers.read')
+  getCustomer(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.getCustomer(db, id);
+  }
+
   @Post('customers')
   @RequirePermissions('material_sales.create')
   createCustomer(@GetTenantDb() db: any, @Body() body: MaterialCustomerDto) {
@@ -126,6 +161,12 @@ export class MaterialManagementController {
   @Get('sales')
   @RequirePermissions('material_sales.read')
   getSales(@GetTenantDb() db: any) { return this.service.getSales(db); }
+
+  @Get('sales/:id')
+  @RequirePermissions('material_sales.read')
+  getSale(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.getSale(db, id);
+  }
 
   @Post('sales')
   @RequirePermissions('material_sales.create')
@@ -161,6 +202,12 @@ export class MaterialManagementController {
   @Get('transportation')
   @RequirePermissions('transportation.read')
   getTransportation(@GetTenantDb() db: any) { return this.service.getTransportation(db); }
+
+  @Get('transportation/:id')
+  @RequirePermissions('transportation.read')
+  getTransportationRecord(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.getTransportationRecord(db, id);
+  }
 
   @Post('transportation')
   @RequirePermissions('transportation.create')

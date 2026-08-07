@@ -1194,6 +1194,10 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "payrolls_status_idx" ON "payrolls"("status")`,
   `CREATE INDEX IF NOT EXISTS "payrolls_year_month_idx" ON "payrolls"("year", "month")`,
   `CREATE INDEX IF NOT EXISTS "payrolls_deleted_at_created_at_idx" ON "payrolls"("deleted_at", "created_at")`,
+  // One active payroll per (year, month). A plain unique index on
+  // (year, month, deleted_at) lets NULL deleted_at rows duplicate, so this
+  // partial index enforces the invariant only for active rows.
+  `CREATE UNIQUE INDEX IF NOT EXISTS "payrolls_year_month_active_key" ON "payrolls"("year", "month") WHERE "deleted_at" IS NULL`,
   `CREATE INDEX IF NOT EXISTS "payroll_items_payroll_id_idx" ON "payroll_items"("payroll_id")`,
   `CREATE INDEX IF NOT EXISTS "payroll_items_staff_id_idx" ON "payroll_items"("staff_id")`,
   `CREATE INDEX IF NOT EXISTS "payroll_items_payslip_number_idx" ON "payroll_items"("payslip_number")`,

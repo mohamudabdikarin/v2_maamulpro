@@ -268,6 +268,8 @@ export class SuperAdminService {
             adminName: data.adminName.trim(),
             adminEmail,
             dbUrl: protectedRuntimeUrl,
+            dbProvider: neonDatabase.isNeon ? 'NEON' : 'POSTGRESQL',
+            dbCreatedByMaamulPro: neonDatabase.createdByMaamulPro,
             companyType: data.companyType?.trim() || null,
             mode: this.moduleMode(modules),
             status: 'ACTIVE',
@@ -508,8 +510,8 @@ export class SuperAdminService {
 
   private sanitizeCompany(company: any) {
     const { dbUrl, users, ...safeCompany } = company;
-    let provider = 'POSTGRESQL';
-    if (dbUrl) {
+    let provider = company.dbProvider ? String(company.dbProvider).toUpperCase() : 'POSTGRESQL';
+    if (!company.dbProvider && dbUrl) {
       try {
         provider = isNeonDatabaseUrl(revealDatabaseUrl(dbUrl)) ? 'NEON' : 'POSTGRESQL';
       } catch {
@@ -771,19 +773,21 @@ export class SuperAdminService {
   }
 
   createRenewalInvoice(companyId: string, adminId?: string) {
-    return this.renewCompanySubscription(companyId, adminId);
+    // Route through SubscriptionLifecycleService so a renewal Invoice and the
+    // TenantSubscription lifecycle record stay consistent with company state.
+    return this.subscriptions.createRenewalInvoice(companyId, adminId);
   }
 
   suspendSubscription(companyId: string, adminId?: string, notes?: string) {
-    return this.changeCompanySubscriptionStatus(companyId, 'SUSPENDED', false, 'SUSPENSION', adminId, notes);
+    return this.subscriptions.suspendSubscription(companyId, adminId, notes);
   }
 
   resumeSubscription(companyId: string, adminId?: string, notes?: string) {
-    return this.changeCompanySubscriptionStatus(companyId, 'ACTIVE', true, 'RESUMPTION', adminId, notes);
+    return this.subscriptions.resumeSubscription(companyId, adminId, notes);
   }
 
   cancelSubscription(companyId: string, adminId?: string, notes?: string) {
-    return this.changeCompanySubscriptionStatus(companyId, 'CANCELLED', false, 'CANCELLATION', adminId, notes);
+    return this.subscriptions.cancelSubscription(companyId, adminId, notes);
   }
 
   async setSubscriptionAutoRenew(companyId: string, autoRenew: boolean, adminId?: string) {
@@ -806,78 +810,6 @@ export class SuperAdminService {
       });
     });
     return { autoRenew };
-  }
-
-  private async renewCompanySubscription(companyId: string, adminId?: string, notes?: string) {
-    const company = await this.central.company.findUnique({ where: { id: companyId } });
-    if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
-    if (!company.termDurationMonths) throw new BadRequestException('No term duration is configured for this company');
-    const now = new Date();
-    const startAt = company.subscriptionExpiresAt && new Date(company.subscriptionExpiresAt) > now
-      ? new Date(company.subscriptionExpiresAt)
-      : now;
-    const expiresAt = new Date(startAt);
-    expiresAt.setMonth(expiresAt.getMonth() + company.termDurationMonths);
-    await this.central.$transaction(async (tx: any) => {
-      await tx.company.update({
-        where: { id: companyId },
-        data: {
-          subscriptionStatus: 'ACTIVE',
-          subscriptionStartAt: startAt,
-          subscriptionExpiresAt: expiresAt,
-          accessGranted: true,
-          status: 'ACTIVE',
-          version: { increment: 1 },
-        },
-      });
-      await tx.subscriptionTransaction.create({
-        data: {
-          companyId,
-          transactionType: 'RENEWAL',
-          amount: company.subscriptionAmount,
-          termDurationMonths: company.termDurationMonths,
-          previousStatus: company.subscriptionStatus,
-          newStatus: 'ACTIVE',
-          startAt,
-          expiresAt,
-          approvedBy: adminId,
-          notes,
-        },
-      });
-    });
-    return this.getCompanyById(companyId);
-  }
-
-  private async changeCompanySubscriptionStatus(
-    companyId: string,
-    status: 'ACTIVE' | 'SUSPENDED' | 'CANCELLED',
-    accessGranted: boolean,
-    transactionType: string,
-    adminId?: string,
-    notes?: string,
-  ) {
-    const company = await this.central.company.findUnique({ where: { id: companyId } });
-    if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
-    if (status === 'ACTIVE' && company.subscriptionExpiresAt && new Date(company.subscriptionExpiresAt) <= new Date()) {
-      throw new BadRequestException('Expired subscriptions must be renewed before access is restored');
-    }
-    await this.central.$transaction(async (tx: any) => {
-      await tx.company.update({
-        where: { id: companyId },
-        data: { subscriptionStatus: status, accessGranted, version: { increment: 1 } },
-      });
-      await tx.subscriptionTransaction.create({
-        data: {
-          companyId,
-          transactionType,
-          previousStatus: company.subscriptionStatus,
-          newStatus: status,
-          approvedBy: adminId,
-          notes,
-        },
-      });
-    });
-    return this.getCompanyById(companyId);
   }
 
   cancelInvoice(invoiceId: string, adminId?: string, notes?: string) {
@@ -1054,16 +986,20 @@ export class SuperAdminService {
     if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
     const revealedUrl = revealDatabaseUrl(company.dbUrl);
     await this.tenantManager.disconnectTenant(revealedUrl).catch(() => undefined);
-    const pair = getDatabaseConnectionPair(revealedUrl);
-    const databaseName = decodeURIComponent(new URL(pair.directUrl).pathname.replace(/^\/+/, ''));
     let tenantDatabaseDeleted = false;
-    if (databaseName) {
-      await this.neonManagement.deleteCreatedDatabase({
-        ...pair,
-        databaseName,
-        createdByMaamulPro: true,
-      });
-      tenantDatabaseDeleted = true;
+    // Only delete databases the platform itself provisioned. Customer-supplied
+    // databases must never be touched through the Neon API, regardless of name.
+    if (company.dbCreatedByMaamulPro) {
+      const pair = getDatabaseConnectionPair(revealedUrl);
+      const databaseName = decodeURIComponent(new URL(pair.directUrl).pathname.replace(/^\/+/, ''));
+      if (databaseName) {
+        await this.neonManagement.deleteCreatedDatabase({
+          ...pair,
+          databaseName,
+          createdByMaamulPro: true,
+        });
+        tenantDatabaseDeleted = true;
+      }
     }
     await this.central.company.delete({ where: { id } });
     return { deleted: true, id, name: company.name, tenantDatabaseDeleted };

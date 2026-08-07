@@ -323,6 +323,14 @@ export class ConstructionService {
     data: ContractPaymentDto,
   ) {
     return tenantDb.$transaction(async (tx: any) => {
+      // Lock the contract row first so concurrent payments serialize: the
+      // waiting transaction re-reads the latest totalPaid and cannot exceed
+      // the remaining adjusted budget.
+      const locked = await tx.$queryRaw`
+        SELECT "id" FROM "workforce_contracts"
+        WHERE "id" = ${contractId} AND "deleted_at" IS NULL
+        FOR UPDATE`;
+      if (!locked.length) throw new NotFoundException('Workforce contract not found');
       const contract = await tx.workforceContract.findFirst({
         where: { id: contractId, deletedAt: null },
         include: { budgetAdjustments: true },
@@ -408,23 +416,35 @@ export class ConstructionService {
     userId: string,
     data: ContractAdjustmentDto,
   ) {
-    const contract = await this.getWorkforceContract(tenantDb, contractId);
-    const adjustments = contract.budgetAdjustments.reduce(
-      (total: number, row: any) => total + Number(row.amount),
-      0,
-    );
-    if (Number(contract.originalBudget) + adjustments + data.amount < Number(contract.totalPaid)) {
-      throw new BadRequestException('Adjusted budget cannot be lower than total payments');
-    }
-    const adjustment = await tenantDb.workforceContractAdjustment.create({
-      data: { contractId, amount: data.amount, reason: data.reason, adjustedById: userId },
+    return tenantDb.$transaction(async (tx: any) => {
+      // Lock the contract row so concurrent adjustments/payments serialize and
+      // the adjusted-budget-vs-totalPaid invariant stays consistent.
+      const locked = await tx.$queryRaw`
+        SELECT "id" FROM "workforce_contracts"
+        WHERE "id" = ${contractId} AND "deleted_at" IS NULL
+        FOR UPDATE`;
+      if (!locked.length) throw new NotFoundException('Workforce contract not found');
+      const contract = await tx.workforceContract.findFirst({
+        where: { id: contractId, deletedAt: null },
+        include: { budgetAdjustments: true },
+      });
+      const adjustments = contract.budgetAdjustments.reduce(
+        (total: number, row: any) => total + Number(row.amount),
+        0,
+      );
+      if (Number(contract.originalBudget) + adjustments + data.amount < Number(contract.totalPaid)) {
+        throw new BadRequestException('Adjusted budget cannot be lower than total payments');
+      }
+      const adjustment = await tx.workforceContractAdjustment.create({
+        data: { contractId, amount: data.amount, reason: data.reason, adjustedById: userId },
+      });
+      await tx.workforceContract.update({
+        where: { id: contractId },
+        data: { version: { increment: 1 } },
+      });
+      await this.syncContractBudget(tx, contractId);
+      return adjustment;
     });
-    await tenantDb.workforceContract.update({
-      where: { id: contractId },
-      data: { version: { increment: 1 } },
-    });
-    await this.syncContractBudget(tenantDb, contractId);
-    return adjustment;
   }
 
   // -----------------------------------------------------------
