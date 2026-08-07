@@ -93,6 +93,129 @@ export class ReportsController {
     return this.reportsService.runReport(db, reportId, { startDate, endDate, entityId, projectId });
   }
 
+  @Get('projects')
+  @RequireAnyPermission('reports.read', 'reports.construction.read')
+  listProjectReports(@GetTenantDb() db: any) {
+    return this.reportsService.listProjectReports(db);
+  }
+
+  @Get('projects/:projectId/overview')
+  @RequireAnyPermission('reports.read', 'reports.construction.read')
+  getProjectOverview(
+    @GetTenantDb() db: any,
+    @Param('projectId') projectId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportsService.getProjectOverview(db, projectId, { startDate, endDate });
+  }
+
+  @Get('projects/:projectId/:category/:txnId')
+  @RequireAnyPermission('reports.read', 'reports.construction.read')
+  getProjectCategoryDetail(
+    @GetTenantDb() db: any,
+    @Param('projectId') projectId: string,
+    @Param('category') category: string,
+    @Param('txnId') txnId: string,
+  ) {
+    return this.reportsService.getProjectCategoryDetail(db, projectId, category, txnId);
+  }
+
+  @Get('projects/:projectId/:category')
+  @RequireAnyPermission('reports.read', 'reports.construction.read')
+  getProjectCategoryLedger(
+    @GetTenantDb() db: any,
+    @Param('projectId') projectId: string,
+    @Param('category') category: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('filter') filter?: string,
+  ) {
+    return this.reportsService.getProjectCategoryLedger(db, projectId, category, { startDate, endDate, filter });
+  }
+
+  @Get('properties')
+  @RequirePermissions('reports.real_estate.read')
+  listPropertyReports(@GetTenantDb() db: any) {
+    return this.reportsService.listPropertyReports(db);
+  }
+
+  @Get('properties/:propertyId/overview')
+  @RequirePermissions('reports.real_estate.read')
+  getPropertyOverview(
+    @GetTenantDb() db: any,
+    @Param('propertyId') propertyId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportsService.getPropertyOverview(db, propertyId, { startDate, endDate });
+  }
+
+  @Get('properties/:propertyId/:category/:txnId')
+  @RequirePermissions('reports.real_estate.read')
+  getPropertyCategoryDetail(
+    @GetTenantDb() db: any,
+    @Param('propertyId') propertyId: string,
+    @Param('category') category: string,
+    @Param('txnId') txnId: string,
+  ) {
+    return this.reportsService.getPropertyCategoryDetail(db, propertyId, category, txnId);
+  }
+
+  @Get('properties/:propertyId/:category')
+  @RequirePermissions('reports.real_estate.read')
+  getPropertyCategoryLedger(
+    @GetTenantDb() db: any,
+    @Param('propertyId') propertyId: string,
+    @Param('category') category: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('filter') filter?: string,
+  ) {
+    return this.reportsService.getPropertyCategoryLedger(db, propertyId, category, { startDate, endDate, filter });
+  }
+
+  @Get('materials')
+  @RequirePermissions('reports.material.read')
+  listMaterialReports(@GetTenantDb() db: any) {
+    return this.reportsService.listMaterialReports(db);
+  }
+
+  @Get('materials/:materialId/overview')
+  @RequirePermissions('reports.material.read')
+  getMaterialOverview(
+    @GetTenantDb() db: any,
+    @Param('materialId') materialId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportsService.getMaterialOverview(db, materialId, { startDate, endDate });
+  }
+
+  @Get('materials/:materialId/:category/:txnId')
+  @RequirePermissions('reports.material.read')
+  getMaterialCategoryDetail(
+    @GetTenantDb() db: any,
+    @Param('materialId') materialId: string,
+    @Param('category') category: string,
+    @Param('txnId') txnId: string,
+  ) {
+    return this.reportsService.getMaterialCategoryDetail(db, materialId, category, txnId);
+  }
+
+  @Get('materials/:materialId/:category')
+  @RequirePermissions('reports.material.read')
+  getMaterialCategoryLedger(
+    @GetTenantDb() db: any,
+    @Param('materialId') materialId: string,
+    @Param('category') category: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('filter') filter?: string,
+  ) {
+    return this.reportsService.getMaterialCategoryLedger(db, materialId, category, { startDate, endDate, filter });
+  }
+
   @Get('schedules')
   @RequirePermissions('reports.admin')
   listSchedules(@GetTenantDb() db: any) {

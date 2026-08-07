@@ -53,6 +53,8 @@ export const MAPPING_KEYS: MappingKeyDef[] = [
   // Payroll
   { key: 'PAYROLL_EXPENSE',            label: 'Payroll — salary expense',    category: 'Payroll',       defaultCode: '5200', suggestedTypes: ['EXPENSE'],   description: 'Salary expense debited on payroll run' },
   { key: 'PAYROLL_CASH',               label: 'Payroll — payout cash',       category: 'Payroll',       defaultCode: '1120', suggestedTypes: ['ASSET'],     description: 'Cash/bank credited on payroll payout' },
+  { key: 'PAYROLL_TAX_PAYABLE',        label: 'Payroll — tax payable',       category: 'Payroll',       defaultCode: '2200', suggestedTypes: ['LIABILITY'], description: 'Tax withholdings credited on payroll payout' },
+  { key: 'PAYROLL_DEDUCTIONS_PAYABLE', label: 'Payroll — deductions payable',category: 'Payroll',       defaultCode: '2200', suggestedTypes: ['LIABILITY'], description: 'Other payroll deductions credited on payroll payout' },
 
   // Tax and discount
   { key: 'TAX_PAYABLE',                label: 'Tax payable',                 category: 'Tax & discount',defaultCode: '2200', suggestedTypes: ['LIABILITY'], description: 'Tax payable credited on taxable transactions' },

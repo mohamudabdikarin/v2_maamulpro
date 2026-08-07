@@ -34,11 +34,11 @@ export class ReportsService {
   async getFinancialReport(tenantDb: any, startDate?: string, endDate?: string) {
     if (!tenantDb) return { income: 0, expense: 0, netProfit: 0, transactions: [] };
 
-    const where: any = { status: 'CLEARED' };
-    if (startDate && endDate) {
+    const where: any = { status: 'CLEARED', deletedAt: null };
+    if (startDate || endDate) {
       where.date = {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
+        ...(startDate ? { gte: new Date(startDate) } : {}),
+        ...(endDate ? { lte: new Date(`${endDate}T23:59:59.999`) } : {}),
       };
     }
 
@@ -113,7 +113,7 @@ export class ReportsService {
     if (['core-income', 'core-expense', 'core-transaction-detail'].includes(reportId)) {
       const type = reportId === 'core-income' ? 'INCOME' : reportId === 'core-expense' ? 'EXPENSE' : undefined;
       const transactions = await db.transaction.findMany({
-        where: { deletedAt: null, ...(type ? { type } : {}), ...transactionProjectWhere, ...(date ? { date } : {}) },
+        where: { deletedAt: null, status: 'CLEARED', ...(type ? { type } : {}), ...transactionProjectWhere, ...(date ? { date } : {}) },
         include: { category: true, project: true, property: true, deal: true, user: { select: { name: true, email: true } } },
         orderBy: { date: reportId === 'core-transaction-detail' ? 'asc' : 'desc' },
       });
@@ -171,11 +171,20 @@ export class ReportsService {
         netProfit: rows.reduce((sum, row) => sum + Number(row.profit), 0),
       };
     } else if (reportId === 'construction-material-usage') {
-      rows = await db.inventoryTransaction.findMany({ where: { type: 'USAGE', ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) }, include: { material: true, project: true } });
+      rows = await db.inventoryTransaction.findMany({
+        where: { type: 'USAGE', deletedAt: null, ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) },
+        include: { material: true, project: true, user: { select: { id: true, name: true, email: true } } },
+      });
     } else if (['construction-manpower-cost', 'construction-manpower-expenses'].includes(reportId)) {
-      rows = await db.workerLedgerEntry.findMany({ where: { ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) }, include: { staff: true, project: true } });
+      rows = await db.workerLedgerEntry.findMany({
+        where: { ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) },
+        include: { staff: true, project: true, user: { select: { id: true, name: true, email: true } } },
+      });
     } else if (reportId === 'construction-expenses') {
-      rows = await db.dailyOperationalExpense.findMany({ where: { deletedAt: null, ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) }, include: { staff: true, project: true } });
+      rows = await db.dailyOperationalExpense.findMany({
+        where: { deletedAt: null, ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) },
+        include: { staff: true, project: true, recordedBy: { select: { id: true, name: true, email: true } } },
+      });
     } else if (reportId === 'construction-progress') {
       rows = await db.project.findMany({ where: { deletedAt: null, ...(projectId ? { id: projectId } : {}) }, include: { tasks: { where: { deletedAt: null } } } });
     } else if (reportId === 'construction-workforce-budget') {
@@ -247,5 +256,896 @@ export class ReportsService {
     const result = await db.reportSchedule.updateMany({ where: { id, deletedAt: null }, data: { deletedAt: new Date(), isActive: false } });
     if (!result.count) throw new NotFoundException('Report schedule not found');
     return { deleted: true };
+  }
+
+  private dateFilter(startDate?: string, endDate?: string) {
+    if (!startDate && !endDate) return undefined;
+    return {
+      gte: startDate ? new Date(startDate) : undefined,
+      lte: endDate ? new Date(`${endDate}T23:59:59.999`) : undefined,
+    };
+  }
+
+  private staffName(staff?: { firstName?: string; lastName?: string } | null) {
+    if (!staff) return null;
+    return [staff.firstName, staff.lastName].filter(Boolean).join(' ').trim() || null;
+  }
+
+  private assertCategory(category: string): 'manpower' | 'materials' | 'expenses' {
+    if (category === 'manpower' || category === 'materials' || category === 'expenses') return category;
+    throw new NotFoundException('Unknown report category');
+  }
+
+  private async getProjectOrThrow(db: any, projectId: string) {
+    const project = await db.project.findFirst({
+      where: { id: projectId, deletedAt: null },
+      include: { assignedStaff: { where: { deletedAt: null }, take: 5 } },
+    });
+    if (!project) throw new NotFoundException('Project not found');
+    return project;
+  }
+
+  private materialLineTotal(row: any) {
+    return Number(row.quantity) * Number(row.material?.unitCost || 0);
+  }
+
+  async listProjectReports(db: any) {
+    const projects = await db.project.findMany({
+      where: { deletedAt: null },
+      include: {
+        assignedStaff: { where: { deletedAt: null }, take: 3, orderBy: { firstName: 'asc' } },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    const projectIds = projects.map((p: any) => p.id);
+    if (!projectIds.length) return [];
+
+    const [ledger, usages, expenses] = await Promise.all([
+      db.workerLedgerEntry.findMany({ where: { projectId: { in: projectIds }, type: 'EXPENSE' }, select: { projectId: true, amount: true } }),
+      db.inventoryTransaction.findMany({
+        where: { type: 'USAGE', projectId: { in: projectIds }, deletedAt: null },
+        include: { material: { select: { unitCost: true } } },
+      }),
+      db.dailyOperationalExpense.findMany({
+        where: { deletedAt: null, projectId: { in: projectIds } },
+        select: { projectId: true, amount: true },
+      }),
+    ]);
+
+    const spentByProject = new Map<string, number>();
+    for (const row of ledger) {
+      spentByProject.set(row.projectId, (spentByProject.get(row.projectId) || 0) + Number(row.amount));
+    }
+    for (const row of usages) {
+      if (!row.projectId) continue;
+      spentByProject.set(row.projectId, (spentByProject.get(row.projectId) || 0) + this.materialLineTotal(row));
+    }
+    for (const row of expenses) {
+      if (!row.projectId) continue;
+      spentByProject.set(row.projectId, (spentByProject.get(row.projectId) || 0) + Number(row.amount));
+    }
+
+    return projects.map((project: any) => {
+      const budget = Number(project.budget || 0);
+      const spentToDate = spentByProject.get(project.id) || 0;
+      const manager = project.assignedStaff?.[0]
+        ? this.staffName(project.assignedStaff[0])
+        : null;
+      return {
+        id: project.id,
+        name: project.name,
+        location: project.location,
+        status: project.status,
+        budget,
+        spentToDate,
+        budgetUsedPct: budget > 0 ? Math.round((spentToDate / budget) * 100) : 0,
+        progress: project.progress || 0,
+        startDate: project.startDate,
+        manager,
+        assignees: (project.assignedStaff || []).map((s: any) => this.staffName(s)).filter(Boolean),
+      };
+    });
+  }
+
+  async getProjectOverview(db: any, projectId: string, query: { startDate?: string; endDate?: string } = {}) {
+    const project = await this.getProjectOrThrow(db, projectId);
+    const date = this.dateFilter(query.startDate, query.endDate);
+
+    const [incomeTxns, manpowerRows, materialRows, expenseRows] = await Promise.all([
+      db.transaction.findMany({
+        where: {
+          deletedAt: null,
+          status: 'CLEARED',
+          type: 'INCOME',
+          projectId,
+          NOT: { referenceId: { startsWith: 'wfcontract:' } },
+          ...(date ? { date } : {}),
+        },
+        select: { amount: true, date: true, referenceId: true },
+      }),
+      db.workerLedgerEntry.findMany({
+        where: { projectId, type: 'EXPENSE', ...(date ? { date } : {}) },
+        select: { amount: true, description: true, type: true, date: true },
+      }),
+      db.inventoryTransaction.findMany({
+        where: { type: 'USAGE', projectId, deletedAt: null, ...(date ? { date } : {}) },
+        include: { material: { select: { id: true, name: true, unitCost: true, unit: true } } },
+      }),
+      db.dailyOperationalExpense.findMany({
+        where: { deletedAt: null, projectId, ...(date ? { date } : {}) },
+        select: { amount: true, category: true, date: true },
+      }),
+    ]);
+
+    const incomeAmount = incomeTxns.reduce((sum: number, row: any) => sum + Number(row.amount), 0);
+
+    const mpRollup = new Map<string, number>();
+    for (const row of manpowerRows) {
+      const key = (row.description || row.type || 'Labor').trim() || 'Labor';
+      mpRollup.set(key, (mpRollup.get(key) || 0) + Number(row.amount));
+    }
+    const manpowerLines = Array.from(mpRollup.entries())
+      .map(([label, amount]) => ({ code: '50100', label, amount, filterKey: label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    const manpowerTotal = manpowerLines.reduce((s, l) => s + l.amount, 0);
+
+    const matRollup = new Map<string, { label: string; amount: number; materialId: string }>();
+    for (const row of materialRows) {
+      const materialId = row.material?.id || row.materialId;
+      const label = row.material?.name || 'Material';
+      const prev = matRollup.get(materialId) || { label, amount: 0, materialId };
+      prev.amount += this.materialLineTotal(row);
+      matRollup.set(materialId, prev);
+    }
+    const materialLines = Array.from(matRollup.values())
+      .map((row) => ({ code: '50200', label: row.label, amount: row.amount, filterKey: row.materialId }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    const materialsTotal = materialLines.reduce((s, l) => s + l.amount, 0);
+
+    const expRollup = new Map<string, number>();
+    for (const row of expenseRows) {
+      const key = (row.category || 'OTHER').trim() || 'OTHER';
+      expRollup.set(key, (expRollup.get(key) || 0) + Number(row.amount));
+    }
+    const expenseLines = Array.from(expRollup.entries())
+      .map(([label, amount]) => ({ code: '50300', label, amount, filterKey: label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    const expensesTotal = expenseLines.reduce((s, l) => s + l.amount, 0);
+
+    const totalExpense = manpowerTotal + materialsTotal + expensesTotal;
+    const allDates = [
+      ...incomeTxns.map((r: any) => r.date),
+      ...manpowerRows.map((r: any) => r.date),
+      ...materialRows.map((r: any) => r.date),
+      ...expenseRows.map((r: any) => r.date),
+    ].filter(Boolean).map((d: Date) => new Date(d).getTime());
+
+    const manager = project.assignedStaff?.[0] ? this.staffName(project.assignedStaff[0]) : null;
+
+    return {
+      project: {
+        id: project.id,
+        name: project.name,
+        location: project.location,
+        status: project.status,
+        budget: Number(project.budget || 0),
+        progress: project.progress || 0,
+        startDate: project.startDate,
+        manager,
+      },
+      period: allDates.length
+        ? { from: new Date(Math.min(...allDates)).toISOString(), to: new Date(Math.max(...allDates)).toISOString() }
+        : { from: null, to: null },
+      income: { code: '40100', label: 'Construction Income', amount: incomeAmount },
+      sections: [
+        { code: '50100', category: 'manpower', label: 'Manpower', lines: manpowerLines, total: manpowerTotal },
+        { code: '50200', category: 'materials', label: 'Materials', lines: materialLines, total: materialsTotal },
+        { code: '50300', category: 'expenses', label: 'Site Expenses', lines: expenseLines, total: expensesTotal },
+      ],
+      totalExpense,
+      netIncome: incomeAmount - totalExpense,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  async getProjectCategoryLedger(
+    db: any,
+    projectId: string,
+    category: string,
+    query: { startDate?: string; endDate?: string; filter?: string } = {},
+  ) {
+    const cat = this.assertCategory(category);
+    const project = await this.getProjectOrThrow(db, projectId);
+    const date = this.dateFilter(query.startDate, query.endDate);
+    const filter = query.filter?.trim() || undefined;
+
+    if (cat === 'manpower') {
+      const rows = await db.workerLedgerEntry.findMany({
+        where: { projectId, type: 'EXPENSE', ...(date ? { date } : {}) },
+        include: {
+          staff: { select: { id: true, firstName: true, lastName: true, position: true, department: true } },
+          user: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { date: 'desc' },
+      });
+      const mapped = rows
+        .map((row: any) => {
+          const rollupKey = (row.description || row.type || 'Labor').trim() || 'Labor';
+          return {
+            id: row.id,
+            category: 'manpower' as const,
+            date: row.date,
+            amount: Number(row.amount),
+            description: row.description,
+            rollupKey,
+            type: row.type,
+            worker: this.staffName(row.staff) || row.user?.name || row.user?.email || '—',
+            role: row.staff?.position || row.staff?.department || '—',
+            enteredBy: row.user?.name || row.user?.email || this.staffName(row.staff) || '—',
+            staffId: row.staffId,
+            userId: row.userId,
+          };
+        })
+        .filter((row: any) => !filter || row.rollupKey === filter);
+      return {
+        project: { id: project.id, name: project.name },
+        category: cat,
+        label: 'Manpower',
+        filter: filter || null,
+        filterLabel: filter || null,
+        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+        rows: mapped,
+      };
+    }
+
+    if (cat === 'materials') {
+      const rows = await db.inventoryTransaction.findMany({
+        where: {
+          type: 'USAGE',
+          projectId,
+          deletedAt: null,
+          ...(date ? { date } : {}),
+          ...(filter ? { materialId: filter } : {}),
+        },
+        include: {
+          material: { select: { id: true, name: true, unitCost: true, unit: true, warehouse: true } },
+          user: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { date: 'desc' },
+      });
+      const mapped = rows.map((row: any) => {
+        const unitCost = Number(row.material?.unitCost || 0);
+        const quantity = Number(row.quantity);
+        return {
+          id: row.id,
+          category: 'materials' as const,
+          date: row.date,
+          amount: quantity * unitCost,
+          item: row.material?.name || 'Material',
+          materialId: row.materialId,
+          quantity,
+          unit: row.material?.unit || null,
+          unitCost,
+          warehouse: row.warehouse || row.material?.warehouse || null,
+          notes: row.notes || null,
+          status: 'USAGE',
+          enteredBy: row.user?.name || row.user?.email || '—',
+          usedBy: row.user?.name || row.user?.email || '—',
+          userId: row.userId,
+        };
+      });
+      return {
+        project: { id: project.id, name: project.name },
+        category: cat,
+        label: 'Materials',
+        filter: filter || null,
+        filterLabel: mapped[0]?.item || filter || null,
+        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+        rows: mapped,
+      };
+    }
+
+    const rows = await db.dailyOperationalExpense.findMany({
+      where: {
+        deletedAt: null,
+        projectId,
+        ...(date ? { date } : {}),
+        ...(filter ? { category: filter } : {}),
+      },
+      include: {
+        staff: { select: { id: true, firstName: true, lastName: true, position: true } },
+        recordedBy: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { date: 'desc' },
+    });
+    const mapped = rows.map((row: any) => ({
+      id: row.id,
+      category: 'expenses' as const,
+      date: row.date,
+      amount: Number(row.amount),
+      description: row.description,
+      expenseCategory: row.category,
+      worker: this.staffName(row.staff) || '—',
+      role: row.staff?.position || '—',
+      enteredBy: row.recordedBy?.name || row.recordedBy?.email || '—',
+      recordedBy: row.recordedBy?.name || row.recordedBy?.email || '—',
+      staffId: row.staffId,
+      recordedByUserId: row.recordedByUserId,
+    }));
+    return {
+      project: { id: project.id, name: project.name },
+      category: cat,
+      label: 'Site Expenses',
+      filter: filter || null,
+      filterLabel: filter || null,
+      total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+      rows: mapped,
+    };
+  }
+
+  async getProjectCategoryDetail(db: any, projectId: string, category: string, txnId: string) {
+    const ledger = await this.getProjectCategoryLedger(db, projectId, category);
+    const row = ledger.rows.find((item: any) => item.id === txnId);
+    if (!row) throw new NotFoundException('Transaction not found');
+    const project = await this.getProjectOrThrow(db, projectId);
+    return {
+      project: {
+        id: project.id,
+        name: project.name,
+        location: project.location,
+        status: project.status,
+        manager: project.assignedStaff?.[0] ? this.staffName(project.assignedStaff[0]) : null,
+      },
+      category: ledger.category,
+      label: ledger.label,
+      transaction: row,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  /* ─── Real estate property reports ─── */
+
+  async listPropertyReports(db: any) {
+    const properties = await db.property.findMany({
+      where: { deletedAt: null },
+      include: {
+        rentalContracts: { where: { deletedAt: null }, take: 3 },
+        tenants: { where: { deletedAt: null }, take: 3 },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+    return properties.map((p: any) => ({
+      id: p.id,
+      name: p.title,
+      location: p.address,
+      status: p.status,
+      type: p.type,
+      budget: Number(p.price || 0),
+      spentToDate: 0,
+      budgetUsedPct: 0,
+      progress: p.status === 'SOLD' || p.status === 'RENTED' ? 100 : p.status === 'AVAILABLE' ? 0 : 50,
+      startDate: p.createdAt,
+      manager: p.tenants?.[0]?.name || null,
+      assignees: (p.tenants || []).map((t: any) => t.name).filter(Boolean),
+      meta: p.type,
+    }));
+  }
+
+  private async getPropertyOrThrow(db: any, propertyId: string) {
+    const property = await db.property.findFirst({ where: { id: propertyId, deletedAt: null } });
+    if (!property) throw new NotFoundException('Property not found');
+    return property;
+  }
+
+  async getPropertyOverview(db: any, propertyId: string, query: { startDate?: string; endDate?: string } = {}) {
+    const property = await this.getPropertyOrThrow(db, propertyId);
+    const date = this.dateFilter(query.startDate, query.endDate);
+
+    const [deals, payments, contracts] = await Promise.all([
+      db.deal.findMany({
+        where: { deletedAt: null, propertyId, ...(date ? { createdAt: date } : {}) },
+        include: { client: { select: { name: true } } },
+      }),
+      db.rentPayment.findMany({
+        where: {
+          deletedAt: null,
+          ...(date ? { dueDate: date } : {}),
+          contract: { is: { propertyId } },
+        },
+        include: { tenant: { select: { name: true } }, contract: { select: { propertyId: true, monthlyRent: true } } },
+      }),
+      db.rentalContract.findMany({
+        where: { deletedAt: null, propertyId },
+        include: { tenant: { select: { name: true } } },
+      }),
+    ]);
+
+    const salesDeals = deals.filter((d: any) => d.type === 'SALE');
+    const salesCollected = salesDeals.reduce((s: number, d: any) => s + Number(d.paidAmount || 0), 0);
+    const salesContracted = salesDeals.reduce((s: number, d: any) => s + Number(d.totalAmount || 0), 0);
+    const rentalPaid = payments.reduce((s: number, p: any) => s + Number(p.amountPaid || 0), 0);
+    const incomeAmount = salesCollected + rentalPaid;
+
+    const salesLines = salesDeals.map((d: any) => ({
+      code: '40200',
+      label: d.client?.name || 'Sale',
+      amount: Number(d.paidAmount || 0),
+      filterKey: d.paymentStatus || d.id,
+    }));
+    const rentalRollup = new Map<string, number>();
+    for (const p of payments) {
+      const key = p.status || 'UNPAID';
+      rentalRollup.set(key, (rentalRollup.get(key) || 0) + Number(p.amountPaid || 0));
+    }
+    const rentalSectionLines = Array.from(rentalRollup.entries()).map(([label, amount]) => ({
+      code: '40100', label, amount, filterKey: label,
+    }));
+
+    const contractLines = contracts.map((c: any) => ({
+      code: '40300',
+      label: c.tenant?.name || 'Contract',
+      amount: Number(c.monthlyRent || 0),
+      filterKey: c.status || 'ACTIVE',
+    }));
+
+    const allDates = [
+      ...deals.map((d: any) => d.createdAt),
+      ...payments.map((p: any) => p.dueDate),
+    ].filter(Boolean).map((d: Date) => new Date(d).getTime());
+
+    return {
+      project: {
+        id: property.id,
+        name: property.title,
+        location: property.address,
+        status: property.status,
+        budget: Number(property.price || 0),
+        progress: 0,
+        startDate: property.createdAt,
+        manager: null,
+        type: property.type,
+      },
+      period: allDates.length
+        ? { from: new Date(Math.min(...allDates)).toISOString(), to: new Date(Math.max(...allDates)).toISOString() }
+        : { from: null, to: null },
+      income: { code: '40000', label: 'Collected income', amount: incomeAmount },
+      sections: [
+        { code: '40100', category: 'rentals', label: 'Rent Collected', lines: rentalSectionLines, total: rentalPaid },
+        { code: '40200', category: 'sales', label: 'Sales Collected', lines: salesLines, total: salesCollected },
+        { code: '40300', category: 'contracts', label: 'Active Leases (monthly)', lines: contractLines, total: contractLines.reduce((s, l) => s + l.amount, 0) },
+      ],
+      totalExpense: 0,
+      netIncome: incomeAmount,
+      extras: { salesContracted },
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  async getPropertyCategoryLedger(db: any, propertyId: string, category: string, query: { startDate?: string; endDate?: string; filter?: string } = {}) {
+    await this.getPropertyOrThrow(db, propertyId);
+    const date = this.dateFilter(query.startDate, query.endDate);
+    const filter = query.filter?.trim() || undefined;
+    const property = await this.getPropertyOrThrow(db, propertyId);
+
+    if (category === 'rentals' || category === 'payments') {
+      const rows = await db.rentPayment.findMany({
+        where: {
+          deletedAt: null,
+          ...(date ? { dueDate: date } : {}),
+          ...(filter ? { status: filter } : {}),
+          contract: { is: { propertyId } },
+        },
+        include: {
+          tenant: { select: { name: true, phone: true } },
+          contract: { select: { monthlyRent: true, status: true } },
+        },
+        orderBy: { dueDate: 'desc' },
+      });
+      const mapped = rows.map((row: any) => ({
+        id: row.id,
+        category: 'rentals',
+        date: row.dueDate,
+        amount: Number(row.amountPaid || 0),
+        description: row.notes || `Rent · ${row.status}`,
+        worker: row.tenant?.name || '—',
+        role: row.status,
+        expenseCategory: row.status,
+        rollupKey: row.status,
+        enteredBy: '—',
+        recordedBy: '—',
+        status: row.status,
+        paidDate: row.paidDate,
+        amountDue: Number(row.amountDue || 0),
+        amountPaid: Number(row.amountPaid || 0),
+        receiptNo: row.receiptNo,
+      }));
+      return {
+        project: { id: property.id, name: property.title },
+        category: 'rentals',
+        label: 'Rent Payments',
+        filter: filter || null,
+        filterLabel: filter || null,
+        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+        rows: mapped,
+      };
+    }
+
+    if (category === 'sales') {
+      const rows = await db.deal.findMany({
+        where: {
+          deletedAt: null,
+          propertyId,
+          type: 'SALE',
+          ...(date ? { createdAt: date } : {}),
+          ...(filter ? { paymentStatus: filter } : {}),
+        },
+        include: {
+          client: { select: { name: true, phone: true, email: true } },
+          createdBy: { select: { name: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      const mapped = rows.map((row: any) => ({
+        id: row.id,
+        category: 'sales',
+        date: row.closedAt || row.createdAt,
+        amount: Number(row.paidAmount || 0),
+        description: row.notes || 'Property sale',
+        worker: row.client?.name || '—',
+        role: row.paymentStatus,
+        expenseCategory: row.paymentStatus,
+        enteredBy: row.createdBy?.name || row.createdBy?.email || '—',
+        status: row.paymentStatus,
+        paidAmount: Number(row.paidAmount || 0),
+        totalAmount: Number(row.totalAmount || 0),
+      }));
+      return {
+        project: { id: property.id, name: property.title },
+        category: 'sales',
+        label: 'Property Sales',
+        filter: filter || null,
+        filterLabel: filter || null,
+        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+        rows: mapped,
+      };
+    }
+
+    if (category === 'contracts') {
+      const rows = await db.rentalContract.findMany({
+        where: {
+          deletedAt: null,
+          propertyId,
+          ...(filter ? { status: filter } : {}),
+        },
+        include: { tenant: { select: { name: true, phone: true } } },
+        orderBy: { startDate: 'desc' },
+      });
+      const mapped = rows.map((row: any) => ({
+        id: row.id,
+        category: 'contracts',
+        date: row.startDate,
+        amount: Number(row.monthlyRent || 0),
+        description: row.notes || 'Lease contract',
+        worker: row.tenant?.name || '—',
+        role: row.status,
+        expenseCategory: row.status,
+        enteredBy: '—',
+        status: row.status,
+        endDate: row.endDate,
+      }));
+      return {
+        project: { id: property.id, name: property.title },
+        category: 'contracts',
+        label: 'Lease Contracts',
+        filter: filter || null,
+        filterLabel: filter || null,
+        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+        rows: mapped,
+      };
+    }
+
+    throw new NotFoundException('Unknown report category');
+  }
+
+  async getPropertyCategoryDetail(db: any, propertyId: string, category: string, txnId: string) {
+    const ledger = await this.getPropertyCategoryLedger(db, propertyId, category);
+    const row = ledger.rows.find((item: any) => item.id === txnId);
+    if (!row) throw new NotFoundException('Transaction not found');
+    const property = await this.getPropertyOrThrow(db, propertyId);
+    return {
+      project: { id: property.id, name: property.title, location: property.address, status: property.status, manager: null },
+      category: ledger.category,
+      label: ledger.label,
+      transaction: row,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  /* ─── Materials product reports ─── */
+
+  async listMaterialReports(db: any) {
+    const materials = await db.material.findMany({
+      where: { deletedAt: null },
+      orderBy: { updatedAt: 'desc' },
+    });
+    return materials.map((m: any) => {
+      const qty = Number(m.quantity || 0);
+      const unitCost = Number(m.unitCost || 0);
+      const stockValue = qty * unitCost;
+      return {
+        id: m.id,
+        name: m.name,
+        location: m.warehouse || m.category || 'Warehouse',
+        status: m.status,
+        type: m.unit,
+        budget: stockValue,
+        spentToDate: stockValue,
+        budgetUsedPct: qty <= Number(m.lowStockThreshold || 0) ? 100 : Math.min(100, Math.round((qty / Math.max(qty, 1)) * 100)),
+        progress: Math.min(100, Math.round(qty)),
+        startDate: m.createdAt,
+        manager: `${qty} ${m.unit || 'units'}`,
+        assignees: [],
+        meta: m.materialType || m.category,
+      };
+    });
+  }
+
+  private async getMaterialOrThrow(db: any, materialId: string) {
+    const material = await db.material.findFirst({ where: { id: materialId, deletedAt: null } });
+    if (!material) throw new NotFoundException('Material not found');
+    return material;
+  }
+
+  async getMaterialOverview(db: any, materialId: string, query: { startDate?: string; endDate?: string } = {}) {
+    const material = await this.getMaterialOrThrow(db, materialId);
+    const date = this.dateFilter(query.startDate, query.endDate);
+    const qty = Number(material.quantity || 0);
+    const unitCost = Number(material.unitCost || 0);
+    const salePrice = Number(material.salePrice || 0);
+    const stockValue = qty * unitCost;
+
+    const [movements, purchaseItems, saleItems] = await Promise.all([
+      db.inventoryTransaction.findMany({
+        where: { materialId, deletedAt: null, ...(date ? { date } : {}) },
+        include: { user: { select: { name: true, email: true } }, project: { select: { name: true } } },
+        orderBy: { date: 'desc' },
+      }),
+      db.purchaseOrderItem.findMany({
+        where: {
+          materialId,
+          purchaseOrder: { deletedAt: null, status: 'RECEIVED', ...(date ? { receivedAt: date } : {}) },
+        },
+        include: {
+          purchaseOrder: { include: { supplier: { select: { name: true } } } },
+        },
+      }),
+      db.materialSaleItem.findMany({
+        where: {
+          materialId,
+          sale: { deletedAt: null, ...(date ? { date } : {}) },
+        },
+        include: {
+          sale: { include: { customer: { select: { name: true } }, user: { select: { name: true, email: true } } } },
+        },
+      }),
+    ]);
+
+    const movementRollup = new Map<string, number>();
+    for (const row of movements) {
+      const key = row.type || 'MOVEMENT';
+      const line = Number(row.quantity) * unitCost;
+      movementRollup.set(key, (movementRollup.get(key) || 0) + line);
+    }
+    const movementLines = Array.from(movementRollup.entries()).map(([label, amount]) => ({
+      code: '50100', label, amount, filterKey: label,
+    }));
+    const movementTotal = movementLines.reduce((s, l) => s + l.amount, 0);
+
+    const purchaseTotal = purchaseItems.reduce((s: number, i: any) => s + Number(i.quantity) * Number(i.unitCost), 0);
+    const purchaseLines = purchaseItems.slice(0, 12).map((i: any) => ({
+      code: '50200',
+      label: i.purchaseOrder?.supplier?.name || i.purchaseOrder?.orderNo || 'Purchase',
+      amount: Number(i.quantity) * Number(i.unitCost),
+      filterKey: i.purchaseOrder?.status || 'ORDERED',
+    }));
+
+    const salesTotal = saleItems.reduce((s: number, i: any) => s + Number(i.quantity) * Number(i.unitPrice), 0);
+    const salesLines = saleItems.slice(0, 12).map((i: any) => ({
+      code: '50300',
+      label: i.sale?.customer?.name || i.sale?.invoiceNo || 'Sale',
+      amount: Number(i.quantity) * Number(i.unitPrice),
+      filterKey: i.sale?.invoiceNo || i.saleId,
+    }));
+
+    const allDates = [
+      ...movements.map((r: any) => r.date),
+      ...purchaseItems.map((i: any) => i.purchaseOrder?.createdAt),
+      ...saleItems.map((i: any) => i.sale?.date),
+    ].filter(Boolean).map((d: Date) => new Date(d).getTime());
+
+    return {
+      project: {
+        id: material.id,
+        name: material.name,
+        location: material.warehouse || material.category || null,
+        status: material.status,
+        budget: stockValue,
+        progress: 0,
+        startDate: material.createdAt,
+        manager: `${qty} ${material.unit || ''}`.trim(),
+      },
+      period: allDates.length
+        ? { from: new Date(Math.min(...allDates)).toISOString(), to: new Date(Math.max(...allDates)).toISOString() }
+        : { from: null, to: null },
+      income: { code: '40100', label: 'Sales revenue', amount: salesTotal },
+      sections: [
+        { code: '50100', category: 'movements', label: 'Stock Movements', lines: movementLines, total: movementTotal },
+        { code: '50200', category: 'purchases', label: 'Purchases (received)', lines: purchaseLines, total: purchaseTotal },
+        { code: '50300', category: 'sales', label: 'Sales', lines: salesLines, total: salesTotal },
+      ],
+      totalExpense: purchaseTotal,
+      netIncome: salesTotal - purchaseTotal,
+      generatedAt: new Date().toISOString(),
+      extras: { quantity: qty, unitCost, salePrice, unit: material.unit, stockValue },
+    };
+  }
+
+  async getMaterialCategoryLedger(db: any, materialId: string, category: string, query: { startDate?: string; endDate?: string; filter?: string } = {}) {
+    const material = await this.getMaterialOrThrow(db, materialId);
+    const date = this.dateFilter(query.startDate, query.endDate);
+    const filter = query.filter?.trim() || undefined;
+    const unitCost = Number(material.unitCost || 0);
+
+    if (category === 'movements') {
+      const rows = await db.inventoryTransaction.findMany({
+        where: {
+          materialId,
+          deletedAt: null,
+          ...(date ? { date } : {}),
+          ...(filter ? { type: filter } : {}),
+        },
+        include: {
+          user: { select: { name: true, email: true } },
+          project: { select: { name: true } },
+        },
+        orderBy: { date: 'desc' },
+      });
+      const mapped = rows.map((row: any) => ({
+        id: row.id,
+        category: 'movements',
+        date: row.date,
+        amount: Number(row.quantity) * unitCost,
+        item: material.name,
+        description: row.notes || row.type,
+        worker: row.project?.name || '—',
+        role: row.type,
+        expenseCategory: row.type,
+        rollupKey: row.type,
+        quantity: Number(row.quantity),
+        unit: material.unit,
+        unitCost,
+        enteredBy: row.user?.name || row.user?.email || '—',
+        usedBy: row.user?.name || row.user?.email || '—',
+        status: row.type,
+        warehouse: row.warehouse || material.warehouse,
+      }));
+      return {
+        project: { id: material.id, name: material.name },
+        category: 'movements',
+        label: 'Stock Movements',
+        filter: filter || null,
+        filterLabel: filter || null,
+        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+        rows: mapped,
+      };
+    }
+
+    if (category === 'purchases') {
+      const rows = await db.purchaseOrderItem.findMany({
+        where: {
+          materialId,
+          purchaseOrder: {
+            deletedAt: null,
+            status: 'RECEIVED',
+            ...(date ? { receivedAt: date } : {}),
+            ...(filter ? {
+              OR: [
+                { orderNo: { contains: filter, mode: 'insensitive' } },
+                { supplier: { is: { name: { contains: filter, mode: 'insensitive' } } } },
+              ],
+            } : {}),
+          },
+        },
+        include: {
+          purchaseOrder: { include: { supplier: { select: { name: true } } } },
+        },
+        orderBy: { purchaseOrder: { receivedAt: 'desc' } },
+      });
+      const mapped = rows.map((row: any) => ({
+        id: row.id,
+        category: 'purchases',
+        date: row.purchaseOrder?.receivedAt || row.purchaseOrder?.orderedAt || row.purchaseOrder?.createdAt,
+        amount: Number(row.quantity) * Number(row.unitCost),
+        item: material.name,
+        description: row.purchaseOrder?.orderNo || 'Purchase order',
+        worker: row.purchaseOrder?.supplier?.name || '—',
+        role: row.purchaseOrder?.status || '—',
+        expenseCategory: row.purchaseOrder?.status,
+        quantity: Number(row.quantity),
+        unitCost: Number(row.unitCost),
+        enteredBy: '—',
+        status: row.purchaseOrder?.status,
+      }));
+      return {
+        project: { id: material.id, name: material.name },
+        category: 'purchases',
+        label: 'Purchases',
+        filter: filter || null,
+        filterLabel: filter || null,
+        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+        rows: mapped,
+      };
+    }
+
+    if (category === 'sales') {
+      const rows = await db.materialSaleItem.findMany({
+        where: {
+          materialId,
+          sale: { deletedAt: null, ...(date ? { date } : {}) },
+        },
+        include: {
+          sale: { include: { customer: { select: { name: true } }, user: { select: { name: true, email: true } } } },
+        },
+        orderBy: { sale: { date: 'desc' } },
+      });
+      const mapped = rows
+        .filter((row: any) => !filter || row.sale?.invoiceNo === filter)
+        .map((row: any) => ({
+          id: row.id,
+          category: 'sales',
+          date: row.sale?.date,
+          amount: Number(row.quantity) * Number(row.unitPrice),
+          item: material.name,
+          description: row.sale?.invoiceNo || 'Sale',
+          worker: row.sale?.customer?.name || '—',
+          role: 'SALE',
+          quantity: Number(row.quantity),
+          unitCost: Number(row.unitPrice),
+          enteredBy: row.sale?.user?.name || row.sale?.user?.email || '—',
+          status: 'SOLD',
+        }));
+      return {
+        project: { id: material.id, name: material.name },
+        category: 'sales',
+        label: 'Sales',
+        filter: filter || null,
+        filterLabel: filter || null,
+        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
+        rows: mapped,
+      };
+    }
+
+    throw new NotFoundException('Unknown report category');
+  }
+
+  async getMaterialCategoryDetail(db: any, materialId: string, category: string, txnId: string) {
+    const ledger = await this.getMaterialCategoryLedger(db, materialId, category);
+    const row = ledger.rows.find((item: any) => item.id === txnId);
+    if (!row) throw new NotFoundException('Transaction not found');
+    const material = await this.getMaterialOrThrow(db, materialId);
+    return {
+      project: {
+        id: material.id,
+        name: material.name,
+        location: material.warehouse || material.category,
+        status: material.status,
+        manager: null,
+      },
+      category: ledger.category,
+      label: ledger.label,
+      transaction: row,
+      generatedAt: new Date().toISOString(),
+    };
   }
 }

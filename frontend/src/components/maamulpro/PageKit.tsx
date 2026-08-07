@@ -6,6 +6,61 @@ export const humanize = (value: string) => value.replace(/[_-]/g, ' ').replace(/
 export const money = (value: unknown, currency = 'USD') => new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(Number(value || 0));
 export const shortDate = (value: unknown) => value ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(String(value))) : '—';
 
+/** Keys that are internal system identifiers — hide from user-facing tables. */
+export const isSystemIdKey = (key: string) =>
+    key === 'id'
+    || /(?:^|_)id$/i.test(key)
+    || /Id$/.test(key)
+    || /Ids$/.test(key)
+    || ['passwordHash', 'deletedAt', 'updatedAt', 'version', 'resetTokenHash', 'resetTokenExpiresAt', 'resetRequestedAt', 'passwordResetAt'].includes(key);
+
+export const looksLikeSystemId = (value: unknown) =>
+    typeof value === 'string'
+    && /^c[a-z0-9]{20,}$/i.test(value.trim());
+
+const entityLabel = (value: Record<string, any>) => {
+    if (value.name) return value.name;
+    if (value.title) return value.title;
+    const person = [value.firstName, value.lastName].filter(Boolean).join(' ');
+    if (person) return person;
+    return value.invoiceNo || value.orderNo || value.deliveryNo || value.email || value.label || null;
+};
+
+/** Prefer nested relation objects over raw foreign-key columns when picking table columns. */
+export const visibleTableColumns = (row: Record<string, any> | undefined, prefer: string[] = [], limit = 8) => {
+    if (!row) return prefer;
+    const keys = Object.keys(row);
+    const hidden = new Set(keys.filter(isSystemIdKey));
+    // If both tenantId and tenant exist, drop tenantId
+    for (const key of keys) {
+        if (/Id$/.test(key)) {
+            const relation = key.replace(/Id$/, '');
+            if (relation && row[relation] != null && typeof row[relation] === 'object') hidden.add(key);
+        }
+    }
+    const preferred = prefer.filter((key) => key in row && !hidden.has(key));
+    const extras = keys.filter((key) => !hidden.has(key) && !preferred.includes(key) && typeof row[key] !== 'object');
+    const relations = keys.filter((key) => !hidden.has(key) && !preferred.includes(key) && row[key] && typeof row[key] === 'object' && !Array.isArray(row[key]));
+    return [...preferred, ...relations, ...extras].slice(0, limit);
+};
+
+export const formatTableValue = (key: string, value: unknown): string => {
+    if (value == null || value === '') return '—';
+    if (typeof value === 'object') {
+        if (Array.isArray(value)) return value.length ? `${value.length} items` : '—';
+        const label = entityLabel(value as Record<string, any>);
+        return label || '—';
+    }
+    if (isSystemIdKey(key) || looksLikeSystemId(value)) return '—';
+    if (/date|At$/i.test(key) && !Number.isNaN(Date.parse(String(value)))) return shortDate(value);
+    if (typeof value === 'number' || (typeof value === 'string' && value !== '' && !Number.isNaN(Number(value)) && /(amount|price|cost|balance|budget|rent|salary|paid|total|qty|quantity)/i.test(key))) {
+        if (/(amount|price|cost|balance|budget|rent|salary|paid|total)/i.test(key)) return money(value);
+    }
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (typeof value === 'string' && /^[A-Z][A-Z0-9_]+$/.test(value)) return humanize(value);
+    return String(value);
+};
+
 export const StatusPill = ({ value }: { value?: string | null }) => {
     const normalized = String(value || 'UNKNOWN').toUpperCase();
     const positive = ['ACTIVE', 'PAID', 'CLEARED', 'COMPLETED', 'APPROVED', 'DELIVERED', 'RECEIVED', 'AVAILABLE'];

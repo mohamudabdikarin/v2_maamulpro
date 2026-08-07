@@ -173,12 +173,14 @@ export class RealEstateService {
       await this.assertPropertyAvailable(tx, data.propertyId);
       const client = await tx.client.findFirst({ where: { id: data.clientId, deletedAt: null } });
       if (!client) throw new NotFoundException('Client not found');
+      const paidAmount = Number(data.paidAmount || 0);
+      const paymentStatus = this.dealPaymentStatus(Number(data.totalAmount), paidAmount, data.paymentStatus);
       const deal = await tx.deal.create({
         data: {
           ...data,
           type: data.type as any,
-          paymentStatus: (data.paymentStatus as any) || 'PENDING',
-          paidAmount: data.paidAmount || 0,
+          paymentStatus: paymentStatus as any,
+          paidAmount,
           createdById: userId,
         },
       });
@@ -196,12 +198,17 @@ export class RealEstateService {
       if (data.propertyId !== existing.propertyId) await this.assertPropertyAvailable(tx, data.propertyId);
       const where: any = { id, deletedAt: null };
       if (data.version !== undefined) where.version = data.version;
+      const paidAmount = Number(data.paidAmount ?? existing.paidAmount ?? 0);
+      const totalAmount = Number(data.totalAmount ?? existing.totalAmount);
+      const paymentStatus = this.dealPaymentStatus(totalAmount, paidAmount, data.paymentStatus);
       const result = await tx.deal.updateMany({
         where,
         data: {
           ...data,
           type: data.type as any,
-          paymentStatus: data.paymentStatus as any,
+          paidAmount,
+          totalAmount,
+          paymentStatus: paymentStatus as any,
           version: { increment: 1 },
         },
       });
@@ -223,6 +230,7 @@ export class RealEstateService {
         where: { dealId: id, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'DEAL', id));
       await this.syncDealPropertyStatus(tx, deal.propertyId);
       return { deleted: true };
     });
@@ -323,11 +331,15 @@ export class RealEstateService {
   async createRentPayment(tenantDb: any, data: RentPaymentDto) {
     this.validatePayment(data);
     return tenantDb.$transaction(async (tx: any) => {
+      const amountPaid = Number(data.amountPaid || 0);
+      const amountDue = Number(data.amountDue);
+      const status = this.paymentStatus(amountDue, amountPaid, new Date(data.dueDate));
       const payment = await tx.rentPayment.create({
         data: {
           ...data,
-          status: (data.status as any) || this.paymentStatus(data.amountDue, data.amountPaid || 0, data.dueDate),
-          amountPaid: data.amountPaid || 0,
+          status: status as any,
+          amountPaid,
+          paidDate: amountPaid > 0 ? (data.paidDate ? new Date(data.paidDate) : new Date()) : null,
         },
       });
       await this.syncRentPaymentLedger(tx, payment);
@@ -340,9 +352,19 @@ export class RealEstateService {
     return tenantDb.$transaction(async (tx: any) => {
       const existing = await tx.rentPayment.findFirst({ where: { id, deletedAt: null } });
       if (!existing) throw new NotFoundException('Rent payment not found');
+      const amountPaid = Number(data.amountPaid ?? existing.amountPaid ?? 0);
+      const amountDue = Number(data.amountDue ?? existing.amountDue);
+      const dueDate = data.dueDate ? new Date(data.dueDate) : existing.dueDate;
+      const status = this.paymentStatus(amountDue, amountPaid, dueDate);
       const payment = await tx.rentPayment.update({
         where: { id },
-        data: { ...data, status: data.status as any },
+        data: {
+          ...data,
+          amountPaid,
+          amountDue,
+          status: status as any,
+          paidDate: amountPaid > 0 ? (data.paidDate ? new Date(data.paidDate) : existing.paidDate || new Date()) : null,
+        },
       });
       await this.syncRentPaymentLedger(tx, payment);
       return payment;
@@ -353,12 +375,25 @@ export class RealEstateService {
     return tenantDb.$transaction(async (tx: any) => {
       const existing = await tx.rentPayment.findFirst({ where: { id, deletedAt: null } });
       if (!existing) throw new NotFoundException('Rent payment not found');
+      const amountDue = Number(existing.amountDue);
+      let amountPaid = Number(existing.amountPaid);
+      let paidDate = existing.paidDate;
+      if (status === 'PAID') {
+        amountPaid = amountDue;
+        paidDate = new Date();
+      } else if (status === 'UNPAID' || status === 'LATE') {
+        amountPaid = 0;
+        paidDate = null;
+      } else if (status === 'PARTIAL' && !(amountPaid > 0 && amountPaid < amountDue)) {
+        throw new BadRequestException('PARTIAL status requires amountPaid between 0 and amountDue');
+      }
+      const derived = this.paymentStatus(amountDue, amountPaid, existing.dueDate);
       const payment = await tx.rentPayment.update({
         where: { id },
         data: {
-          status: status as any,
-          paidDate: status === 'PAID' ? new Date() : existing.paidDate,
-          amountPaid: status === 'PAID' ? existing.amountDue : existing.amountPaid,
+          status: derived as any,
+          paidDate,
+          amountPaid,
         },
       });
       await this.syncRentPaymentLedger(tx, payment);
@@ -377,6 +412,9 @@ export class RealEstateService {
         where: { referenceId: { startsWith: `rentpayment:${id}:` }, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_INVOICE', id));
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_RECEIPT', id));
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', id));
       return { deleted: true };
     });
   }
@@ -486,6 +524,13 @@ export class RealEstateService {
     }
   }
 
+  private dealPaymentStatus(total: number, paid: number, explicit?: string) {
+    if (explicit === 'REFUNDED') return 'REFUNDED';
+    if (paid <= 0) return 'PENDING';
+    if (paid >= total) return 'PAID';
+    return 'PARTIAL';
+  }
+
   private paymentStatus(due: number, paid: number, dueDate: Date) {
     if (paid >= due) return 'PAID';
     if (paid > 0) return 'PARTIAL';
@@ -498,14 +543,34 @@ export class RealEstateService {
       where: { referenceId: { startsWith: prefix }, deletedAt: null },
       data: { deletedAt: new Date(), version: { increment: 1 } },
     });
-    await this.safePost(() =>
-      this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', payment.id),
-    );
+    // Accrual: keep invoice (AR/Revenue for full due) separate from receipt (Cash/AR for paid)
+    await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_INVOICE', payment.id));
+    await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_RECEIPT', payment.id));
+    // Legacy source key used by older posts
+    await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', payment.id));
+
     const propertyId = payment.contractId
       ? (await tx.rentalContract.findUnique({ where: { id: payment.contractId } }))?.propertyId
       : null;
     const paid = Number(payment.amountPaid);
     const due = Number(payment.amountDue);
+
+    if (due > 0) {
+      await this.safePost(() =>
+        this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system',
+          sourceType: 'RENT_INVOICE',
+          sourceId: payment.id,
+          sourceRef: `rent ${payment.id} · invoice`,
+          date: payment.dueDate,
+          memo: `Rent invoice (${payment.id})`,
+          drKey: 'RENTAL_INVOICE_AR',
+          crKey: 'RENTAL_INVOICE_REVENUE',
+          amount: due,
+        }),
+      );
+    }
+
     if (paid > 0) {
       await tx.transaction.create({
         data: {
@@ -521,7 +586,7 @@ export class RealEstateService {
       await this.safePost(() =>
         this.accounting.postFinancialEvent(tx, {
           tx, tenantId: 'system',
-          sourceType: 'RENT_PAYMENT',
+          sourceType: 'RENT_RECEIPT',
           sourceId: payment.id,
           sourceRef: `rent ${payment.id} · paid`,
           date: payment.paidDate || new Date(),
@@ -529,32 +594,6 @@ export class RealEstateService {
           drKey: 'RENTAL_RECEIPT_CASH',
           crKey: 'RENTAL_RECEIPT_AR',
           amount: paid,
-        }),
-      );
-    }
-    if (due - paid > 0) {
-      await tx.transaction.create({
-        data: {
-          referenceId: `${prefix}due:${payment.updatedAt.getTime()}`,
-          type: 'INCOME',
-          status: payment.status === 'LATE' ? 'PROCESSING' : 'PENDING',
-          description: `Outstanding rent (rent payment ${payment.id})`,
-          amount: due - paid,
-          date: payment.dueDate,
-          propertyId,
-        },
-      });
-      await this.safePost(() =>
-        this.accounting.postFinancialEvent(tx, {
-          tx, tenantId: 'system',
-          sourceType: 'RENT_PAYMENT',
-          sourceId: payment.id,
-          sourceRef: `rent ${payment.id} · due`,
-          date: payment.dueDate,
-          memo: `Outstanding rent (${payment.id})`,
-          drKey: 'RENTAL_INVOICE_AR',
-          crKey: 'RENTAL_INVOICE_REVENUE',
-          amount: due - paid,
         }),
       );
     }

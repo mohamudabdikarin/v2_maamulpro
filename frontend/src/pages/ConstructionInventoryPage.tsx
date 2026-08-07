@@ -41,13 +41,14 @@ type InventoryResponse = {
     summary: { materialCount: number; lowStockCount: number; stockValue: number };
 };
 
-const MOVEMENT_TYPES = ['RESTOCK', 'USAGE', 'ADJUSTMENT', 'TRANSFER'] as const;
+const MOVEMENT_TYPES = ['RESTOCK', 'USAGE', 'ADJUSTMENT'] as const;
 const initialForm = { materialId: '', type: 'RESTOCK', quantity: '', projectId: '', warehouse: '', notes: '' };
 
 const currency = (value: number | string) => `$${Number(value || 0).toLocaleString()}`;
 
 const ConstructionInventoryPage = () => {
     const [inventory, setInventory] = useState<InventoryResponse | null>(null);
+    const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [tab, setTab] = useState<'stock' | 'movements'>('stock');
@@ -58,8 +59,17 @@ const ConstructionInventoryPage = () => {
     const load = () => {
         setLoading(true);
         setError('');
-        return api<InventoryResponse>('/api/construction/inventory', { silent: true })
-            .then(setInventory)
+        return Promise.all([
+            api<InventoryResponse>('/api/construction/inventory', { silent: true }),
+            api<unknown>('/api/construction/projects', { silent: true }).then((result) => {
+                const rows = Array.isArray(result) ? result : (result as any)?.data || [];
+                return rows.map((row: any) => ({ id: row.id, name: row.name }));
+            }).catch(() => []),
+        ])
+            .then(([inv, projectRows]) => {
+                setInventory(inv);
+                setProjects(projectRows);
+            })
             .catch((reason) => setError(reason instanceof Error ? reason.message : 'Unable to load inventory'))
             .finally(() => setLoading(false));
     };
@@ -71,6 +81,10 @@ const ConstructionInventoryPage = () => {
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();
+        if (form.type === 'USAGE' && !form.projectId) {
+            toast.error('Select a project for material usage');
+            return;
+        }
         setSaving(true);
         try {
             await api('/api/construction/inventory/movements', {
@@ -105,7 +119,7 @@ const ConstructionInventoryPage = () => {
     return <AppShell>
         <PageHeader
             title="Construction inventory"
-            actions={<PermissionButton perm="construction.manage" className="btn btn-primary" onClick={openModal}>Record movement</PermissionButton>}
+            actions={<PermissionButton perm="construction_inventory.create" className="btn btn-primary" onClick={openModal}>Record movement</PermissionButton>}
         />
 
         {error && <ErrorAlert message={error} onRetry={load} />}
@@ -231,7 +245,6 @@ const ConstructionInventoryPage = () => {
                     <input
                         className="form-input"
                         type="number"
-                        min="0.01"
                         step="0.01"
                         required
                         value={form.quantity}
@@ -240,14 +253,23 @@ const ConstructionInventoryPage = () => {
                 </Field>
 
                 {form.type === 'USAGE' && (
-                    <Field label="Project ID" required>
-                        <input
-                            className="form-input"
+                    <Field label="Project" required>
+                        <select
+                            className="form-select"
                             required
                             value={form.projectId}
                             onChange={(event) => setForm({ ...form, projectId: event.target.value })}
-                        />
+                        >
+                            <option value="">Select project…</option>
+                            {projects.map((project) => (
+                                <option value={project.id} key={project.id}>{project.name}</option>
+                            ))}
+                        </select>
                     </Field>
+                )}
+
+                {form.type === 'ADJUSTMENT' && (
+                    <p className="text-xs text-white-dark">Use a positive quantity to add stock, or a negative quantity to write off stock.</p>
                 )}
 
                 <Field label="Warehouse">

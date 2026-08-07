@@ -7,7 +7,7 @@ const RbacPage = lazy(() => import('../pages/RbacPage'));
 const CrudPage = lazy(() => import('../pages/CrudPage'));
 const ConstructionInventoryPage = lazy(() => import('../pages/ConstructionInventoryPage'));
 const WorkforceContractsPage = lazy(() => import('../pages/WorkforceContractsPage'));
-const ReportsCenterPage = lazy(() => import('../pages/ReportsCenterPage'));
+const ProjectReportsPage = lazy(() => import('../pages/ProjectReportsPage'));
 const SuperAdminBillingPage = lazy(() => import('../pages/SuperAdminBillingPage'));
 const NotificationsPage = lazy(() => import('../pages/NotificationsPage'));
 const NoAccessPage = lazy(() => import('../pages/NoAccessPage'));
@@ -46,6 +46,13 @@ const ReportSchedulesPage = lazy(() => import('../pages/ReportSchedulesPage'));
 const LegacyRedirectPage = lazy(() => import('../pages/LegacyRedirectPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
+/** Nested report drill-down routes — each workspace loads different entities/data. */
+const reportRoutes = (basePath: string, permission: string, workspace: 'construction' | 'real_estate' | 'material_management' | 'payroll' | 'core') => [
+    { path: basePath, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
+    { path: `${basePath}/:projectId`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
+    { path: `${basePath}/:projectId/:category`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
+    { path: `${basePath}/:projectId/:category/:txnId`, element: <ProjectReportsPage key={workspace} basePath={basePath} workspace={workspace} />, layout: 'blank' as const, permission },
+];
 
 const routes = [
     { path: '/', element: <LoginPage />, layout: 'blank' },
@@ -71,9 +78,9 @@ const routes = [
     { path: '/app/financials/accounts', element: <AccountsPage />, layout: 'blank', permission: 'accounting.read' },
     { path: '/app/financials/journals', element: <JournalEntriesPage />, layout: 'blank', permission: 'accounting.read' },
     { path: '/app/financials/financial-reports', element: <FinancialReportsPage />, layout: 'blank', permission: 'accounting.read' },
-    { path: '/app/financials/profit-loss', element: <ReportsCenterPage workspace="core" title="Profit & Loss" defaultReportId="core-profit-summary" />, layout: 'blank', permission: 'financials.read' },
-    { path: '/app/financials/transaction-detail', element: <ReportsCenterPage workspace="core" title="Transaction Detail By Account" defaultReportId="core-transaction-detail" />, layout: 'blank', permission: 'financials.read' },
-    { path: '/app/financials/reports', element: <ReportsCenterPage workspace="core" title="Financial Reports" />, layout: 'blank', permission: 'reports.read' },
+    ...reportRoutes('/app/financials/reports', 'reports.read', 'core'),
+    { path: '/app/financials/profit-loss', element: <ProjectReportsPage key="core" basePath="/app/financials/reports" workspace="core" />, layout: 'blank', permission: 'financials.read' },
+    { path: '/app/financials/transaction-detail', element: <ProjectReportsPage key="core" basePath="/app/financials/reports" workspace="core" />, layout: 'blank', permission: 'financials.read' },
     { path: '/app/payroll', element: <CrudPage title="Payroll" description="Payroll periods, employee calculations, approvals, rejection and payment state." endpoint="/api/payroll" canEdit={(row) => ['DRAFT', 'REJECTED'].includes(row.status)} canDelete={(row) => row.status === 'DRAFT'} transitions={[
         { action: 'submit', label: 'Submit', tone: 'primary', when: ['DRAFT', 'REJECTED'] }, { action: 'approve', label: 'Approve', tone: 'success', when: ['DRAFT', 'PENDING_APPROVAL'] },
         { action: 'reject', label: 'Reject', tone: 'danger', when: ['PENDING_APPROVAL'] }, { action: 'pay', label: 'Pay', tone: 'success', when: ['APPROVED'] }, { action: 'reopen', label: 'Reopen', tone: 'warning', when: ['PENDING_APPROVAL', 'APPROVED', 'REJECTED'] },
@@ -95,7 +102,7 @@ const routes = [
     { path: '/app/payroll/new', element: <PayrollEditorPage mode="create" />, layout: 'blank', permission: 'payroll.manage' },
     { path: '/app/payroll/:id/edit', element: <PayrollEditorPage mode="edit" />, layout: 'blank', permission: 'payroll.manage' },
     { path: '/app/payroll/payslips', element: <PayslipsPage />, layout: 'blank', permission: 'payroll.read' },
-    { path: '/app/payroll/reports', element: <ReportsCenterPage workspace="payroll" title="Payroll & Staff Reports" />, layout: 'blank', permission: 'reports.read' },
+    ...reportRoutes('/app/payroll/reports', 'reports.read', 'payroll'),
     { path: '/app/construction', element: <ConstructionOverviewPage />, layout: 'blank', permission: 'workspace.construction.read' },
     { path: '/app/construction/overview', element: <ConstructionOverviewPage />, layout: 'blank', permission: 'workspace.construction.read' },
     { path: '/app/construction/projects', element: <ConstructionProjectsPage />, layout: 'blank', permission: 'projects.read' },
@@ -120,8 +127,8 @@ const routes = [
     ]} />, layout: 'blank', permission: 'manpower.read' },
     { path: '/app/construction/inventory', element: <ConstructionInventoryPage />, layout: 'blank', permission: 'construction_inventory.read' },
     { path: '/app/construction/contracts', element: <WorkforceContractsPage />, layout: 'blank', permission: 'workforce_contracts.read' },
-    { path: '/app/construction/inventory/reports', element: <ReportsCenterPage workspace="construction" title="Inventory Reports" defaultReportId="construction-material-usage" />, layout: 'blank', permission: 'reports.construction.read' },
-    { path: '/app/construction/reports', element: <ReportsCenterPage workspace="construction" title="Construction Reports" />, layout: 'blank', permission: 'reports.construction.read' },
+    ...reportRoutes('/app/construction/inventory/reports', 'reports.construction.read', 'construction'),
+    ...reportRoutes('/app/construction/reports', 'reports.construction.read', 'construction'),
     { path: '/app/real-estate', element: <RealEstateOverviewPage />, layout: 'blank', permission: 'workspace.real_estate.read' },
     { path: '/app/real-estate/overview', element: <RealEstateOverviewPage />, layout: 'blank', permission: 'workspace.real_estate.read' },
     { path: '/app/real-estate/properties', element: <PropertiesPage />, layout: 'blank', permission: 'properties.read' },
@@ -174,7 +181,7 @@ const routes = [
     { path: '/app/real-estate/rent-payments/new', element: <CrudRoutePage title="Record rent payment" description="Log a tenant payment against a lease contract." endpoint="/api/real-estate/rent-payments" fields={rentPaymentFields} initialMode="create" returnTo="/app/real-estate/rentals" />, layout: 'blank', permission: 'rentals.create' },
     { path: '/app/real-estate/rent-payments/:id/edit', element: <CrudRoutePage title="Edit rent payment" description="Correct amounts, dates or receipt details." endpoint="/api/real-estate/rent-payments" fields={rentPaymentFields} initialMode="edit" returnTo="/app/real-estate/rent-payments" />, layout: 'blank', permission: 'rentals.update' },
 
-    { path: '/app/real-estate/reports', element: <ReportsCenterPage workspace="real_estate" title="Real Estate Reports" />, layout: 'blank', permission: 'reports.real_estate.read' },
+    ...reportRoutes('/app/real-estate/reports', 'reports.real_estate.read', 'real_estate'),
     { path: '/app/materials', element: <MaterialsOverviewPage />, layout: 'blank', permission: 'workspace.material_management.read' },
     { path: '/app/materials/overview', element: <MaterialsOverviewPage />, layout: 'blank', permission: 'workspace.material_management.read' },
     { path: '/app/materials/inventory', element: <MaterialsInventoryPage />, layout: 'blank', permission: 'materials_inventory.read' },
@@ -205,9 +212,9 @@ const routes = [
     ]} fields={transportationFields} />, layout: 'blank', permission: 'transportation.read' },
     { path: '/app/materials/transportation/new', element: <CrudRoutePage title="New delivery record" description="Log a material transportation and delivery dispatch." endpoint="/api/materials/transportation" fields={transportationFields} initialMode="create" returnTo="/app/materials/transportation" />, layout: 'blank', permission: 'transportation.create' },
     { path: '/app/materials/transportation/:id/edit', element: <CrudRoutePage title="Edit delivery record" description="Update delivery status, cost or notes." endpoint="/api/materials/transportation" fields={transportationFields} initialMode="edit" returnTo="/app/materials/transportation" />, layout: 'blank', permission: 'transportation.update' },
-    { path: '/app/materials/reports', element: <ReportsCenterPage workspace="material_management" title="Materials Reports" />, layout: 'blank', permission: 'reports.material.read' },
+    ...reportRoutes('/app/materials/reports', 'reports.material.read', 'material_management'),
 
-    { path: '/app/reports', element: <ReportsCenterPage />, layout: 'blank', permission: 'reports.read' },
+    ...reportRoutes('/app/reports', 'reports.read', 'core'),
     { path: '/app/report-schedules', element: <ReportSchedulesPage />, layout: 'blank', permission: 'reports.admin' },
     { path: '/app/audits', element: <AuditsPage />, layout: 'blank', permission: 'activity_logs.read' },
     { path: '/app/notifications', element: <NotificationsPage />, layout: 'blank' },

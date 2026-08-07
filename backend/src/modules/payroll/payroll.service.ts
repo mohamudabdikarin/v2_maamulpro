@@ -1,18 +1,90 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PayrollItemDto, PayrollTransitionDto, SavePayrollDto } from './dto/payroll.dto';
 import { AccountingService } from '../accounting/accounting.service';
+import { AccountMappingsService } from '../accounting/account-mappings.service';
 
 @Injectable()
 export class PayrollService {
   private readonly logger = new Logger(PayrollService.name);
 
-  constructor(private readonly accounting: AccountingService) {}
+  constructor(
+    private readonly accounting: AccountingService,
+    private readonly mappings: AccountMappingsService,
+  ) {}
 
   private async safePost(fn: () => Promise<unknown>) {
     try { await fn(); } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(`Journal post skipped: ${message}`);
     }
+  }
+
+  /** Cashbook + GL for a paid payroll (gross expense, net cash, tax/deduction payables). */
+  private async recordPayrollPayment(tx: any, payroll: any, userId: string, description: string) {
+    const gross = Number(payroll.totalGrossSalary || 0);
+    const net = Number(payroll.totalNetSalary || 0);
+    const tax = Number(payroll.totalTax || 0);
+    const deductions = Number(payroll.totalDeductions || 0);
+    const amount = net > 0 ? net : gross;
+
+    await tx.transaction.upsert({
+      where: { referenceId: `PAYROLL-${payroll.id}` },
+      create: {
+        referenceId: `PAYROLL-${payroll.id}`,
+        type: 'EXPENSE',
+        status: 'CLEARED',
+        description,
+        amount,
+        date: new Date(),
+        userId,
+        notes: `Expense account: ${payroll.expenseAccountCode || 'not assigned'}`,
+      },
+      update: {
+        type: 'EXPENSE',
+        status: 'CLEARED',
+        description,
+        amount,
+        date: new Date(),
+        userId,
+        deletedAt: null,
+        version: { increment: 1 },
+      },
+    });
+
+    await this.safePost(async () => {
+      await this.accounting.retractPriorForSource(tx, 'PAYROLL', payroll.id, userId);
+      const resolved = await this.mappings.resolveMany(tx, [
+        'PAYROLL_EXPENSE',
+        'PAYROLL_CASH',
+        'PAYROLL_TAX_PAYABLE',
+        'PAYROLL_DEDUCTIONS_PAYABLE',
+      ]);
+      const expenseCode = payroll.expenseAccountCode || resolved.PAYROLL_EXPENSE;
+      const expenseAmount = gross > 0 ? gross : net;
+      const lines: { accountCode: string; debit: number; credit: number }[] = [
+        { accountCode: expenseCode, debit: expenseAmount, credit: 0 },
+      ];
+      if (net > 0) lines.push({ accountCode: resolved.PAYROLL_CASH, debit: 0, credit: net });
+      if (tax > 0) lines.push({ accountCode: resolved.PAYROLL_TAX_PAYABLE, debit: 0, credit: tax });
+      if (deductions > 0) lines.push({ accountCode: resolved.PAYROLL_DEDUCTIONS_PAYABLE, debit: 0, credit: deductions });
+      // If withholdings weren't broken out, credit cash for the full expense.
+      if (lines.length === 1) {
+        lines.push({ accountCode: resolved.PAYROLL_CASH, debit: 0, credit: expenseAmount });
+      }
+      await this.accounting.postJournalBatch(tx, {
+        tenantId: 'system',
+        userId,
+        tx,
+        dto: {
+          date: new Date(),
+          memo: description,
+          sourceType: 'PAYROLL',
+          sourceId: payroll.id,
+          sourceRef: `PAYROLL-${payroll.id}`,
+          lines,
+        },
+      });
+    });
   }
 
   async getPayrolls(tenantDb: any, status?: string) {
@@ -182,34 +254,11 @@ export class PayrollService {
         },
       });
       if (data.action === 'pay') {
-        await tx.transaction.create({
-          data: {
-            referenceId: `PAYROLL-${payroll.id}`,
-            type: 'EXPENSE',
-            status: 'CLEARED',
-            description: `Payroll Payment — ${payroll.name} (${payroll.year}-${String(payroll.month).padStart(2, '0')})`,
-            amount: payroll.totalNetSalary,
-            date: new Date(),
-            userId,
-            notes: `Expense account: ${payroll.expenseAccountCode || 'not assigned'}`,
-          },
-        });
-        // Post the payroll payment as a balanced batch. If the payroll
-        // has an explicit expense_account_code set, use it — otherwise
-        // fall back to the PAYROLL_EXPENSE mapping.
-        await this.safePost(() =>
-          this.accounting.postFinancialEvent(tx, {
-            tx, tenantId: 'system', userId,
-            sourceType: 'PAYROLL',
-            sourceId: payroll.id,
-            sourceRef: `PAYROLL-${payroll.id}`,
-            date: new Date(),
-            memo: `Payroll payment — ${payroll.name}`,
-            drKey: 'PAYROLL_EXPENSE',
-            crKey: 'PAYROLL_CASH',
-            drAccountOverride: payroll.expenseAccountCode || undefined,
-            amount: Number(payroll.totalNetSalary),
-          }),
+        await this.recordPayrollPayment(
+          tx,
+          payroll,
+          userId,
+          `Payroll Payment — ${payroll.name} (${payroll.year}-${String(payroll.month).padStart(2, '0')})`,
         );
       }
       return updated;
@@ -292,32 +341,11 @@ export class PayrollService {
         },
       });
 
-      // 2. Create Unified Financial Expense Transaction
-      await tx.transaction.create({
-        data: {
-          referenceId: `PAYROLL-${payroll.id}`,
-          type: 'EXPENSE',
-          amount: payroll.totalNetSalary,
-          description: `Payroll salary payment for ${payroll.name} (${payroll.items.length} employees)`,
-          date: new Date(),
-          status: 'CLEARED',
-        },
-      });
-
-      // 3. Post the balanced accounting entry alongside the transaction.
-      await this.safePost(() =>
-        this.accounting.postFinancialEvent(tx, {
-          tx, tenantId: 'system', userId,
-          sourceType: 'PAYROLL',
-          sourceId: payroll.id,
-          sourceRef: `PAYROLL-${payroll.id}`,
-          date: new Date(),
-          memo: `Payroll salary payment for ${payroll.name} (${payroll.items.length} employees)`,
-          drKey: 'PAYROLL_EXPENSE',
-          crKey: 'PAYROLL_CASH',
-          drAccountOverride: payroll.expenseAccountCode || undefined,
-          amount: Number(payroll.totalNetSalary),
-        }),
+      await this.recordPayrollPayment(
+        tx,
+        payroll,
+        userId,
+        `Payroll salary payment for ${payroll.name} (${payroll.items.length} employees)`,
       );
 
       return updatedPayroll;

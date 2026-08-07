@@ -9,6 +9,14 @@ import {
   UpdateTransactionDto,
 } from './dto/financials.dto';
 
+const NORMAL_BALANCE_BY_TYPE: Record<string, 'DEBIT' | 'CREDIT'> = {
+  ASSET: 'DEBIT',
+  EXPENSE: 'DEBIT',
+  LIABILITY: 'CREDIT',
+  EQUITY: 'CREDIT',
+  INCOME: 'CREDIT',
+};
+
 @Injectable()
 export class FinancialsService {
   private readonly logger = new Logger(FinancialsService.name);
@@ -66,53 +74,48 @@ export class FinancialsService {
       }
 
       const date = data.date ? new Date(data.date) : new Date();
-      // 2. Post the balanced journal batch first. Runs inside the same
-      //    tx as the transaction insert, so a posting failure rolls the
-      //    whole thing back and we never end up with an orphan row.
+      const status = (data.status as any) || 'PENDING';
+      // Only post to the formal GL when the cashbook row is CLEARED.
+      // PENDING rows stay UNPOSTED until cleared.
       let journalBatchId: string | null = null;
       let postingStatus: 'POSTED' | 'UNPOSTED' | 'FAILED' = 'UNPOSTED';
-      try {
-        // Resolve the four keys this hook uses in one round-trip. If a
-        // tenant has re-pointed any of them from Settings, the new
-        // account codes take effect immediately for the next post.
-        const resolved = await this.mappings.resolveMany(tenantDb, [
-          'TRANSACTION_INCOME_CASH',
-          'TRANSACTION_INCOME_REVENUE',
-          'TRANSACTION_EXPENSE_CASH',
-          'TRANSACTION_EXPENSE_ACCOUNT',
-        ]);
-        const lines =
-          data.type === 'INCOME'
-            ? [
-                { accountCode: resolved.TRANSACTION_INCOME_CASH, debit: data.amount, credit: 0 },
-                { accountCode: resolved.TRANSACTION_INCOME_REVENUE, debit: 0, credit: data.amount },
-              ]
-            : [
-                { accountCode: resolved.TRANSACTION_EXPENSE_ACCOUNT, debit: data.amount, credit: 0 },
-                { accountCode: resolved.TRANSACTION_EXPENSE_CASH, debit: 0, credit: data.amount },
-              ];
-        const batch = await this.accounting.postJournalBatch(tenantDb, {
-          tenantId: data.tenantId || 'system',
-          userId: data.userId,
-          dto: {
-            date,
-            memo: data.description,
-            sourceType: 'TRANSACTION',
-            sourceRef: data.idempotencyKey,
-            lines,
-          },
-          tx,
-        });
-        journalBatchId = batch.id;
-        postingStatus = 'POSTED';
-      } catch (err) {
-        // Failing to post shouldn't block recording the transaction —
-        // the row is created UNPOSTED so it can be posted later once
-        // the missing default account is created. Users see the flag
-        // in the Financials UI.
-        const message = err instanceof Error ? err.message : String(err);
-        this.logger.warn(`Auto-post failed for transaction (${data.type} ${data.amount}): ${message}`);
-        postingStatus = 'UNPOSTED';
+      if (status === 'CLEARED') {
+        try {
+          const resolved = await this.mappings.resolveMany(tenantDb, [
+            'TRANSACTION_INCOME_CASH',
+            'TRANSACTION_INCOME_REVENUE',
+            'TRANSACTION_EXPENSE_CASH',
+            'TRANSACTION_EXPENSE_ACCOUNT',
+          ]);
+          const lines =
+            data.type === 'INCOME'
+              ? [
+                  { accountCode: resolved.TRANSACTION_INCOME_CASH, debit: data.amount, credit: 0 },
+                  { accountCode: resolved.TRANSACTION_INCOME_REVENUE, debit: 0, credit: data.amount },
+                ]
+              : [
+                  { accountCode: resolved.TRANSACTION_EXPENSE_ACCOUNT, debit: data.amount, credit: 0 },
+                  { accountCode: resolved.TRANSACTION_EXPENSE_CASH, debit: 0, credit: data.amount },
+                ];
+          const batch = await this.accounting.postJournalBatch(tenantDb, {
+            tenantId: data.tenantId || 'system',
+            userId: data.userId,
+            dto: {
+              date,
+              memo: data.description,
+              sourceType: 'TRANSACTION',
+              sourceRef: data.idempotencyKey,
+              lines,
+            },
+            tx,
+          });
+          journalBatchId = batch.id;
+          postingStatus = 'POSTED';
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          this.logger.warn(`Auto-post failed for transaction (${data.type} ${data.amount}): ${message}`);
+          postingStatus = 'UNPOSTED';
+        }
       }
 
       const transaction = await tx.transaction.create({
@@ -128,7 +131,7 @@ export class FinancialsService {
           description: data.description,
           notes: data.notes,
           date,
-          status: (data.status as any) || 'PENDING',
+          status,
           journalBatchId,
           postingStatus,
         },
@@ -139,39 +142,121 @@ export class FinancialsService {
   }
 
   async updateTransaction(tenantDb: any, id: string, data: UpdateTransactionDto) {
-    const result = await tenantDb.transaction.updateMany({
-      where: { id, version: data.version, deletedAt: null },
-      data: {
-        type: data.type,
-        status: data.status,
-        amount: data.amount,
-        description: data.description,
-        categoryId: data.categoryId,
-        projectId: data.projectId,
-        propertyId: data.propertyId,
-        dealId: data.dealId,
-        notes: data.notes,
-        date: data.date,
-        version: { increment: 1 },
-      },
-    });
-    if (!result.count) {
+    const existing = await tenantDb.transaction.findFirst({ where: { id, deletedAt: null } });
+    if (!existing) throw new NotFoundException('Transaction not found');
+    if (data.version !== undefined && existing.version !== data.version) {
       throw new ConflictException('Transaction changed or no longer exists; reload and retry');
     }
-    return tenantDb.transaction.findUnique({ where: { id } });
+
+    return tenantDb.$transaction(async (tx: any) => {
+      if (existing.journalBatchId) {
+        try {
+          await this.accounting.reverseBatchWithinTx(tx, {
+            userId: existing.userId || undefined,
+            batchId: existing.journalBatchId,
+            memo: `Superseded by update of transaction ${id}`,
+          });
+        } catch (err) {
+          this.logger.warn(`Could not reverse batch ${existing.journalBatchId}: ${err instanceof Error ? err.message : err}`);
+        }
+      }
+
+      const nextStatus = (data.status as any) || existing.status;
+      const nextType = (data.type as any) || existing.type;
+      const nextAmount = data.amount !== undefined ? Number(data.amount) : Number(existing.amount);
+      const nextDate = data.date ? new Date(data.date) : existing.date;
+      const nextDescription = data.description ?? existing.description;
+
+      let journalBatchId: string | null = null;
+      let postingStatus: 'POSTED' | 'UNPOSTED' | 'FAILED' = 'UNPOSTED';
+      if (nextStatus === 'CLEARED') {
+        try {
+          const resolved = await this.mappings.resolveMany(tx, [
+            'TRANSACTION_INCOME_CASH',
+            'TRANSACTION_INCOME_REVENUE',
+            'TRANSACTION_EXPENSE_CASH',
+            'TRANSACTION_EXPENSE_ACCOUNT',
+          ]);
+          const lines =
+            nextType === 'INCOME'
+              ? [
+                  { accountCode: resolved.TRANSACTION_INCOME_CASH, debit: nextAmount, credit: 0 },
+                  { accountCode: resolved.TRANSACTION_INCOME_REVENUE, debit: 0, credit: nextAmount },
+                ]
+              : [
+                  { accountCode: resolved.TRANSACTION_EXPENSE_ACCOUNT, debit: nextAmount, credit: 0 },
+                  { accountCode: resolved.TRANSACTION_EXPENSE_CASH, debit: 0, credit: nextAmount },
+                ];
+          const batch = await this.accounting.postJournalBatch(tenantDb, {
+            tenantId: 'system',
+            userId: existing.userId || undefined,
+            dto: { date: nextDate, memo: nextDescription, sourceType: 'TRANSACTION', sourceRef: existing.referenceId || id, lines },
+            tx,
+          });
+          journalBatchId = batch.id;
+          postingStatus = 'POSTED';
+        } catch (err) {
+          this.logger.warn(`Re-post failed for transaction ${id}: ${err instanceof Error ? err.message : err}`);
+          postingStatus = 'UNPOSTED';
+        }
+      }
+
+      const result = await tx.transaction.updateMany({
+        where: { id, deletedAt: null, version: data.version },
+        data: {
+          type: nextType,
+          status: nextStatus,
+          amount: nextAmount,
+          description: nextDescription,
+          categoryId: data.categoryId !== undefined ? data.categoryId : existing.categoryId,
+          projectId: data.projectId !== undefined ? data.projectId : existing.projectId,
+          propertyId: data.propertyId !== undefined ? data.propertyId : existing.propertyId,
+          dealId: data.dealId !== undefined ? data.dealId : existing.dealId,
+          notes: data.notes !== undefined ? data.notes : existing.notes,
+          date: nextDate,
+          journalBatchId,
+          postingStatus,
+          version: { increment: 1 },
+        },
+      });
+      if (!result.count) {
+        throw new ConflictException('Transaction changed or no longer exists; reload and retry');
+      }
+      return tx.transaction.findUnique({ where: { id } });
+    });
   }
 
   async deleteTransaction(tenantDb: any, id: string) {
-    const result = await tenantDb.transaction.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date(), version: { increment: 1 } },
+    const existing = await tenantDb.transaction.findFirst({ where: { id, deletedAt: null } });
+    if (!existing) throw new NotFoundException('Transaction not found');
+    return tenantDb.$transaction(async (tx: any) => {
+      if (existing.journalBatchId) {
+        try {
+          await this.accounting.reverseBatchWithinTx(tx, {
+            userId: existing.userId || undefined,
+            batchId: existing.journalBatchId,
+            memo: `Soft-delete of transaction ${id}`,
+          });
+        } catch (err) {
+          this.logger.warn(`Could not reverse batch on delete ${existing.journalBatchId}: ${err instanceof Error ? err.message : err}`);
+        }
+      }
+      const result = await tx.transaction.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date(), postingStatus: 'UNPOSTED', journalBatchId: null, version: { increment: 1 } },
+      });
+      if (!result.count) throw new NotFoundException('Transaction not found');
+      return { deleted: true };
     });
-    if (!result.count) throw new NotFoundException('Transaction not found');
-    return { deleted: true };
   }
 
   async getSummary(tenantDb: any, query: TransactionQueryDto) {
-    const where: any = { deletedAt: null };
+    const where: any = {
+      deletedAt: null,
+      status: 'CLEARED',
+      // Legacy USAGE cashbook rows double-counted purchases; keep them out of company totals.
+      NOT: { referenceId: { startsWith: 'invusage:' } },
+    };
     if (query.categoryId) where.categoryId = query.categoryId;
     if (query.startDate || query.endDate) where.date = { gte: query.startDate, lte: query.endDate };
     if (query.search) where.description = { contains: query.search, mode: 'insensitive' };
@@ -228,12 +313,24 @@ export class FinancialsService {
       const parent = await tenantDb.account.findUnique({ where: { code: data.parentCode } });
       if (!parent) throw new BadRequestException('Parent account does not exist');
     }
-    return tenantDb.account.create({ data: { ...data, tenantId } });
+    return tenantDb.account.create({
+      data: {
+        ...data,
+        tenantId,
+        normalBalance: NORMAL_BALANCE_BY_TYPE[data.type] || 'DEBIT',
+      },
+    });
   }
 
   async updateAccount(tenantDb: any, code: string, data: AccountDto) {
     if (data.code !== code) throw new BadRequestException('Account code cannot be changed');
-    return tenantDb.account.update({ where: { code }, data });
+    return tenantDb.account.update({
+      where: { code },
+      data: {
+        ...data,
+        normalBalance: NORMAL_BALANCE_BY_TYPE[data.type] || 'DEBIT',
+      },
+    });
   }
 
   async deleteAccount(tenantDb: any, code: string) {

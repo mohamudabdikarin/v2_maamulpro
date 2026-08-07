@@ -89,7 +89,7 @@ export class AccountingService {
   }
 
   /** Internal variant of reverseBatch that reuses the caller's tx. */
-  private async reverseBatchWithinTx(
+  async reverseBatchWithinTx(
     tx: any,
     args: { userId?: string; batchId: string; memo?: string },
   ) {
@@ -292,7 +292,7 @@ export class AccountingService {
    * a positive number when it's on its natural side.
    */
   private async getBalancesByAccount(tenantDb: any, asOf?: Date): Promise<Map<string, number>> {
-    const where: any = {};
+    const where: any = { batch: { deletedAt: null } };
     if (asOf) where.date = { lte: asOf };
     const grouped = await tenantDb.journalEntry.groupBy({
       by: ['accountCode'],
@@ -701,7 +701,7 @@ export class AccountingService {
 
   async getTrialBalance(tenantDb: any, args: { asOf?: Date } = {}) {
     const accounts = await tenantDb.account.findMany({ orderBy: { code: 'asc' } });
-    const where: any = {};
+    const where: any = { batch: { deletedAt: null } };
     if (args.asOf) where.date = { lte: args.asOf };
 
     const grouped = await tenantDb.journalEntry.groupBy({
@@ -741,7 +741,7 @@ export class AccountingService {
   }
 
   async getIncomeStatement(tenantDb: any, args: { startDate?: Date; endDate?: Date } = {}) {
-    const entryWhere: any = {};
+    const entryWhere: any = { batch: { deletedAt: null } };
     if (args.startDate || args.endDate) {
       entryWhere.date = {};
       if (args.startDate) entryWhere.date.gte = args.startDate;
@@ -794,7 +794,7 @@ export class AccountingService {
   }
 
   async getBalanceSheet(tenantDb: any, args: { asOf?: Date } = {}) {
-    const where: any = {};
+    const where: any = { batch: { deletedAt: null } };
     if (args.asOf) where.date = { lte: args.asOf };
 
     const accounts = await tenantDb.account.findMany({
@@ -829,6 +829,18 @@ export class AccountingService {
       if (a.type === 'ASSET') assets.push(row);
       else if (a.type === 'LIABILITY') liabilities.push(row);
       else equity.push(row);
+    }
+
+    // Roll current (and prior) P&L into equity so A = L + E holds
+    const income = await this.getIncomeStatement(tenantDb, { endDate: args.asOf });
+    const currentEarnings = Number(income.netIncome || 0);
+    if (currentEarnings !== 0) {
+      equity.push({
+        code: '3999',
+        name: 'Current Period Earnings',
+        type: 'EQUITY',
+        balance: currentEarnings,
+      });
     }
 
     const totalAssets = roundToCents(assets.reduce((s: number, r: any) => s + r.balance, 0));

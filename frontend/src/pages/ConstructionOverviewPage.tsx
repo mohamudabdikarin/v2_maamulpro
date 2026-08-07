@@ -8,10 +8,12 @@ type Project = { id: string; name: string; location?: string; status: string; bu
 
 const ConstructionOverviewPage = () => {
     const state = useApiRows<Project>('/api/construction/projects');
+    const spentState = useApiRows<{ id: string; spentToDate: number }>('/api/reports/projects');
     const projects = state.rows;
+    const spentById = Object.fromEntries((spentState.rows || []).map((row) => [row.id, Number(row.spentToDate || 0)]));
     const active = projects.filter((project) => ['PLANNING', 'ONGOING', 'ON_HOLD'].includes(project.status));
     const budget = projects.reduce((sum, project) => sum + Number(project.budget || 0), 0);
-    const spent = projects.reduce((sum, project) => sum + (project.dailyExpenses || []).reduce((total, row) => total + Number(row.amount || 0), 0), 0);
+    const spent = projects.reduce((sum, project) => sum + (spentById[project.id] ?? (project.dailyExpenses || []).reduce((total, row) => total + Number(row.amount || 0), 0)), 0);
     const tasks = projects.flatMap((project) => project.tasks || []);
     return <AppShell>
         <PageHeader eyebrow="Construction workspace" title="Construction overview" description="Live project delivery, site costs, staffing, task progress and deadlines." actions={<>
@@ -21,7 +23,7 @@ const ConstructionOverviewPage = () => {
         <StatGrid items={[
             { label: 'Active projects', value: active.length, hint: `${projects.length} total` },
             { label: 'Portfolio budget', value: money(budget), tone: 'info' },
-            { label: 'Recorded site costs', value: money(spent), tone: 'danger' },
+            { label: 'Recorded project costs', value: money(spent), tone: 'danger' },
             { label: 'Tasks complete', value: `${tasks.filter((task) => task.status === 'COMPLETED').length}/${tasks.length}`, tone: 'success' },
         ]} />
         <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

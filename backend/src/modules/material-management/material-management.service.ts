@@ -162,6 +162,7 @@ export class MaterialManagementService {
         where: { referenceId: `purchase:${id}`, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'PURCHASE', id));
       return { deleted: true };
     });
   }
@@ -264,6 +265,7 @@ export class MaterialManagementService {
         where: { referenceId: { startsWith: `sale:${id}:` }, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'MATERIAL_SALE', id));
       return { deleted: true };
     });
   }
@@ -349,6 +351,7 @@ export class MaterialManagementService {
         where: { referenceId: `transport:${id}`, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'TRANSPORTATION', id));
       return { deleted: true };
     });
   }
@@ -357,11 +360,23 @@ export class MaterialManagementService {
     for (const item of order.items) {
       const material = await tx.material.findFirst({ where: { id: item.materialId, deletedAt: null } });
       if (!material) throw new NotFoundException('Purchase material not found');
-      const next = Number(material.quantity) + direction * Number(item.quantity);
+      const qty = Number(item.quantity);
+      const itemCost = Number(item.unitCost);
+      const currentQty = Number(material.quantity);
+      const currentCost = Number(material.unitCost);
+      const next = currentQty + direction * qty;
       if (next < 0) throw new ConflictException(`Cannot reverse order; ${material.name} stock has already been consumed`);
-      const newCost = direction === 1 && next > 0
-        ? (Number(material.quantity) * Number(material.unitCost) + Number(item.quantity) * Number(item.unitCost)) / next
-        : Number(material.unitCost);
+      let newCost = currentCost;
+      if (direction === 1 && next > 0) {
+        newCost = (currentQty * currentCost + qty * itemCost) / next;
+      } else if (direction === -1) {
+        if (next <= 0) newCost = 0;
+        else {
+          const remainingValue = currentQty * currentCost - qty * itemCost;
+          newCost = remainingValue / next;
+          if (newCost < 0) newCost = 0;
+        }
+      }
       await tx.material.update({
         where: { id: material.id },
         data: { quantity: next, unitCost: newCost, version: { increment: 1 } },
@@ -399,10 +414,15 @@ export class MaterialManagementService {
   }
 
   private async assertSaleStock(tx: any, items: any[]) {
+    const neededByMaterial = new Map<string, number>();
     for (const item of items) {
-      const material = await tx.material.findFirst({ where: { id: item.materialId, deletedAt: null } });
+      const id = item.materialId;
+      neededByMaterial.set(id, (neededByMaterial.get(id) || 0) + Number(item.quantity));
+    }
+    for (const [materialId, needed] of neededByMaterial) {
+      const material = await tx.material.findFirst({ where: { id: materialId, deletedAt: null } });
       if (!material) throw new NotFoundException('Sale material not found');
-      if (Number(material.quantity) < Number(item.quantity)) {
+      if (Number(material.quantity) < needed) {
         throw new BadRequestException(`Insufficient stock for ${material.name}`);
       }
     }
@@ -455,9 +475,9 @@ export class MaterialManagementService {
         sourceId: order.id,
         sourceRef: order.orderNo,
         date: order.receivedAt || new Date(),
-        memo: `Procurement expense for purchase order ${order.orderNo}`,
+        memo: `Procurement for purchase order ${order.orderNo}`,
         drKey: 'PURCHASE_INVOICE_EXPENSE',
-        crKey: 'SUPPLIER_PAYMENT_CASH',
+        crKey: 'PURCHASE_INVOICE_AP',
         amount: Number(order.totalCost),
       });
     });

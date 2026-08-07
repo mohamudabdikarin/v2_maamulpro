@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { api } from '../lib/api';
 import LineItemsEditor, { LineItemConfig } from '../components/maamulpro/LineItemsEditor';
-import { EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, SuccessAlert, fieldHint, humanize as titleize, money, shortDate, somaliExample } from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, SuccessAlert, fieldHint, formatTableValue, humanize as titleize, isSystemIdKey, money, shortDate, somaliExample, visibleTableColumns } from '../components/maamulpro/PageKit';
 
 export type CrudField = {
     name: string;
@@ -41,17 +41,17 @@ const unwrap = (result: unknown): Record<string, any>[] => {
     if (result && typeof result === 'object' && Array.isArray((result as any).data)) return (result as any).data;
     return [];
 };
-const hiddenKeys = new Set(['passwordHash', 'deletedAt', 'updatedAt', 'version']);
-const labelOf = (value: Record<string, any>) => value.name || value.title || value.invoiceNo || value.orderNo || value.deliveryNo || value.email || 'Details';
+const hiddenKeys = new Set(['passwordHash', 'deletedAt', 'updatedAt', 'version', 'resetTokenHash', 'resetTokenExpiresAt', 'resetRequestedAt', 'passwordResetAt']);
+const labelOf = (value: Record<string, any>) => value.name || value.title || value.invoiceNo || value.orderNo || value.deliveryNo || value.email || [value.firstName, value.lastName].filter(Boolean).join(' ') || 'Details';
 const nestedValue = (row: Record<string, any>, path: string) => path.split('.').reduce<any>((value, key) => value?.[key], row);
 const lookupLabel = (row: Record<string, any>, keys: string[]) => keys.map((key) => {
     const value = nestedValue(row, key);
     return /date|At$/i.test(key) && value && !Number.isNaN(Date.parse(String(value))) ? shortDate(value) : value;
-}).filter(Boolean).join(' · ') || String(row.id);
+}).filter(Boolean).join(' · ') || labelOf(row);
 const printableValue = (value: any): string => {
     if (value == null || value === '') return '—';
     if (Array.isArray(value)) return value.map((item) => typeof item === 'object'
-        ? Object.entries(item).filter(([key, nested]) => !hiddenKeys.has(key) && key !== 'id' && typeof nested !== 'object').map(([key, nested]) => `${titleize(key)}: ${String(nested ?? '—')}`).join(' · ')
+        ? Object.entries(item).filter(([key, nested]) => !isSystemIdKey(key) && !hiddenKeys.has(key) && typeof nested !== 'object').map(([key, nested]) => `${titleize(key)}: ${formatTableValue(key, nested)}`).join(' · ')
         : String(item)).join('\n');
     if (typeof value === 'object') return labelOf(value);
     return String(value);
@@ -103,10 +103,18 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const filterOptions = useMemo(() => filterKey ? Array.from(new Set(rows.map((row) => String(row[filterKey])).filter(Boolean))) : [], [rows, filterKey]);
     const filtered = useMemo(() => rows.filter((row) => (!filterKey || !filterValue || String(row[filterKey]) === filterValue) && JSON.stringify(row).toLowerCase().includes(search.toLowerCase())), [rows, search, filterKey, filterValue]);
     const columns = useMemo(() => {
-        const preferred = fields.map((field) => field.name).filter((key) => key in (rows[0] || {}));
-        const extras = Object.keys(rows[0] || {}).filter((key) => !hiddenKeys.has(key) && !preferred.includes(key));
-        return [...preferred, ...extras].filter((key) => key !== 'id').slice(0, 7);
-    }, [rows, fields]);
+        const preferred = fields.map((field) => field.name).filter((key) => {
+            if (!(key in (rows[0] || {}))) return false;
+            if (isSystemIdKey(key) && !lookups[key]?.length) {
+                // Prefer relation object (project) over projectId when both exist
+                const relation = key.replace(/Id$/, '');
+                if (relation && rows[0]?.[relation] && typeof rows[0][relation] === 'object') return false;
+                if (!lookups[key]?.length && /Id$/.test(key)) return false;
+            }
+            return !hiddenKeys.has(key);
+        });
+        return visibleTableColumns(rows[0], preferred, 7);
+    }, [rows, fields, lookups]);
     const amountKey = useMemo(() => fields.find((field) => field.type === 'number' && /(total|amount|price|cost|balance|budget|rent)/i.test(field.name))?.name, [fields]);
     const amountTotal = amountKey ? filtered.reduce((sum, row) => sum + Number(row[amountKey] || 0), 0) : 0;
     const displayCell = (key: string, value: any) => {
@@ -116,10 +124,8 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             const match = lookups[key].find((opt) => opt.value === String(value));
             if (match) return match.label;
         }
-        if (/date|At$/.test(key) && !Number.isNaN(Date.parse(String(value)))) return shortDate(value);
-        if (typeof value === 'number' && /(amount|price|cost|balance|budget|rent|salary|paid|total)/i.test(key)) return money(value);
         if (key === 'status' || key === 'paymentStatus') return <StatusPill value={String(value)} />;
-        return String(value);
+        return formatTableValue(key, value);
     };
 
     const showCreate = () => { setEditing(null); setForm(emptyForm(fields)); setFieldErrors({}); setError(''); setOpen(true); };
@@ -251,7 +257,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         <Modal open={Boolean(viewing)} onClose={() => setViewing(null)} title={`${title} details`} wide>
             {viewing && <div className="space-y-6">{Object.entries(viewing).filter(([key]) => !hiddenKeys.has(key)).map(([key, value]) => <div key={key}>
                 <p className="text-xs font-bold uppercase tracking-wide text-white-dark">{titleize(key)}</p>
-                {Array.isArray(value) ? (!value.length ? <p className="mt-1">No items</p> : <div className="mt-2 overflow-x-auto rounded-md border border-white-light dark:border-dark"><table className="table-hover"><thead><tr>{Object.keys(value[0]).filter((child) => !hiddenKeys.has(child) && typeof value[0][child] !== 'object').slice(0, 6).map((child) => <th key={child}>{titleize(child)}</th>)}</tr></thead><tbody>{value.map((item, index) => <tr key={item.id || index}>{Object.keys(value[0]).filter((child) => !hiddenKeys.has(child) && typeof value[0][child] !== 'object').slice(0, 6).map((child) => <td key={child}>{displayCell(child, item[child])}</td>)}</tr>)}</tbody></table></div>)
+                {Array.isArray(value) ? (!value.length ? <p className="mt-1">No items</p> : <div className="mt-2 overflow-x-auto rounded-md border border-white-light dark:border-dark"><table className="table-hover"><thead><tr>{visibleTableColumns(value[0], [], 6).map((child) => <th key={child}>{titleize(child)}</th>)}</tr></thead><tbody>{value.map((item, index) => <tr key={item.id || index}>{visibleTableColumns(value[0], [], 6).map((child) => <td key={child}>{displayCell(child, item[child])}</td>)}</tr>)}</tbody></table></div>)
                     : typeof value === 'object' && value ? <p className="mt-1 font-semibold">{labelOf(value)}</p> : <p className="mt-1 whitespace-pre-wrap font-semibold">{displayCell(key, value)}</p>}
             </div>)}{printable && <button className="btn btn-primary" onClick={() => printRecord(viewing)}>Print record</button>}</div>}
         </Modal>

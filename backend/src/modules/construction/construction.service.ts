@@ -35,7 +35,7 @@ export class ConstructionService {
 
   async getProjects(tenantDb: any, query?: { status?: string; search?: string }) {
     if (!tenantDb) return [];
-    const where: any = {};
+    const where: any = { deletedAt: null };
     if (query?.status) where.status = query.status;
     if (query?.search) {
       where.OR = [
@@ -47,9 +47,9 @@ export class ConstructionService {
     return tenantDb.project.findMany({
       where,
       include: {
-        tasks: true,
-        dailyExpenses: true,
-        assignedStaff: true,
+        tasks: { where: { deletedAt: null } },
+        dailyExpenses: { where: { deletedAt: null } },
+        assignedStaff: { where: { deletedAt: null } },
         _count: { select: { tasks: true, workforceContracts: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -567,6 +567,7 @@ export class ConstructionService {
         where: { referenceId: `expense:${id}`, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'DAILY_EXPENSE', id));
       return { deleted: true };
     });
   }
@@ -606,6 +607,7 @@ export class ConstructionService {
         where: { referenceId: `ledger:${id}`, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
+      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'WORKER_LEDGER', id));
       return { deleted: true };
     });
   }
@@ -615,6 +617,11 @@ export class ConstructionService {
   // -----------------------------------------------------------
 
   async getInventory(tenantDb: any, projectId?: string) {
+    // Soft-delete legacy USAGE→cashbook rows that double-counted procurement expense.
+    await tenantDb.transaction.updateMany({
+      where: { referenceId: { startsWith: 'invusage:' }, deletedAt: null },
+      data: { deletedAt: new Date(), version: { increment: 1 } },
+    });
     const movementWhere: any = {};
     if (projectId) movementWhere.projectId = projectId;
     const [materials, movements] = await Promise.all([
@@ -652,8 +659,13 @@ export class ConstructionService {
       if (data.type === 'USAGE' && !data.projectId) {
         throw new BadRequestException('A project is required for material usage');
       }
+      if (data.type === 'TRANSFER') {
+        throw new BadRequestException('Warehouse transfers are not supported yet; use RESTOCK / USAGE / ADJUSTMENT');
+      }
       const currentQuantity = Number(material.quantity);
-      const delta = data.type === 'USAGE' ? -data.quantity : data.type === 'TRANSFER' ? 0 : data.quantity;
+      const qty = Number(data.quantity);
+      // ADJUSTMENT: positive adds stock, negative reduces (write-off without project)
+      const delta = data.type === 'USAGE' ? -Math.abs(qty) : data.type === 'ADJUSTMENT' ? qty : Math.abs(qty);
       const nextQuantity = currentQuantity + delta;
       if (nextQuantity < 0) throw new BadRequestException('Insufficient stock for this movement');
       const updated = await tx.material.updateMany({
@@ -665,12 +677,12 @@ export class ConstructionService {
         },
       });
       if (!updated.count) throw new ConflictException('Stock changed while recording movement; reload and retry');
-      return tx.inventoryTransaction.create({
+      const movement = await tx.inventoryTransaction.create({
         data: {
           materialId: data.materialId,
           projectId: data.projectId,
           type: data.type as any,
-          quantity: data.quantity,
+          quantity: Math.abs(qty),
           userId,
           notes: data.notes,
           warehouse: data.warehouse,
@@ -678,6 +690,10 @@ export class ConstructionService {
         },
         include: { material: true, project: true, user: true },
       });
+      // Job costing for USAGE is tracked via inventoryTransaction (reports).
+      // Do not post CLEARED cashbook expense here — purchases already expense
+      // at RECEIVED, and double-posting would inflate company P&L.
+      return movement;
     });
   }
 
@@ -790,49 +806,11 @@ export class ConstructionService {
   }
 
   private async syncContractBudget(tenantDb: any, contractId: string) {
-    return tenantDb.$transaction(async (tx: any) => {
-      const contract = await tx.workforceContract.findUnique({
-        where: { id: contractId },
-        include: { budgetAdjustments: true },
-      });
-      if (!contract) return;
-      const referenceId = `wfcontract:${contractId}`;
-      if (contract.deletedAt || !['ACTIVE', 'COMPLETED'].includes(contract.status)) {
-        await tx.transaction.updateMany({
-          where: { referenceId, deletedAt: null },
-          data: { deletedAt: new Date(), version: { increment: 1 } },
-        });
-        return;
-      }
-      const category = await this.findOrCreateCategory(tx, 'Workforce Contract Budget');
-      const amount = contract.budgetAdjustments.reduce(
-        (total: number, row: any) => total + Number(row.amount),
-        Number(contract.originalBudget),
-      );
-      await tx.transaction.upsert({
-        where: { referenceId },
-        create: {
-          referenceId,
-          type: 'INCOME',
-          status: 'CLEARED',
-          description: `${contract.title} (wfcontract ${contractId})`,
-          amount,
-          date: contract.startDate || contract.createdAt,
-          categoryId: category.id,
-          projectId: contract.projectId,
-        },
-        update: {
-          type: 'INCOME',
-          status: 'CLEARED',
-          description: `${contract.title} (wfcontract ${contractId})`,
-          amount,
-          date: contract.startDate || contract.createdAt,
-          categoryId: category.id,
-          projectId: contract.projectId,
-          deletedAt: null,
-          version: { increment: 1 },
-        },
-      });
+    // Workforce budgets are commitments, not cash income. Soft-delete any
+    // legacy CLEARED INCOME rows that previously inflated project P&L.
+    return tenantDb.transaction.updateMany({
+      where: { referenceId: `wfcontract:${contractId}`, deletedAt: null },
+      data: { deletedAt: new Date(), version: { increment: 1 } },
     });
   }
 }
