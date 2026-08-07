@@ -8,7 +8,7 @@ export class MaterialDto {
   @IsOptional() @IsString() @MaxLength(2048) photoUrl?: string;
   @IsIn(['KG', 'BAG', 'PIECE', 'METER', 'LITER', 'TON']) unit: string;
   @Type(() => Number) @IsNumber() @Min(0) unitCost: number;
-  @Type(() => Number) @IsNumber() @Min(0) salePrice: number;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) salePrice?: number;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) quantity?: number;
   @IsOptional() @IsString() @MaxLength(160) warehouse?: string;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) lowStockThreshold?: number;
