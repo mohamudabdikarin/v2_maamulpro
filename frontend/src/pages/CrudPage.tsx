@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
+import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../lib/api';
 import LineItemsEditor, { LineItemConfig } from '../components/maamulpro/LineItemsEditor';
 import { EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, SuccessAlert, fieldHint, formatTableValue, humanize as titleize, isSystemIdKey, money, shortDate, somaliExample, visibleTableColumns } from '../components/maamulpro/PageKit';
@@ -27,6 +28,9 @@ export type CrudPageProps = {
     canCreate?: boolean;
     canEdit?: boolean | ((row: Record<string, any>) => boolean);
     canDelete?: boolean | ((row: Record<string, any>) => boolean);
+    createPermission?: string;
+    updatePermission?: string;
+    deletePermission?: string;
     transitions?: { action: string; label: string; tone?: 'primary' | 'success' | 'danger' | 'warning'; when?: string[]; path?: string; method?: 'POST' | 'PATCH'; body?: Record<string, unknown> }[];
     initialMode?: 'create' | 'edit';
     recordId?: string;
@@ -57,8 +61,9 @@ const printableValue = (value: any): string => {
     return String(value);
 };
 
-const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, transitions = [], initialMode, recordId, returnTo, printable = false }: CrudPageProps) => {
+const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, createPermission, updatePermission, deletePermission, transitions = [], initialMode, recordId, returnTo, printable = false }: CrudPageProps) => {
     const navigate = useNavigate();
+    const { hasPermission } = usePermissions();
     const noun = title.replace(/^(Add|Edit|New|Record|Create)\s+/i, '');
     const openedInitial = useRef(false);
     const [rows, setRows] = useState<Record<string, any>[]>([]);
@@ -243,7 +248,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     };
 
     return <AppShell>
-        <PageHeader title={title} description={description} eyebrow="Workspace records" actions={canCreate ? <button className="btn btn-primary shrink-0" onClick={showCreate}>Add new</button> : undefined} />
+        <PageHeader title={title} description={description} eyebrow="Workspace records" actions={canCreate && (!createPermission || hasPermission(createPermission)) ? <button className="btn btn-primary shrink-0" onClick={showCreate}>Add new</button> : undefined} />
         <StatGrid items={[
             { label: 'Total records', value: rows.length },
             { label: 'Matching records', value: filtered.length, tone: 'info' },
@@ -256,7 +261,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         <div className="panel overflow-x-auto p-0">
             {loading ? <LoadingState /> : !filtered.length ? <EmptyState title="No records found" description="Adjust the filters or add the first record." /> :
                 <table className="table-hover w-full"><thead><tr>{columns.map((column) => <th key={column}>{humanize(column)}</th>)}<th>Actions</th></tr></thead>
-                    <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{displayCell(column, row[column])}</td>)}<td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>}{transitions.filter((item) => !item.when || item.when.includes(row.status)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
+                    <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{displayCell(column, row[column])}</td>)}<td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && (!updatePermission || hasPermission(updatePermission)) && <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>}{transitions.filter((item) => !item.when || item.when.includes(row.status)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && (!deletePermission || hasPermission(deletePermission)) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
                 </table>}
         </div>
         <Modal open={Boolean(viewing)} onClose={() => setViewing(null)} title={`${title} details`} wide>
