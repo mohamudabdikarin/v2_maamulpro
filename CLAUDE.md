@@ -13,5 +13,6 @@ To minimize token usage and avoid hitting usage limits, strictly adhere to the f
 - **DO NOT** re-read configuration unless explicitly asked to modify it.
 
 ## 3. Workflow
+- Before exploring implementation details, check `graphify-out/AGENT_NAVIGATION.md` and `graphify-out/graph.json`. Start with the relevant feature domain, use Graphify queries to locate implementations, dependencies, and likely change impact, then inspect source files only after the graph has narrowed the scope. Rebuild the graph only when it is missing or known to be stale.
 - For deployment or database questions, refer to `docs/NEON-SETUP.md` and `docs/CUTOVER-RUNBOOK.md` instead of searching the code.
 - If the user asks for a new feature, plan it out first referencing the architecture map in `ARCHITECTURE.md`, rather than diving into random files.
