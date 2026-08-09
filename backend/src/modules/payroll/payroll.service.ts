@@ -161,7 +161,7 @@ export class PayrollService {
       // Serialize creation for the same (year, month) so two concurrent
       // requests cannot both create an active run for the period. The
       // partial unique index on active payrolls is the backstop.
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(${data.year * 100 + data.month})`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${data.year * 100 + data.month})`;
       const duplicate = await tx.payroll.findFirst({
         where: { year: data.year, month: data.month, deletedAt: null },
         select: { id: true, name: true, status: true },
@@ -199,7 +199,7 @@ export class PayrollService {
     if (data.expenseAccountCode) await this.ensureExpenseAccount(tenantDb, data.expenseAccountCode);
     const calculated = this.calculate(data.items);
     return tenantDb.$transaction(async (tx: any) => {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(${data.year * 100 + data.month})`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${data.year * 100 + data.month})`;
       const duplicate = await tx.payroll.findFirst({
         where: { year: data.year, month: data.month, deletedAt: null, id: { not: id } },
         select: { id: true },

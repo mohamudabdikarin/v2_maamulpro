@@ -143,7 +143,9 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         setEditing(row);
         setFieldErrors({}); setError('');
         setForm(Object.fromEntries(fields.map((field) => {
-            const value = row[field.name];
+            const value = row[field.name]
+                ?? (field.name === 'materialId' ? row.items?.[0]?.materialId : undefined)
+                ?? (field.name === 'quantity' ? row.items?.[0]?.quantity : undefined);
             if (field.type === 'date' && value) return [field.name, String(value).slice(0, 10)];
             if (field.type === 'json' && value) {
                 const cleaned = Array.isArray(value)
@@ -241,7 +243,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         const printWindow = window.open('', '_blank', 'width=900,height=700');
         if (!printWindow) { setError('Allow pop-ups to print this record.'); return; }
         const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char));
-        const rowsHtml = Object.entries(row).filter(([key]) => !hiddenKeys.has(key)).map(([key, value]) =>
+        const rowsHtml = Object.entries(row).filter(([key]) => !isSystemIdKey(key) && !hiddenKeys.has(key)).map(([key, value]) =>
             `<tr><th>${escape(titleize(key))}</th><td>${escape(printableValue(value))}</td></tr>`).join('');
         printWindow.document.write(`<html><head><title>${escape(title)}</title><style>body{font:14px Arial;padding:32px;color:#172033}h1{margin:0 0 4px}p{color:#64748b}table{border-collapse:collapse;width:100%;margin-top:24px}th,td{border:1px solid #dbe2ea;padding:10px;text-align:left;vertical-align:top}th{width:28%;background:#f6f8fb}@media print{button{display:none}}</style></head><body><h1>${escape(title)}</h1><p>MaamulPro · ${escape(new Date().toLocaleString())}</p><table>${rowsHtml}</table><button onclick="window.print()" style="margin-top:20px;padding:10px 18px">Print</button></body></html>`);
         printWindow.document.close();
@@ -265,7 +267,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                 </table>}
         </div>
         <Modal open={Boolean(viewing)} onClose={() => setViewing(null)} title={`${title} details`} wide>
-            {viewing && <div className="space-y-6">{Object.entries(viewing).filter(([key]) => !hiddenKeys.has(key)).map(([key, value]) => <div key={key}>
+            {viewing && <div className="space-y-6">{Object.entries(viewing).filter(([key]) => !isSystemIdKey(key) && !hiddenKeys.has(key)).map(([key, value]) => <div key={key}>
                 <p className="text-xs font-bold uppercase tracking-wide text-white-dark">{titleize(key)}</p>
                 {Array.isArray(value) ? (!value.length ? <p className="mt-1">No items</p> : <div className="mt-2 overflow-x-auto rounded-md border border-white-light dark:border-dark"><table className="table-hover"><thead><tr>{visibleTableColumns(value[0], [], 6).map((child) => <th key={child}>{titleize(child)}</th>)}</tr></thead><tbody>{value.map((item, index) => <tr key={item.id || index}>{visibleTableColumns(value[0], [], 6).map((child) => <td key={child}>{displayCell(child, item[child])}</td>)}</tr>)}</tbody></table></div>)
                     : typeof value === 'object' && value ? <p className="mt-1 font-semibold">{labelOf(value)}</p> : <p className="mt-1 whitespace-pre-wrap font-semibold">{displayCell(key, value)}</p>}

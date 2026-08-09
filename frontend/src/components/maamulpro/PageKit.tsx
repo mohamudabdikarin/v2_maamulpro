@@ -8,7 +8,8 @@ export const shortDate = (value: unknown) => value ? new Intl.DateTimeFormat(und
 
 /** Keys that are internal system identifiers — hide from user-facing tables. */
 export const isSystemIdKey = (key: string) =>
-    key === 'id'
+    key.startsWith('_')
+    || key === 'id'
     || /(?:^|_)id$/i.test(key)
     || /Id$/.test(key)
     || /Ids$/.test(key)

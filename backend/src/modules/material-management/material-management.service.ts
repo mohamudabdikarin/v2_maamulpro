@@ -151,11 +151,10 @@ export class MaterialManagementService {
       // Claim the transition before changing stock. The version predicate
       // prevents two requests from receiving the same order twice.
       const changed = await tx.purchaseOrder.updateMany({
-        where: { id, deletedAt: null, status: order.status, version: order.version },
+        where: { id, deletedAt: null, status: order.status },
         data: {
           status: status as any,
           receivedAt: status === 'RECEIVED' ? new Date() : order.receivedAt,
-          version: { increment: 1 },
         },
       });
       if (!changed.count) throw new ConflictException('Purchase order was changed by another request');
@@ -188,7 +187,7 @@ export class MaterialManagementService {
 
       const status = (data.status as any) || existing.status;
       const claimed = await tx.purchaseOrder.updateMany({
-        where: { id, deletedAt: null, status: existing.status, version: existing.version },
+        where: { id, deletedAt: null, status: existing.status },
         data: {
           orderNo: data.orderNo,
           supplierId: data.supplierId,
@@ -197,7 +196,6 @@ export class MaterialManagementService {
           orderedAt: data.orderedAt,
           receivedAt: status === 'RECEIVED' ? data.receivedAt || new Date() : data.receivedAt,
           notes: data.notes,
-          version: { increment: 1 },
         },
       });
       if (!claimed.count) throw new ConflictException('Purchase order was changed by another request');
@@ -224,8 +222,8 @@ export class MaterialManagementService {
       });
       if (!order) throw new NotFoundException('Purchase order not found');
       const deleted = await tx.purchaseOrder.updateMany({
-        where: { id, deletedAt: null, status: order.status, version: order.version },
-        data: { deletedAt: new Date(), version: { increment: 1 } },
+        where: { id, deletedAt: null, status: order.status },
+        data: { deletedAt: new Date() },
       });
       if (!deleted.count) throw new ConflictException('Purchase order was changed by another request');
       if (order.status === 'RECEIVED') await this.applyPurchaseReceipt(tx, order, userId, -1);
@@ -309,7 +307,7 @@ export class MaterialManagementService {
       await this.adjustCustomerBalance(tx, sale.customerId, Number(sale.totalAmount) - Number(sale.paidAmount));
       await this.syncSaleLedger(tx, sale);
       return sale;
-    });
+    }, { timeout: 30_000 });
   }
 
   async updateSale(db: any, id: string, userId: string, data: MaterialSaleDto) {
@@ -321,18 +319,18 @@ export class MaterialManagementService {
       });
       if (!existing) throw new NotFoundException('Material sale not found');
       await this.applySaleStock(tx, existing, userId, 1);
-      const claimed = await tx.materialSale.updateMany({
-        where: { id, deletedAt: null, version: existing.version },
+      await tx.materialSale.update({
+        where: { id },
         data: {
-          customerId: data.customerId,
+          customer: data.customerId
+            ? { connect: { id: data.customerId } }
+            : { disconnect: true },
           invoiceNo: data.invoiceNo,
           ...totals,
           date: data.date || existing.date,
           notes: data.notes,
-          version: { increment: 1 },
         },
       });
-      if (!claimed.count) throw new ConflictException('Material sale was changed by another request');
       await tx.materialSaleItem.deleteMany({ where: { saleId: id } });
       await tx.materialSaleItem.createMany({
         data: data.items.map((item) => ({ saleId: id, ...item })),
@@ -347,7 +345,7 @@ export class MaterialManagementService {
       await this.adjustCustomerBalance(tx, sale.customerId, Number(sale.totalAmount) - Number(sale.paidAmount));
       await this.syncSaleLedger(tx, sale);
       return sale;
-    });
+    }, { timeout: 60_000 });
   }
 
   async deleteSale(db: any, id: string, userId: string) {
@@ -359,10 +357,10 @@ export class MaterialManagementService {
       if (!sale) throw new NotFoundException('Material sale not found');
       await this.applySaleStock(tx, sale, userId, 1);
       const deleted = await tx.materialSale.updateMany({
-        where: { id, deletedAt: null, version: sale.version },
-        data: { deletedAt: new Date(), version: { increment: 1 } },
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
       });
-      if (!deleted.count) throw new ConflictException('Material sale was changed by another request');
+      if (!deleted.count) throw new NotFoundException('Material sale not found');
       await this.adjustCustomerBalance(tx, sale.customerId, Number(sale.paidAmount) - Number(sale.totalAmount));
       await tx.transaction.updateMany({
         where: { referenceId: { startsWith: `sale:${id}:` }, deletedAt: null },
@@ -370,7 +368,7 @@ export class MaterialManagementService {
       });
       await this.accounting.retractPriorForSource(tx, 'MATERIAL_SALE', id);
       return { deleted: true };
-    });
+    }, { timeout: 30_000 });
   }
 
   getTransportation(db: any) {

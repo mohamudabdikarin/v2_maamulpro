@@ -54,7 +54,7 @@ const ConstructionProjectsPage = () => {
             </article>)}</div>}
         <Modal open={Boolean(deleteId)} onClose={() => !deleting && setDeleteId(null)} title="Delete project">
             <div className="space-y-4">
-                <p className="text-white-dark">This will permanently remove <strong>{deleteName}</strong> and all its tasks and expenses. This cannot be undone.</p>
+                <p className="text-white-dark">This will permanently remove <strong>{deleteName}</strong> and its tasks. Existing expenses remain in the financial history.</p>
                 <div className="flex justify-end gap-2">
                     <button className="btn btn-outline-dark" disabled={deleting} onClick={() => setDeleteId(null)}>Cancel</button>
                     <button className="btn btn-danger" disabled={deleting} onClick={confirmDelete}>{deleting ? 'Please wait…' : 'Delete project'}</button>

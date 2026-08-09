@@ -63,6 +63,7 @@ const companyGroups: Group[] = [
         { label: 'Inventory', to: '/app/materials/inventory', icon: <Package size={16} className={subIconClass} />, permission: 'materials_inventory.read' },
         { label: 'Suppliers', to: '/app/materials/suppliers', icon: <Truck size={16} className={subIconClass} />, permission: 'suppliers.read' },
         { label: 'Purchases', to: '/app/materials/purchases', icon: <ShoppingCart size={16} className={subIconClass} />, permission: 'purchases.read' },
+        { label: 'Customers', to: '/app/materials/customers', icon: <UserCheck size={16} className={subIconClass} />, permission: 'material_customers.read' },
         { label: 'Sales', to: '/app/materials/sales', icon: <Tags size={16} className={subIconClass} />, permission: 'material_sales.read' },
         { label: 'Transportation', to: '/app/materials/transportation', icon: <Truck size={16} className={subIconClass} />, permission: 'transportation.read' },
         { label: 'Reports', to: '/app/materials/reports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.material.read' },

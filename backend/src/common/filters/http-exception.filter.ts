@@ -36,6 +36,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const resObj = exceptionResponse as Record<string, any>;
       message = resObj.message || message;
       errors = resObj.errors || (Array.isArray(resObj.message) ? resObj.message : null);
+    } else if (process.env.NODE_ENV !== 'production' && exception instanceof Error) {
+      message = exception.message;
     }
 
     const logMessage = exception instanceof Error ? exception.message : String(message);

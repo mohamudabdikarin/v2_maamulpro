@@ -37,14 +37,15 @@ const FinancialsPage = () => {
     const save = async (event: FormEvent) => {
         event.preventDefault(); setError('');
         try {
-            const payload: any = { ...form, amount: Number(form.amount), date: form.date || undefined, categoryId: form.categoryId || undefined, projectId: form.projectId || undefined, propertyId: form.propertyId || undefined };
+            const payload: any = Object.fromEntries(Object.keys(blank).map((key) => [key, form[key]]));
+            Object.assign(payload, { amount: Number(form.amount), date: form.date || undefined, categoryId: form.categoryId || undefined, projectId: form.projectId || undefined, propertyId: form.propertyId || undefined });
             if (editing) payload.version = editing.version;
             await api(editing ? `/api/financials/transactions/${editing.id}` : '/api/financials/transactions', { method: editing ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
             setOpen(false); setMessage('Transaction saved successfully.'); await load();
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to save transaction'); }
     };
     const [sourceType, setSourceType] = useState<'none' | 'project' | 'property'>('none');
-    const edit = (row: Transaction) => { setEditing(row); setForm({ ...blank, ...row, date: row.date?.slice(0, 10) || '', amount: Number(row.amount) }); setSourceType(row.projectId ? 'project' : row.propertyId ? 'property' : 'none'); setOpen(true); };
+    const edit = (row: Transaction) => { setEditing(row); setForm(Object.fromEntries(Object.keys(blank).map((key) => [key, key === 'date' ? row.date?.slice(0, 10) || '' : key === 'amount' ? Number(row.amount) : row[key as keyof Transaction] ?? blank[key as keyof typeof blank]]))); setSourceType(row.projectId ? 'project' : row.propertyId ? 'property' : 'none'); setOpen(true); };
     const confirmDelete = async () => { if (!deleteTarget) return; setDeleting(true); try { await api(`/api/financials/transactions/${deleteTarget.id}`, { method: 'DELETE' }); setDeleteTarget(null); await load(); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to delete transaction'); } finally { setDeleting(false); } };
     const exportCsv = () => {
         const headers = ['Date', 'Reference', 'Type', 'Description', 'Category', 'Source', 'Amount', 'Status', 'Notes'];

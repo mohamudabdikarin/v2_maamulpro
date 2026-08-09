@@ -9,6 +9,7 @@ import { usePermissions } from '../hooks/usePermissions';
 
 type Staff = { id: string; firstName: string; lastName: string; phone?: string; position?: string; department: string; salary: number; hireDate?: string; status: string; notes?: string; photoUrl?: string; assignedProjectId?: string; user?: { id: string; email: string; role: string; isActive: boolean } };
 type Role = { key: string; name: string };
+const ACCOUNT_ROLE_KEYS = new Set(['GENERAL_MANAGER', 'ADMIN', 'MANAGER', 'STAFF', 'CONSTRUCTION_MANAGER', 'SITE_ENGINEER', 'PROJECT_SUPERVISOR', 'PROCUREMENT_OFFICER', 'STOREKEEPER', 'MANPOWER_SUPERVISOR', 'REAL_ESTATE_MANAGER', 'SALES_AGENT', 'RENTAL_OFFICER', 'PROPERTY_SUPERVISOR', 'MATERIAL_MANAGER', 'SALES_STAFF', 'INVENTORY_OFFICER', 'SUPPLIER_OFFICER', 'DELIVERY_OFFICER']);
 const blank = { firstName: '', lastName: '', phone: '', position: '', department: 'GENERAL', salary: 0, hireDate: '', status: 'ACTIVE', notes: '', photoUrl: '', assignedProjectId: '', createAccount: false, email: '', role: 'STAFF', temporaryPassword: '' };
 
 const StaffPage = () => {
@@ -31,14 +32,14 @@ const StaffPage = () => {
     const [projects, setProjects] = useState<Record<string, any>[]>([]);
     const [activity, setActivity] = useState<Record<string, any>[]>([]);
     const [saving, setSaving] = useState(false);
-    useEffect(() => { Promise.all([api<Role[]>('/api/rbac/roles'), api<any>('/api/construction/projects')]).then(([roleRows, projectRows]) => { setRoles(roleRows); setProjects(Array.isArray(projectRows) ? projectRows : projectRows.data || []); }).catch(() => undefined); }, []);
+    useEffect(() => { Promise.all([api<Role[]>('/api/rbac/roles'), api<any>('/api/construction/projects')]).then(([roleRows, projectRows]) => { setRoles(roleRows.filter((role) => ACCOUNT_ROLE_KEYS.has(role.key))); setProjects(Array.isArray(projectRows) ? projectRows : projectRows.data || []); }).catch(() => undefined); }, []);
     useEffect(() => { if (selected?.user) api<Record<string, any>[]>(`/api/staff/${selected.id}/activity`).then(setActivity).catch(() => setActivity([])); else setActivity([]); }, [selected]);
     const filtered = useMemo(() => state.rows.filter((row) => {
         const text = `${row.firstName} ${row.lastName} ${row.phone || ''} ${row.position || ''}`.toLowerCase();
         return text.includes(search.toLowerCase()) && (!department || row.department === department) && (!status || row.status === status);
     }), [state.rows, search, department, status]);
     const openCreate = () => { setEditing(null); setForm(blank); setFormOpen(true); };
-    const openEdit = (row: Staff) => { setEditing(row); setForm({ ...blank, ...row, hireDate: row.hireDate?.slice(0, 10) || '', createAccount: false }); setFormOpen(true); };
+    const openEdit = (row: Staff) => { setEditing(row); setForm({ ...blank, ...row, hireDate: row.hireDate?.slice(0, 10) || '', assignedProjectId: row.assignedProjectId || '', createAccount: false }); setFormOpen(true); };
     const upload = async (file?: File) => {
         if (!file) return;
         const data = new FormData(); data.append('file', file);
@@ -47,8 +48,9 @@ const StaffPage = () => {
     const save = async (event: FormEvent) => {
         event.preventDefault(); setSaving(true); state.setError('');
         try {
-            const payload: any = { ...form, salary: Number(form.salary), hireDate: form.hireDate || undefined, assignedProjectId: form.assignedProjectId || undefined };
-            if (editing) ['createAccount', 'email', 'role', 'temporaryPassword'].forEach((key) => delete payload[key]);
+            const payload: any = Object.fromEntries(Object.keys(blank).map((key) => [key, (form as any)[key]]));
+            Object.assign(payload, { salary: Number(form.salary), hireDate: form.hireDate || undefined, assignedProjectId: form.assignedProjectId || undefined });
+            if (editing || !form.createAccount) ['createAccount', 'email', 'role', 'temporaryPassword'].forEach((key) => delete payload[key]);
             await api(editing ? `/api/staff/${editing.id}` : '/api/staff', { method: editing ? 'PATCH' : 'POST', silent: true, body: JSON.stringify(payload) });
             setFormOpen(false); toast.success(editing ? 'Staff record updated.' : 'Staff member added.'); await state.reload();
         } catch (reason) { const msg = reason instanceof Error ? reason.message : 'Unable to save staff'; toast.error(msg); state.setError(msg); } finally { setSaving(false); }

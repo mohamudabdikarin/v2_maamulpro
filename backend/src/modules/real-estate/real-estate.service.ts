@@ -218,7 +218,7 @@ export class RealEstateService {
       if (existing.propertyId !== deal.propertyId) await this.syncDealPropertyStatus(tx, existing.propertyId);
       await this.syncDealLedger(tx, deal);
       return deal;
-    });
+    }, { timeout: 15_000 });
   }
 
   async deleteDeal(tenantDb: any, id: string) {
@@ -332,6 +332,8 @@ export class RealEstateService {
       });
       await this.syncDealPropertyStatus(tx, contract.propertyId);
       if (existing.propertyId !== contract.propertyId) await this.syncDealPropertyStatus(tx, existing.propertyId);
+      await this.syncTenantProperty(tx, existing.tenantId);
+      if (existing.tenantId !== contract.tenantId) await this.syncTenantProperty(tx, contract.tenantId);
       return contract;
     });
   }
@@ -342,6 +344,7 @@ export class RealEstateService {
       if (!contract) throw new NotFoundException('Rental contract not found');
       await tx.rentalContract.update({ where: { id }, data: { deletedAt: new Date(), status: 'TERMINATED' } });
       await this.syncDealPropertyStatus(tx, contract.propertyId);
+      await this.syncTenantProperty(tx, contract.tenantId);
       return { deleted: true };
     });
   }
@@ -473,7 +476,7 @@ export class RealEstateService {
       });
       await this.syncRentPaymentLedger(tx, payment);
       return payment;
-    });
+    }, { timeout: 15_000 });
   }
 
   async updateRentPaymentStatus(tenantDb: any, id: string, status: string) {
@@ -503,7 +506,7 @@ export class RealEstateService {
       });
       await this.syncRentPaymentLedger(tx, payment);
       return payment;
-    });
+    }, { timeout: 15_000 });
   }
 
   async deleteRentPayment(tenantDb: any, id: string) {
@@ -585,6 +588,18 @@ export class RealEstateService {
     if (deal?.type === 'SALE') status = deal.paymentStatus === 'PAID' ? 'SOLD' : 'UNDER_CONTRACT';
     if (deal?.type === 'RENTAL') status = ['PAID', 'PARTIAL', 'OVERDUE'].includes(deal.paymentStatus) ? 'RENTED' : 'UNDER_CONTRACT';
     await tx.property.update({ where: { id: propertyId }, data: { status, version: { increment: 1 } } });
+  }
+
+  private async syncTenantProperty(tx: any, tenantId: string) {
+    const contract = await tx.rentalContract.findFirst({
+      where: { tenantId, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] } },
+      orderBy: { createdAt: 'desc' },
+      select: { propertyId: true },
+    });
+    await tx.tenant.updateMany({
+      where: { id: tenantId, deletedAt: null },
+      data: { propertyId: contract?.propertyId || null },
+    });
   }
 
   private async syncDealLedger(tx: any, deal: any) {
