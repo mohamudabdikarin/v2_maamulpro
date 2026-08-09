@@ -6,6 +6,7 @@ import { EmptyState, ErrorAlert, Field, FormActions, LoadingState, Modal, PageHe
 import { api } from '../lib/api';
 import { toast } from '../lib/toast';
 import EnterpriseConfigurationPanel from '../components/maamulpro/EnterpriseConfigurationPanel';
+import { tenantBaseDomain, tenantHostname, tenantUrl } from '../lib/tenant-domain';
 
 const moduleFields = [['constructionEnabled', 'Construction'], ['realEstateEnabled', 'Real estate'], ['materialManagementEnabled', 'Materials']] as const;
 const managementTabs = [
@@ -94,7 +95,7 @@ const SuperAdminCompanyPage = () => {
         try {
             await api(`/api/superadmin/companies/${id}`, { method: 'PATCH', body: JSON.stringify({ subdomain: next }), silent: true });
             await load();
-            toast.success(`Subdomain updated to ${next}.maamulpro.site`);
+            toast.success(`Subdomain updated to ${tenantHostname(next)}`);
         } catch (reason) {
             const msg = reason instanceof Error ? reason.message : 'Unable to update subdomain.';
             toast.error(msg); setError(msg);
@@ -108,7 +109,7 @@ const SuperAdminCompanyPage = () => {
         <nav className="mb-5 flex items-center gap-2 text-sm" aria-label="Breadcrumb"><Link className="text-primary hover:underline" to="/superadmin/dashboard">Dashboard</Link><span className="text-white-dark">/</span><Link className="text-primary hover:underline" to="/superadmin/companies">Companies</Link><span className="text-white-dark">/</span><span className="font-semibold">{company.name}</span></nav>
         {error && <ErrorAlert message={error} onRetry={load} />}
         <div className="panel overflow-hidden p-0">
-            <div className="flex items-center justify-between gap-4 border-b border-white-light px-5 py-4 dark:border-dark"><div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary-light text-primary">{company.logoUrl ? <img className="h-8 w-8 rounded object-contain" src={company.logoUrl} alt="" /> : <Building2 size={20} />}</span><div className="min-w-0"><h1 className="truncate text-xl font-bold">{company.name}</h1><p className="truncate text-xs text-white-dark">{company.subdomain}</p></div></div><a className="btn btn-primary shrink-0" href={`/sign-in?tenant=${encodeURIComponent(company.subdomain)}`} target="_blank" rel="noreferrer">Visit company</a></div>
+            <div className="flex items-center justify-between gap-4 border-b border-white-light px-5 py-4 dark:border-dark"><div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary-light text-primary">{company.logoUrl ? <img className="h-8 w-8 rounded object-contain" src={company.logoUrl} alt="" /> : <Building2 size={20} />}</span><div className="min-w-0"><h1 className="truncate text-xl font-bold">{company.name}</h1><p className="truncate text-xs text-white-dark">{company.subdomain}</p></div></div><a className="btn btn-primary shrink-0" href={tenantUrl(company.subdomain, '/sign-in')} target="_blank" rel="noreferrer">Visit company</a></div>
             <div className="flex min-h-[620px] items-stretch">
                 <aside className="w-64 shrink-0 border-r border-white-light bg-gray-50/50 p-4 dark:border-dark dark:bg-[#0e1726]">
                     <nav className="flex flex-col gap-1" aria-label="Tenant management">
@@ -122,18 +123,18 @@ const SuperAdminCompanyPage = () => {
 
                     {activeTab === 'domain' && (
                         <>
-                            <div className="mb-6"><h2 className="text-2xl font-extrabold">Workspace domain</h2><p className="mt-1 text-sm text-white-dark">Change how the tenant is reached at <code className="font-mono">*.maamulpro.site</code>. Only superadmins can change this.</p></div>
+                            <div className="mb-6"><h2 className="text-2xl font-extrabold">Workspace domain</h2><p className="mt-1 text-sm text-white-dark">Change how the tenant is reached at <code className="font-mono">*.{tenantBaseDomain}</code>. Only superadmins can change this.</p></div>
                             <form className="max-w-xl space-y-5" onSubmit={saveSubdomain}>
                                 <Field label="Subdomain" required hint="Lowercase letters, numbers, and hyphens only (2-30 characters).">
                                     <div className="mt-1 flex items-center rounded-md border border-white-light bg-gray-50 dark:border-dark dark:bg-dark">
                                         <span className="px-3 text-sm text-white-dark">https://</span>
                                         <input className="form-input flex-1 border-0 bg-transparent px-0 py-2 focus:ring-0" required minLength={2} maxLength={30} value={subdomainInput} onChange={(event) => setSubdomainInput(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} />
-                                        <span className="px-3 text-sm font-semibold text-primary">.maamulpro.site</span>
+                                        <span className="px-3 text-sm font-semibold text-primary">.{tenantBaseDomain}</span>
                                     </div>
                                 </Field>
                                 <div className="rounded-md bg-gray-50 p-4 text-xs text-white-dark dark:bg-dark">
                                     <strong className="block text-secondary dark:text-white">Preview:</strong>
-                                    <code className="mt-1 block font-mono text-sm font-bold text-primary">https://{subdomainInput || 'subdomain'}.maamulpro.site</code>
+                                    <code className="mt-1 block font-mono text-sm font-bold text-primary">{tenantUrl(subdomainInput || 'subdomain')}</code>
                                 </div>
                                 <div className="rounded-md bg-warning-light p-4 text-xs text-warning">
                                     <strong className="block">Heads up</strong>

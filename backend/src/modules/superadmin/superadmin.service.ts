@@ -30,6 +30,14 @@ import {
 } from '../../common/database/enterprise-config';
 import { assertStrongPassword } from '../../common/security/password-policy';
 
+const tenantUrl = (subdomain: string) => {
+  const baseDomain = String(process.env.TENANT_BASE_DOMAIN || 'maamulpro.site')
+    .trim()
+    .replace(/^https?:\/\//, '')
+    .replace(/\/+$/, '');
+  return `https://${subdomain}.${baseDomain}`;
+};
+
 @Injectable()
 export class SuperAdminService {
   constructor(
@@ -335,7 +343,7 @@ export class SuperAdminService {
         onboarding: {
           adminEmail,
           dbName: `maamulpro_${subdomain.replace(/[^a-z0-9]/g, '_')}`,
-          loginUrl: `${String(process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '')}/sign-in?tenant=${encodeURIComponent(subdomain)}`,
+          loginUrl: `${tenantUrl(subdomain)}/sign-in`,
           modulesEnabled: Object.entries(modules).filter(([, enabled]) => enabled).map(([key]) => key),
           emailVerified: true,
         },

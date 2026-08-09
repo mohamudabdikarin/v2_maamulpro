@@ -4,6 +4,7 @@ import { Building2, Plus } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
 import { EmptyState, ErrorAlert, LoadingState, Modal, PageHeader, StatusPill, shortDate } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
+import { tenantHostname } from '../lib/tenant-domain';
 
 type Company = any;
 type Response = { data: Company[]; meta: { page: number; pageSize: number; total: number; totalPages: number } };
@@ -136,7 +137,7 @@ const SuperAdminCompaniesPage = () => {
                                 {row.logoUrl ? <img className="h-9 w-9 rounded-md border object-contain p-0.5" src={row.logoUrl} alt={`${row.name} logo`} /> : <span className="grid h-9 w-9 place-items-center rounded-md bg-primary-light text-primary"><Building2 size={18} /></span>}
                                 <div>
                                     <strong className="block font-bold text-black dark:text-white">{row.name}</strong>
-                                    <code className="text-xs font-semibold text-primary">{row.subdomain}.maamulpro.site</code>
+                                    <code className="text-xs font-semibold text-primary">{tenantHostname(row.subdomain)}</code>
                                 </div>
                             </div>
                         </td>

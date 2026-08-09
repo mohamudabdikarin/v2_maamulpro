@@ -57,8 +57,13 @@ export type Session = {
     user: SessionUser;
 };
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '');
 const STORAGE_KEY = 'maamulpro.session';
+
+const requestUrl = (path: string) => {
+    if (!API_URL) throw new Error('Application API URL is not configured. Set VITE_API_URL in Vercel and redeploy.');
+    return `${API_URL}${path}`;
+};
 
 export const sessionStore = {
     get(): Session | null {
@@ -99,7 +104,7 @@ export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
     if (session?.accessToken) headers.set('Authorization', `Bearer ${session.accessToken}`);
     if (session?.user.companyId) headers.set('X-Company-Id', session.user.companyId);
 
-    const response = await fetch(`${API_URL}${path}`, { ...fetchInit, headers });
+    const response = await fetch(requestUrl(path), { ...fetchInit, headers });
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
         if (response.status === 401) sessionStore.clear();
@@ -127,7 +132,7 @@ export async function apiBlob(path: string): Promise<Blob> {
     const headers = new Headers({ Accept: 'image/*' });
     if (session?.accessToken) headers.set('Authorization', `Bearer ${session.accessToken}`);
     if (session?.user.companyId) headers.set('X-Company-Id', session.user.companyId);
-    const response = await fetch(`${API_URL}${path}`, { headers });
+    const response = await fetch(requestUrl(path), { headers });
     if (!response.ok) {
         if (response.status === 401) sessionStore.clear();
         throw new Error(`Image request failed (${response.status})`);

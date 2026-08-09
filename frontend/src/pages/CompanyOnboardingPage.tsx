@@ -19,6 +19,7 @@ import {
 import AppShell from '../components/maamulpro/AppShell';
 import { ErrorAlert, Field, Modal } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
+import { tenantUrl } from '../lib/tenant-domain';
 
 type NeonStatus = { automaticProvisioning: boolean };
 type CompanyType = 'general' | 'construction' | 'real_estate' | 'material_management';
@@ -296,7 +297,7 @@ const CompanyOnboardingPage = () => {
                 adminEmail: onboarding?.adminEmail || form.adminEmail.trim(),
                 password: form.adminPassword,
                 dbName: onboarding?.dbName || `maamulpro_${form.companySlug.replace(/[^a-z0-9]/g, '_')}`,
-                loginUrl: onboarding?.loginUrl || `${window.location.origin}/sign-in?tenant=${encodeURIComponent(form.companySlug)}`,
+                loginUrl: onboarding?.loginUrl || tenantUrl(form.companySlug, '/sign-in'),
                 modulesEnabled: onboarding?.modulesEnabled || moduleLabels(modules),
             });
         } catch (reason) {
