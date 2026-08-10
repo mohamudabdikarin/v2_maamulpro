@@ -28,6 +28,7 @@ const RbacPage = () => {
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [staff, setStaff] = useState<StaffUser[]>([]);
     const [userId, setUserId] = useState('');
+    const [staffId, setStaffId] = useState('');
     const [access, setAccess] = useState<UserAccess | null>(null);
     const [direct, setDirect] = useState({ permissionId: '', effect: 'ALLOW', reason: '' });
     const [deleteTarget, setDeleteTarget] = useState<Role | null>(null);
@@ -43,7 +44,7 @@ const RbacPage = () => {
     const load = () => Promise.all([
         api<Permission[]>('/api/rbac/permissions'),
         api<Role[]>('/api/rbac/roles'),
-        api<any>('/api/staff?limit=100'),
+        api<any>('/api/staff?limit=1000'),
     ]).then(([p, r, s]) => {
         setPermissions(p);
         setRoles(r);
@@ -151,6 +152,7 @@ const RbacPage = () => {
 
     const selectUser = async (id: string) => {
         setUserId(id);
+        setStaffId(staff.find((p) => p.user?.id === id)?.id || '');
         if (!id) return setAccess(null);
         setLoadingUser(true);
         try {
@@ -173,6 +175,18 @@ const RbacPage = () => {
         } catch (reason) {
             const msg = reason instanceof Error ? reason.message : 'Unable to assign role';
             toast.error(msg);
+        }
+    };
+
+    const changeSystemRole = async (role: string) => {
+        if (!staffId || !access) return;
+        try {
+            await api(`/api/staff/${staffId}/account/role`, { method: 'PATCH', silent: true, body: JSON.stringify({ role }) });
+            setAccess({ ...access, role });
+            toast.success('System role updated.');
+            refreshSession(true).catch(() => undefined);
+        } catch (reason) {
+            toast.error(reason instanceof Error ? reason.message : 'Unable to update system role');
         }
     };
 
@@ -347,10 +361,17 @@ const RbacPage = () => {
                                     <UserCheck size={18} className="text-primary" />
                                     <h3 className="text-base font-bold">Assigned roles</h3>
                                     <span className="badge bg-primary/10 text-primary">{access.rbacUserRoles.length} assigned</span>
-                                    {access.role && (
+                                    {access.role && !canAssign && (
                                         <span className="badge bg-dark/10 text-dark dark:bg-white/10 dark:text-white-light" title="System role set at registration — drives default permissions when no RBAC roles are assigned">
                                             System: {access.role.replace(/_/g, ' ')}
                                         </span>
+                                    )}
+                                    {access.role && canAssign && (
+                                        <select className="form-select h-7 py-0 text-xs" value={access.role} title="System role — drives default permissions when no RBAC roles are assigned" onChange={(e) => changeSystemRole(e.target.value)}>
+                                            {['GENERAL_MANAGER','ADMIN','MANAGER','STAFF','CONSTRUCTION_MANAGER','SITE_ENGINEER','PROJECT_SUPERVISOR','PROCUREMENT_OFFICER','STOREKEEPER','MANPOWER_SUPERVISOR','REAL_ESTATE_MANAGER','SALES_AGENT','RENTAL_OFFICER','PROPERTY_SUPERVISOR','MATERIAL_MANAGER','SALES_STAFF','INVENTORY_OFFICER','SUPPLIER_OFFICER','DELIVERY_OFFICER'].map((r) => (
+                                                <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
+                                            ))}
+                                        </select>
                                     )}
                                 </div>
                                 <div className="grid gap-3 sm:grid-cols-2">
