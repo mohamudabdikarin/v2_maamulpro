@@ -52,7 +52,7 @@ export class RbacService {
   }
 
   async createRole(tenantDb: any, data: CreateRoleDto) {
-    const existing = await tenantDb.rbacRole.findUnique({ where: { key: data.key } });
+    const existing = await tenantDb.rbacRole.findFirst({ where: { key: data.key, deletedAt: null } });
     if (existing) throw new ConflictException(`Role key '${data.key}' already exists`);
     await this.validatePermissions(tenantDb, data.permissionIds);
     return tenantDb.rbacRole.create({
@@ -104,13 +104,13 @@ export class RbacService {
     });
     if (!role || role.deletedAt) throw new NotFoundException('Role not found');
     if (role.isSystem) throw new BadRequestException('System roles cannot be deleted');
-    if (role._count.userRoles > 0) {
-      throw new ConflictException('Remove this role from all users before deleting it');
-    }
-    return tenantDb.rbacRole.update({
-      where: { id },
-      data: { deletedAt: new Date(), isActive: false },
+    const affected = role._count.userRoles > 0 ? await this.usersHoldingRole(tenantDb, id) : [];
+    await tenantDb.$transaction(async (tx: any) => {
+      if (affected.length) await tx.rbacUserRole.deleteMany({ where: { roleId: id } });
+      await tx.rbacRole.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
     });
+    if (affected.length) await this.bumpSessionVersions(affected);
+    return { deleted: true };
   }
 
   async getUserAccess(tenantDb: any, userId: string) {

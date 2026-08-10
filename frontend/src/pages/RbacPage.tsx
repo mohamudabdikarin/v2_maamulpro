@@ -113,7 +113,7 @@ const RbacPage = () => {
         try {
             const body = editingRole
                 ? { name: form.name, description: form.description, permissionIds: selected }
-                : { key: form.key.toUpperCase().replace(/\s+/g, '_'), name: form.name, description: form.description, permissionIds: selected };
+                : { key: form.key.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^[^A-Z]+/, '').replace(/_+$/g, '').slice(0, 49), name: form.name, description: form.description, permissionIds: selected };
             await api(editingRole ? `/api/rbac/roles/${editingRole.id}` : '/api/rbac/roles', {
                 method: editingRole ? 'PATCH' : 'POST',
                 silent: true,
@@ -505,12 +505,16 @@ const RbacPage = () => {
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                             <label className="mb-1.5 block text-sm font-semibold">Role key</label>
-                            <input className="form-input font-mono" placeholder="e.g. SALES_MANAGER" disabled={Boolean(editingRole)} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value })} required />
-                            <span className="mt-1 block text-xs text-white-dark">Unique identifier (uppercase, underscores)</span>
+                            <input className="form-input font-mono" placeholder="e.g. SALES_MANAGER" readOnly={!editingRole} disabled={Boolean(editingRole)} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value })} required />
+                            <span className="mt-1 block text-xs text-white-dark">{editingRole ? 'Cannot change key after creation' : 'Auto-generated from name'}</span>
                         </div>
                         <div>
                             <label className="mb-1.5 block text-sm font-semibold">Display name</label>
-                            <input className="form-input" placeholder="e.g. Sales Manager" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                            <input className="form-input" placeholder="e.g. Sales Manager" value={form.name} onChange={(e) => {
+                                const name = e.target.value;
+                                const autoKey = name.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^[^A-Z]+/, '').replace(/_+$/g, '').slice(0, 49);
+                                setForm({ ...form, name, key: editingRole ? form.key : autoKey });
+                            }} required />
                         </div>
                     </div>
                     <div>
