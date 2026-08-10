@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { RequireRoles } from '../../common/decorators/roles.decorator';
 import { GetTenantContext, GetTenantDb } from '../../common/decorators/tenant-context.decorator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
@@ -24,6 +25,7 @@ export class SettingsController {
   }
 
   @Patch()
+  @RequireRoles('COMPANY_OWNER')
   @RequirePermissions('settings.update')
   updateSettings(@GetTenantDb() db: any, @Body() body: UpdateCompanySettingsDto) {
     return this.settings.updateSettings(db, body);
