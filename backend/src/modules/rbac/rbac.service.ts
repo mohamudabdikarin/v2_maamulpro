@@ -120,6 +120,7 @@ export class RbacService {
         id: true,
         name: true,
         email: true,
+        role: true,
         rbacUserRoles: { include: { role: true } },
         rbacUserPermissions: { include: { permission: true } },
       },

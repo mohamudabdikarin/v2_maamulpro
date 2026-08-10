@@ -9,7 +9,7 @@ import { usePermissions } from '../hooks/usePermissions';
 type Permission = { id: string; key: string; label: string; module: string; workspace?: string };
 type Role = { id: string; key: string; name: string; description?: string; isSystem: boolean; isActive: boolean; rolePermissions: { permission: Permission }[]; _count?: { userRoles: number } };
 type StaffUser = { id: string; firstName: string; lastName: string; user?: { id: string; email: string } };
-type UserAccess = { id: string; name: string; email: string; rbacUserRoles: { role: Role }[]; rbacUserPermissions: { effect: string; reason?: string; permission: Permission }[] };
+type UserAccess = { id: string; name: string; email: string; role?: string; rbacUserRoles: { role: Role }[]; rbacUserPermissions: { effect: string; reason?: string; permission: Permission }[] };
 
 type Tab = 'roles' | 'users';
 
@@ -343,10 +343,15 @@ const RbacPage = () => {
                         <div className="grid gap-6 xl:grid-cols-5">
                             {/* Assigned roles */}
                             <div className="panel space-y-4 p-5 dark:border-dark dark:bg-black xl:col-span-3">
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                     <UserCheck size={18} className="text-primary" />
                                     <h3 className="text-base font-bold">Assigned roles</h3>
                                     <span className="badge bg-primary/10 text-primary">{access.rbacUserRoles.length} assigned</span>
+                                    {access.role && (
+                                        <span className="badge bg-dark/10 text-dark dark:bg-white/10 dark:text-white-light" title="System role set at registration — drives default permissions when no RBAC roles are assigned">
+                                            System: {access.role.replace(/_/g, ' ')}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     {roles.filter((r) => r.isActive).map((role) => {
