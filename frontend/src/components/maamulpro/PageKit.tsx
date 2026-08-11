@@ -1,6 +1,19 @@
-import { AlertTriangle, BarChart3, Building2, CheckCircle2, Clock, CreditCard, Package, TrendingUp, Users, X } from 'lucide-react';
-import { Children, cloneElement, isValidElement, ReactElement, ReactNode } from 'react';
+import { AlertTriangle, BarChart3, Building2, CheckCircle2, Clock, CreditCard, Eye, EyeOff, Package, TrendingUp, Users, X } from 'lucide-react';
+import { Children, cloneElement, InputHTMLAttributes, isValidElement, ReactElement, ReactNode, useState } from 'react';
 import DotLoader from './DotLoader';
+
+type PasswordInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> & { startAdornment?: ReactNode };
+
+export const PasswordInput = ({ className = '', startAdornment, ...props }: PasswordInputProps) => {
+    const [visible, setVisible] = useState(false);
+    return <div className="relative">
+        <input {...props} className={`${className} pe-10`} type={visible ? 'text' : 'password'} />
+        {startAdornment}
+        <button aria-label={visible ? 'Hide password' : 'Show password'} className="absolute end-3 top-1/2 -translate-y-1/2 text-white-dark hover:text-primary" onClick={() => setVisible((value) => !value)} type="button">
+            {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+    </div>;
+};
 
 export const humanize = (value: string) => value.replace(/[_-]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\b\w/g, (letter) => letter.toUpperCase());
 export const money = (value: unknown, currency = 'USD') => new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(Number(value || 0));

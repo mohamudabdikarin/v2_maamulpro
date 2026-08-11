@@ -25,7 +25,7 @@ const subIconClass = 'shrink-0 text-gray-400 group-hover/sub:!text-primary';
 const iconClass = 'group-hover:!text-primary shrink-0';
 
 const companyGroups: Group[] = [
-    { label: 'Executive hub', icon: <IconMenuDashboard className={iconClass} />, items: [
+    { label: 'Overview', icon: <IconMenuDashboard className={iconClass} />, items: [
         { label: 'Dashboard', to: '/app/dashboard', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'dashboard.executive.read' },
         { label: 'Analytics', to: '/app/analytics', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'analytics.read' },
     ] },
@@ -68,11 +68,11 @@ const companyGroups: Group[] = [
         { label: 'Transportation', to: '/app/materials/transportation', icon: <Truck size={16} className={subIconClass} />, permission: 'transportation.read' },
         { label: 'Reports', to: '/app/materials/reports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.material.read' },
     ] },
-    { label: 'Governance', icon: <IconMenuCharts className={iconClass} />, items: [
+    { label: 'Administration', icon: <IconMenuCharts className={iconClass} />, items: [
         { label: 'Reports', to: '/app/reports', feature: 'advancedReports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.read' },
         { label: 'Report schedules', to: '/app/report-schedules', feature: 'advancedReports', icon: <Calendar size={16} className={subIconClass} />, permission: 'reports.admin' },
         { label: 'Audit logs', to: '/app/audits', icon: <Shield size={16} className={subIconClass} />, permission: 'activity_logs.read' },
-        { label: 'Roles & permissions', to: '/app/roles', icon: <ShieldCheck size={16} className={subIconClass} />, permission: 'roles.read' },
+        { label: 'Roles', to: '/app/roles', icon: <ShieldCheck size={16} className={subIconClass} />, permission: 'roles.read' },
         { label: 'Settings', to: '/app/settings', icon: <Settings size={16} className={subIconClass} />, permission: 'settings.read' },
     ] },
 ];

@@ -17,7 +17,7 @@ import {
     User,
 } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
-import { ErrorAlert, Field, Modal } from '../components/maamulpro/PageKit';
+import { ErrorAlert, Field, Modal, PasswordInput } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 import { tenantUrl } from '../lib/tenant-domain';
 
@@ -494,9 +494,8 @@ const CompanyOnboardingPage = () => {
                             <div className="rounded-lg border border-warning/30 bg-warning-light p-4">
                                 <p className="font-semibold text-warning">Manual database connection required</p>
                                 <p className="mt-1 text-xs leading-5 text-warning">Automatic Neon provisioning is unavailable. Enter the tenant PostgreSQL URL.</p>
-                                <input
+                                <PasswordInput
                                     className={`form-input mt-3 ${errors.dbUrl ? 'border-danger' : ''}`}
-                                    type="password"
                                     value={form.dbUrl}
                                     onChange={(event) => setField('dbUrl', event.target.value)}
                                     autoComplete="off"

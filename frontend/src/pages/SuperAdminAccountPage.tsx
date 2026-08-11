@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
-import { ErrorAlert, Field, LoadingState, Modal, PageHeader, shortDate } from '../components/maamulpro/PageKit';
+import { ErrorAlert, Field, LoadingState, Modal, PageHeader, PasswordInput, shortDate } from '../components/maamulpro/PageKit';
 import { api, sessionStore } from '../lib/api';
 
 const SuperAdminAccountPage = () => {
@@ -113,7 +113,7 @@ const SuperAdminAccountPage = () => {
                 <h2 className="text-lg font-bold">Change email address</h2>
                 <p className="text-sm text-white-dark">The new address must be verified before it becomes your login identity.</p>
                 <Field label="New email" required><input className="form-input mt-1" type="email" required value={email.email} onChange={(event) => setEmail({ ...email, email: event.target.value })} /></Field>
-                <Field label="Current password" required><input className="form-input mt-1" type="password" required value={email.currentPassword} onChange={(event) => setEmail({ ...email, currentPassword: event.target.value })} /></Field>
+                <Field label="Current password" required><PasswordInput autoComplete="current-password" className="form-input mt-1" required value={email.currentPassword} onChange={(event) => setEmail({ ...email, currentPassword: event.target.value })} /></Field>
                 <button className="btn btn-primary" disabled={working === 'email'}>{working === 'email' ? 'Sending…' : 'Verify new email'}</button>
             </form>
 

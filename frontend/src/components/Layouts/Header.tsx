@@ -11,7 +11,6 @@ import IconMoon from '../Icon/IconMoon';
 import IconSun from '../Icon/IconSun';
 import IconUser from '../Icon/IconUser';
 import IconLogout from '../Icon/IconLogout';
-import IconLockDots from '../Icon/IconLockDots';
 
 type PlatformNotification = { id: string; title: string; details: string; createdAt: string; category: string; companyId?: string };
 
@@ -82,9 +81,7 @@ const Header = () => {
                         >
                             <div className="mt-2 w-56 rounded-md bg-white p-2 shadow-lg ring-1 ring-black/5 dark:bg-[#1b2e4b]">
                                 <div className="border-b border-white-light px-3 py-2 dark:border-[#191e3a]"><p className="font-semibold">{session?.user.name || 'Administrator'}</p><p className="truncate text-xs text-white-dark">{session?.user.email}</p></div>
-                                <Link className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#152136]" to={`${accountPath}#profile`}><IconUser className="h-4 w-4" />My Profile</Link>
-                                <Link className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#152136]" to={`${accountPath}#settings`}><IconUser className="h-4 w-4" />Account Settings</Link>
-                                <Link className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#152136]" to={`${accountPath}#password`}><IconLockDots className="h-4 w-4" />Change Password</Link>
+                                <Link className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#152136]" to={accountPath}><IconUser className="h-4 w-4" />Account Settings</Link>
                                 <button className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-danger hover:bg-danger-light" onClick={logout} type="button"><IconLogout className="h-4 w-4" />Logout</button>
                             </div>
                         </Dropdown>
