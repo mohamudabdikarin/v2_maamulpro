@@ -75,7 +75,7 @@ export class SettingsController {
   }
 
   @Delete('activity-logs')
-  @RequirePermissions('activity_logs.read')
+  @RequirePermissions('activity_logs.delete')
   clearActivityLogs(@GetTenantDb() db: any) {
     return this.settings.clearActivityLogs(db);
   }

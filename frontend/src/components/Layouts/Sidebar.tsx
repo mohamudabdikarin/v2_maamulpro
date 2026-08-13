@@ -22,7 +22,7 @@ type Item = { label: string; to: string; icon?: ReactNode; feature?: Feature; pe
 type Group = { label: string; icon: ReactNode; items: Item[]; feature?: Feature; permission?: string };
 
 const subIconClass = 'shrink-0 text-gray-400 group-hover/sub:!text-primary';
-const iconClass = 'group-hover:!text-primary shrink-0';
+const iconClass = '!text-primary shrink-0';
 
 const companyGroups: Group[] = [
     { label: 'Overview', icon: <IconMenuDashboard className={iconClass} />, items: [
@@ -60,7 +60,7 @@ const companyGroups: Group[] = [
     ] },
     { label: 'Materials', feature: 'materials', icon: <IconMenuInvoice className={iconClass} />, permission: 'workspace.material_management.read', items: [
         { label: 'Overview', to: '/app/materials/overview', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'workspace.material_management.read' },
-        { label: 'Inventory', to: '/app/materials/inventory', icon: <Package size={16} className={subIconClass} />, permission: 'materials_inventory.read' },
+        { label: 'Inventory', to: '/app/materials/inventory', icon: <Package size={16} className={subIconClass} />, permission: 'materials_products.read' },
         { label: 'Suppliers', to: '/app/materials/suppliers', icon: <Truck size={16} className={subIconClass} />, permission: 'suppliers.read' },
         { label: 'Purchases', to: '/app/materials/purchases', icon: <ShoppingCart size={16} className={subIconClass} />, permission: 'purchases.read' },
         { label: 'Customers', to: '/app/materials/customers', icon: <UserCheck size={16} className={subIconClass} />, permission: 'material_customers.read' },

@@ -5,11 +5,13 @@ import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
 import { EmptyState, ErrorAlert, LoadingState, Modal, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { useApiRows } from '../hooks/useApiData';
 import { api } from '../lib/api';
+import { usePermissions } from '../hooks/usePermissions';
 
 type Project = { id: string; name: string; location?: string; description?: string; status: string; budget: number; progress: number; imageUrl?: string; startDate?: string; endDate?: string; tasks?: unknown[]; assignedStaff?: unknown[]; _count?: { tasks: number; workforceContracts: number } };
 
 const ConstructionProjectsPage = () => {
     const state = useApiRows<Project>('/api/construction/projects');
+    const { hasPermission } = usePermissions();
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState('');
     const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -32,7 +34,7 @@ const ConstructionProjectsPage = () => {
     return <AppShell>
         <PageHeader eyebrow="Construction" title="Projects" description="Every site, budget, schedule, delivery stage and assigned workforce." actions={<>
             <Link className="btn btn-outline-primary" to="/app/construction/overview">Overview</Link>
-            <Link className="btn btn-primary" to="/app/construction/projects/new">New project</Link>
+            {hasPermission('projects.create') && <Link className="btn btn-primary" to="/app/construction/projects/new">New project</Link>}
         </>} />
         <StatGrid items={[
             { label: 'Projects', value: state.rows.length },
@@ -49,7 +51,7 @@ const ConstructionProjectsPage = () => {
                     <p className="mt-3 line-clamp-2 min-h-[2.5rem] text-sm text-white-dark">{project.description || 'No description provided.'}</p>
                     <div className="mt-4 flex justify-between text-xs"><span>Progress</span><strong>{project.progress || 0}%</strong></div><div className="mt-1 h-2 rounded bg-gray-200 dark:bg-dark"><div className="h-2 rounded bg-primary" style={{ width: `${Math.min(100, project.progress || 0)}%` }} /></div>
                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><span className="text-white-dark">Budget</span><strong className="block">{money(project.budget)}</strong></div><div><span className="text-white-dark">End date</span><strong className="block">{shortDate(project.endDate)}</strong></div><div><span className="text-white-dark">Tasks</span><strong className="block">{project._count?.tasks ?? project.tasks?.length ?? 0}</strong></div><div><span className="text-white-dark">Team</span><strong className="block">{project.assignedStaff?.length || 0}</strong></div></div>
-                    <div className="mt-5 flex gap-2"><Link className="btn btn-sm btn-primary flex-1" to={`/app/construction/projects/${project.id}`}>Open</Link><Link className="btn btn-sm btn-outline-primary" to={`/app/construction/projects/${project.id}/edit`}>Edit</Link><button className="btn btn-sm btn-outline-danger" onClick={() => { setDeleteId(project.id); setDeleteName(project.name); }}>Delete</button></div>
+                    <div className="mt-5 flex gap-2"><Link className="btn btn-sm btn-primary flex-1" to={`/app/construction/projects/${project.id}`}>Open</Link>{hasPermission('projects.update') && <Link className="btn btn-sm btn-outline-primary" to={`/app/construction/projects/${project.id}/edit`}>Edit</Link>}{hasPermission('projects.delete') && <button className="btn btn-sm btn-outline-danger" onClick={() => { setDeleteId(project.id); setDeleteName(project.name); }}>Delete</button>}</div>
                 </div>
             </article>)}</div>}
         <Modal open={Boolean(deleteId)} onClose={() => !deleting && setDeleteId(null)} title="Delete project">

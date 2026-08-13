@@ -195,12 +195,11 @@ const defaultPlaceholder = (label: string) => {
     if (normalized.includes('password')) return 'Geli erayga sirta ah';
     if (normalized.includes('amount')) return '1,500';
     if (normalized.includes('address')) return 'Muqdisho, Soomaaliya';
-    if (normalized.includes('first') || normalized.includes('last') || normalized.includes('person')) return 'Maxamed Cali';
-    if (normalized.includes('name')) return 'Maxamed Cali';
+    if (normalized.includes('first') || normalized.includes('last') || normalized.includes('person') || normalized.includes('name')) return `Enter ${normalized}`;
     return `Geli ${normalized}`;
 };
 
-export const somaliExample = (name: string, type?: string): string | undefined => {
+export const somaliExample = (name: string, type?: string, label?: string): string | undefined => {
     const key = name.replace(/[^a-z]/gi, '').toLowerCase();
     if (type === 'date') return undefined;
     if (key.includes('email')) return 'tusaale@shirkad.so';
@@ -209,7 +208,7 @@ export const somaliExample = (name: string, type?: string): string | undefined =
     if (key.includes('nationalid') || key.includes('passport')) return 'SOM-12345678';
     if (key.includes('description')) return 'Sharaxaad kooban oo cad';
     if (key.includes('note')) return 'Faahfaahin dheeraad ah (ikhtiyaari)';
-    if (key.includes('name') || key.includes('title')) return 'Maxamed Cali';
+    if (key.includes('name') || key.includes('title')) return `Enter ${(label || name).toLowerCase()}`;
     if (key.includes('code')) return 'XIS-001';
     if (key.includes('receipt')) return 'RCP-0001';
     if (key.includes('invoice')) return 'INV-0001';

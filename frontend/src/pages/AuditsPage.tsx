@@ -12,8 +12,10 @@ import {
 } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 import { useApiRows } from '../hooks/useApiData';
+import { usePermissions } from '../hooks/usePermissions';
 
 const AuditsPage = () => {
+    const { hasPermission } = usePermissions();
     const state = useApiRows<Record<string, any>>('/api/settings/activity-logs?limit=100');
     const [search, setSearch] = useState('');
     const [entity, setEntity] = useState('');
@@ -47,7 +49,7 @@ const AuditsPage = () => {
                 eyebrow="Security & compliance"
                 title="Audit Logs"
                 description="Review user activity and data changes recorded across the company."
-                actions={<button className="btn btn-outline-danger" onClick={() => setClearConfirmOpen(true)}>Clear audit log</button>}
+                actions={hasPermission('activity_logs.delete') ? <button className="btn btn-outline-danger" onClick={() => setClearConfirmOpen(true)}>Clear audit log</button> : undefined}
             />
             {state.error && <ErrorAlert message={state.error} onRetry={state.reload} />}
             <StatGrid items={[

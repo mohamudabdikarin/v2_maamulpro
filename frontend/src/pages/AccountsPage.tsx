@@ -16,6 +16,7 @@ import {
 } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 import { useApiRows } from '../hooks/useApiData';
+import { usePermissions } from '../hooks/usePermissions';
 
 type Account = {
     code: string;
@@ -50,6 +51,8 @@ const typeTone: Record<Account['type'], string> = {
 
 const AccountsPage = () => {
     const state = useApiRows<Account>('/api/accounting/accounts');
+    const { hasPermission } = usePermissions();
+    const canManage = hasPermission('accounting.manage');
     const [form, setForm] = useState(blankForm);
     const [editing, setEditing] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
@@ -230,9 +233,11 @@ const AccountsPage = () => {
                             />
                             Show inactive
                         </label>
-                        <button className="btn btn-primary" onClick={openCreate}>
-                            Add account
-                        </button>
+                        {canManage && (
+                            <button className="btn btn-primary" onClick={openCreate}>
+                                Add account
+                            </button>
+                        )}
                     </>
                 }
             />
@@ -323,26 +328,28 @@ const AccountsPage = () => {
                                                 >
                                                     Ledger
                                                 </button>
-                                                <button
-                                                    className="btn btn-sm btn-outline-primary"
-                                                    onClick={(e) => { e.stopPropagation(); openEdit(row); }}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-outline-secondary"
-                                                    onClick={(e) => { e.stopPropagation(); toggleActive(row); }}
-                                                >
-                                                    {row.isActive ? 'Deactivate' : 'Activate'}
-                                                </button>
-                                                {!row.isSystem && (
+                                                {canManage && <>
                                                     <button
-                                                        className="btn btn-sm btn-outline-danger"
-                                                        onClick={(e) => { e.stopPropagation(); setDeleteCode(row.code); }}
+                                                        className="btn btn-sm btn-outline-primary"
+                                                        onClick={(e) => { e.stopPropagation(); openEdit(row); }}
                                                     >
-                                                        Delete
+                                                        Edit
                                                     </button>
-                                                )}
+                                                    <button
+                                                        className="btn btn-sm btn-outline-secondary"
+                                                        onClick={(e) => { e.stopPropagation(); toggleActive(row); }}
+                                                    >
+                                                        {row.isActive ? 'Deactivate' : 'Activate'}
+                                                    </button>
+                                                    {!row.isSystem && (
+                                                        <button
+                                                            className="btn btn-sm btn-outline-danger"
+                                                            onClick={(e) => { e.stopPropagation(); setDeleteCode(row.code); }}
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    )}
+                                                </>}
                                             </div>
                                         </td>
                                     </tr>
@@ -355,15 +362,9 @@ const AccountsPage = () => {
             <Modal title={editing ? 'Edit account' : 'Add account'} open={open} onClose={() => setOpen(false)}>
                 <form className="space-y-4" onSubmit={save}>
                     <div className="grid gap-4 md:grid-cols-2">
-                        <Field label="Account code" required>
-                            <input
-                                className="form-input mt-1"
-                                required
-                                disabled={Boolean(editing)}
-                                value={form.code}
-                                onChange={(e) => setForm({ ...form, code: e.target.value })}
-                            />
-                        </Field>
+                        {editing && <Field label="Account code">
+                            <input className="form-input mt-1" disabled value={form.code} />
+                        </Field>}
                         <Field label="Type" required>
                             <select
                                 className="form-select mt-1"
@@ -388,6 +389,7 @@ const AccountsPage = () => {
                         <input
                             className="form-input mt-1"
                             required
+                            placeholder="e.g. Office operating account"
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
                         />

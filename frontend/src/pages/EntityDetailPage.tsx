@@ -4,12 +4,14 @@ import AppShell from '../components/maamulpro/AppShell';
 import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
 import { ErrorAlert, LoadingState, PageHeader, StatusPill, formatTableValue, humanize, visibleTableColumns } from '../components/maamulpro/PageKit';
 import { useApiData } from '../hooks/useApiData';
+import { usePermissions } from '../hooks/usePermissions';
 
 type Props = {
     titleKey: string;
     endpoint: string;
     backTo: string;
     editTo?: (id: string) => string;
+    editPermission?: string;
     imageKey?: string;
     statusKey?: string;
     moneyKeys?: string[];
@@ -21,13 +23,14 @@ type Props = {
 
 const EntityDetailPage = (props: Props) => {
     const { id = '' } = useParams();
+    const { hasPermission } = usePermissions();
     const state = useApiData<Record<string, any>>(`${props.endpoint}/${id}`, {});
     const row = state.data;
     const title = row[props.titleKey] || 'Loading…';
     return <AppShell>
         <PageHeader eyebrow="Record details" title={title} description={row.location || row.description || undefined} actions={<>
             <Link className="btn btn-outline-primary" to={props.backTo}>Back to list</Link>
-            {props.editTo && <Link className="btn btn-primary" to={props.editTo(id)}>Edit</Link>}
+            {props.editTo && (!props.editPermission || hasPermission(props.editPermission)) && <Link className="btn btn-primary" to={props.editTo(id)}>Edit</Link>}
             {props.actions?.(row, state.reload)}
         </>} />
         {state.loading && <div className="panel"><LoadingState /></div>}

@@ -34,6 +34,7 @@ export function useApiRows<T extends Record<string, any>>(endpoint: string) {
 
     const reload = useCallback(async () => {
         setLoading(true); setError('');
+        if (!endpoint) { setRows([]); setLoading(false); return; }
         try {
             setRows(unwrapRows<T>(await api<unknown>(endpoint)));
         } catch (reason) {

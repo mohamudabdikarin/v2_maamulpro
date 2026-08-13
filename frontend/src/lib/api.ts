@@ -18,6 +18,8 @@ export type SessionUser = {
     companyName?: string;
     permissions?: string[];
     isSuperAdmin?: boolean;
+    isImpersonating?: boolean;
+    impersonatedBy?: string;
     constructionEnabled?: boolean;
     realEstateEnabled?: boolean;
     materialManagementEnabled?: boolean;

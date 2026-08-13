@@ -29,6 +29,13 @@ export class AuthController {
     return this.authService.loginSuperAdmin(userEmail, userPassword);
   }
 
+  @Post('auth/impersonation/exchange')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  exchangeImpersonation(@Body() body: { token?: string }) {
+    return this.authService.exchangeImpersonation(body.token || '');
+  }
+
   @Post('auth/password/forgot')
   @Public()
   @HttpCode(HttpStatus.ACCEPTED)

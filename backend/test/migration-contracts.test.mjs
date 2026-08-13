@@ -72,7 +72,11 @@ test('Vristo routes expose every migrated business workspace', async () => {
     '/superadmin/billing',
     '/superadmin/account',
   ];
-  for (const path of paths) assert.ok(routes.includes(`path: '${path}'`), path);
+  for (const path of paths) {
+    const literalRoute = routes.includes(`path: '${path}'`);
+    const generatedReportRoute = path === '/app/reports' && routes.includes("reportRoutes('/app/reports'");
+    assert.ok(literalRoute || generatedReportRoute, path);
+  }
 });
 
 test('superadmin uses direct subscriptions and modules without a plans workflow', async () => {

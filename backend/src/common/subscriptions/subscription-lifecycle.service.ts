@@ -178,6 +178,9 @@ export class SubscriptionLifecycleService implements OnModuleInit {
       await this.expireInvoice(invoice);
       throw new ConflictException('Invoice has expired and must be reissued');
     }
+    if (!invoice.subscription) {
+      return this.markDirectInvoicePaid(invoice, paymentMethod, adminId, now);
+    }
     if (!invoice.subscription || !invoice.subscription.plan) {
       throw new BadRequestException('Invoice is not connected to a valid subscription');
     }
@@ -293,7 +296,7 @@ export class SubscriptionLifecycleService implements OnModuleInit {
       include: { company: true, plan: true },
       orderBy: { expiresAt: 'desc' },
     });
-    if (!subscription) throw new BadRequestException('No active subscription is available to renew');
+    if (!subscription) return this.createDirectRenewalInvoice(companyId, adminId, now);
     const existing = await this.central.invoice.findFirst({
       where: {
         subscriptionId: subscription.id,
@@ -351,7 +354,12 @@ export class SubscriptionLifecycleService implements OnModuleInit {
   }
 
   async resumeSubscription(companyId: string, adminId?: string, notes?: string) {
-    const subscription = await this.latestSubscription(companyId, ['SUSPENDED']);
+    const subscription = await this.central.tenantSubscription.findFirst({
+      where: { companyId, status: 'SUSPENDED' },
+      include: { company: true, plan: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!subscription) return this.resumeDirectSubscription(companyId, adminId, notes);
     const now = new Date();
     if (new Date(subscription.expiresAt) <= now) {
       throw new BadRequestException('Expired subscriptions cannot be resumed; create a renewal invoice');
@@ -480,10 +488,41 @@ export class SubscriptionLifecycleService implements OnModuleInit {
         await this.logStatus(tx, subscription, 'EXPIRATION', 'EXPIRED', undefined, 'Paid subscription period ended');
       });
     }
+    const expiredDirectSubscriptions = await this.central.company.findMany({
+      where: {
+        subscriptionStatus: { in: ['ACTIVE', 'SUSPENDED'] },
+        subscriptionExpiresAt: { lte: now },
+        subscriptions: { none: { status: { in: ['ACTIVE', 'SUSPENDED'] } } },
+      },
+    });
+    for (const company of expiredDirectSubscriptions) {
+      await this.central.$transaction(async (tx: any) => {
+        const claim = await tx.company.updateMany({
+          where: {
+            id: company.id,
+            subscriptionStatus: { in: ['ACTIVE', 'SUSPENDED'] },
+            subscriptionExpiresAt: { lte: now },
+          },
+          data: { subscriptionStatus: 'EXPIRED', accessGranted: false, version: { increment: 1 } },
+        });
+        if (!claim.count) return;
+        await tx.subscriptionTransaction.create({
+          data: {
+            companyId: company.id,
+            transactionType: 'EXPIRATION',
+            previousStatus: company.subscriptionStatus,
+            newStatus: 'EXPIRED',
+            startAt: company.subscriptionStartAt,
+            expiresAt: company.subscriptionExpiresAt,
+            notes: 'Paid subscription period ended',
+          },
+        });
+      });
+    }
     return {
       overdue: overdue.count,
       expiredInvoices: expiredInvoices.length,
-      expiredSubscriptions: expiredSubscriptions.length,
+      expiredSubscriptions: expiredSubscriptions.length + expiredDirectSubscriptions.length,
     };
   }
 
@@ -500,6 +539,18 @@ export class SubscriptionLifecycleService implements OnModuleInit {
     const invoices = [];
     for (const subscription of subscriptions) {
       invoices.push(await this.createRenewalInvoice(subscription.companyId));
+    }
+    const directCompanies = await this.central.company.findMany({
+      where: {
+        subscriptionStatus: 'ACTIVE',
+        autoRecur: true,
+        subscriptionExpiresAt: { gt: now, lte: new Date(now.getTime() + days * DAY) },
+        subscriptions: { none: { status: 'ACTIVE' } },
+      },
+      select: { id: true },
+    });
+    for (const company of directCompanies) {
+      invoices.push(await this.createDirectRenewalInvoice(company.id, undefined, now));
     }
     return invoices;
   }
@@ -596,7 +647,12 @@ export class SubscriptionLifecycleService implements OnModuleInit {
     adminId?: string,
     notes?: string,
   ) {
-    const subscription = await this.latestSubscription(companyId, ['ACTIVE', 'SUSPENDED']);
+    const subscription = await this.central.tenantSubscription.findFirst({
+      where: { companyId, status: { in: ['ACTIVE', 'SUSPENDED'] } },
+      include: { company: true, plan: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!subscription) return this.changeDirectSubscriptionStatus(companyId, status, adminId, notes);
     if (subscription.status === status) return { status };
     const now = new Date();
     return this.central.$transaction(async (tx: any) => {
@@ -629,6 +685,163 @@ export class SubscriptionLifecycleService implements OnModuleInit {
       );
       return { status };
     });
+  }
+
+  private async createDirectRenewalInvoice(companyId: string, adminId?: string, now = new Date()) {
+    const company = await this.central.company.findUnique({ where: { id: companyId } });
+    if (!company) throw new NotFoundException('Company not found');
+    if (!['ACTIVE', 'EXPIRED'].includes(company.subscriptionStatus)) {
+      throw new BadRequestException('No active subscription is available to renew');
+    }
+    const existing = await this.central.invoice.findFirst({
+      where: { companyId, subscriptionId: null, kind: 'RENEWAL', status: { in: OPEN_INVOICE_STATUSES } },
+    });
+    if (existing) return existing;
+    const months = Number(company.termDurationMonths || 0);
+    if (months < 1 || company.subscriptionAmount == null) {
+      throw new BadRequestException('Configure the company subscription before renewing it');
+    }
+    const periodStart = company.subscriptionExpiresAt && new Date(company.subscriptionExpiresAt) > now
+      ? new Date(company.subscriptionExpiresAt)
+      : now;
+    const periodEnd = new Date(periodStart);
+    periodEnd.setMonth(periodEnd.getMonth() + months);
+    const invoice = await this.central.invoice.create({
+      data: {
+        invoiceNumber: this.invoiceNumber(),
+        companyId,
+        amount: company.subscriptionAmount,
+        kind: 'RENEWAL',
+        status: 'UNPAID',
+        dueDate: periodStart > now ? periodStart : new Date(now.getTime() + INVOICE_DUE_DAYS * DAY),
+        expiresAt: new Date(Math.max(periodStart.getTime(), now.getTime()) + INVOICE_EXPIRY_DAYS * DAY),
+        periodStart,
+        periodEnd,
+        idempotencyKey: `DIRECT_RENEW_${companyId}_${periodStart.toISOString()}`,
+        notes: `Renewal invoice for ${company.name}`,
+      },
+    });
+    await this.central.subscriptionTransaction.create({
+      data: {
+        companyId,
+        transactionType: 'RENEWAL_INVOICE_CREATED',
+        amount: company.subscriptionAmount,
+        termDurationMonths: months,
+        previousStatus: company.subscriptionStatus,
+        newStatus: company.subscriptionStatus,
+        startAt: periodStart,
+        expiresAt: periodEnd,
+        approvedBy: adminId,
+        notes: `Invoice ${invoice.invoiceNumber} created`,
+      },
+    });
+    if (Number(invoice.amount) === 0) return this.markInvoicePaid(invoice.id, 'NO_CHARGE', adminId);
+    return invoice;
+  }
+
+  private async markDirectInvoicePaid(invoice: any, paymentMethod: string, adminId: string | undefined, now: Date) {
+    return this.central.$transaction(async (tx: any) => {
+      const claim = await tx.invoice.updateMany({
+        where: { id: invoice.id, status: { in: OPEN_INVOICE_STATUSES } },
+        data: { status: 'PAID', paidAt: now, paymentMethod },
+      });
+      if (!claim.count) {
+        const settled = await tx.invoice.findUnique({ where: { id: invoice.id } });
+        if (settled?.status === 'PAID') return settled;
+        throw new ConflictException('Invoice status changed before payment could be recorded');
+      }
+      await tx.company.update({
+        where: { id: invoice.companyId },
+        data: {
+          subscriptionStatus: 'ACTIVE',
+          subscriptionAmount: invoice.amount,
+          subscriptionStartAt: invoice.periodStart,
+          subscriptionExpiresAt: invoice.periodEnd,
+          accessGranted: true,
+          ...(invoice.company.status === 'PENDING_SETUP' ? { status: 'ACTIVE' } : {}),
+          version: { increment: 1 },
+        },
+      });
+      await tx.subscriptionTransaction.create({
+        data: {
+          companyId: invoice.companyId,
+          transactionType: invoice.kind === 'RENEWAL' ? 'RENEWAL_PAYMENT' : 'ACTIVATION',
+          amount: invoice.amount,
+          termDurationMonths: invoice.company.termDurationMonths,
+          previousStatus: invoice.company.subscriptionStatus,
+          newStatus: 'ACTIVE',
+          startAt: invoice.periodStart,
+          expiresAt: invoice.periodEnd,
+          approvedBy: adminId,
+          notes: `Invoice ${invoice.invoiceNumber} paid via ${paymentMethod}`,
+        },
+      });
+      return tx.invoice.findUnique({ where: { id: invoice.id } });
+    });
+  }
+
+  private async changeDirectSubscriptionStatus(
+    companyId: string,
+    status: 'SUSPENDED' | 'CANCELLED',
+    adminId?: string,
+    notes?: string,
+  ) {
+    const company = await this.central.company.findUnique({ where: { id: companyId } });
+    if (!company) throw new NotFoundException('Company not found');
+    if (!['ACTIVE', 'SUSPENDED'].includes(company.subscriptionStatus)) {
+      throw new BadRequestException('No matching subscription was found');
+    }
+    if (company.subscriptionStatus === status) return { status };
+    await this.central.$transaction(async (tx: any) => {
+      await tx.company.update({
+        where: { id: companyId },
+        data: {
+          subscriptionStatus: status,
+          accessGranted: false,
+          ...(status === 'CANCELLED' ? { autoRecur: false } : {}),
+          version: { increment: 1 },
+        },
+      });
+      await tx.subscriptionTransaction.create({
+        data: {
+          companyId,
+          transactionType: status === 'SUSPENDED' ? 'SUSPENSION' : 'CANCELLATION',
+          previousStatus: company.subscriptionStatus,
+          newStatus: status,
+          approvedBy: adminId,
+          notes,
+        },
+      });
+    });
+    return { status };
+  }
+
+  private async resumeDirectSubscription(companyId: string, adminId?: string, notes?: string) {
+    const company = await this.central.company.findUnique({ where: { id: companyId } });
+    if (!company) throw new NotFoundException('Company not found');
+    if (company.subscriptionStatus !== 'SUSPENDED') {
+      throw new BadRequestException('No matching subscription was found');
+    }
+    if (!company.subscriptionExpiresAt || new Date(company.subscriptionExpiresAt) <= new Date()) {
+      throw new BadRequestException('Expired subscriptions cannot be resumed; configure a new subscription term');
+    }
+    await this.central.$transaction(async (tx: any) => {
+      await tx.company.update({
+        where: { id: companyId },
+        data: { subscriptionStatus: 'ACTIVE', accessGranted: true, version: { increment: 1 } },
+      });
+      await tx.subscriptionTransaction.create({
+        data: {
+          companyId,
+          transactionType: 'RESUMPTION',
+          previousStatus: company.subscriptionStatus,
+          newStatus: 'ACTIVE',
+          approvedBy: adminId,
+          notes,
+        },
+      });
+    });
+    return { status: 'ACTIVE' };
   }
 
   private async expireInvoice(invoice: any) {

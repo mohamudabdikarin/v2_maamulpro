@@ -2,13 +2,15 @@ import { Link } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { EmptyState, ErrorAlert, LoadingState, PageHeader, StatusPill, shortDate } from '../components/maamulpro/PageKit';
 import { useApiRows } from '../hooks/useApiData';
+import { usePermissions } from '../hooks/usePermissions';
 
 type Project = { id: string; name: string; status: string; progress: number; endDate?: string; tasks?: { id: string; title: string; status: string; priority: string; progress: number; dueDate?: string }[] };
 
 const ConstructionProgressPage = () => {
     const state = useApiRows<Project>('/api/construction/projects');
+    const { hasPermission } = usePermissions();
     return <AppShell>
-        <PageHeader eyebrow="Delivery control" title="Project progress" description="A focused view of completion, task health, blocked work and deadlines." actions={<Link className="btn btn-primary" to="/app/construction/tasks/new">Add task</Link>} />
+        <PageHeader eyebrow="Delivery control" title="Project progress" description="A focused view of completion, task health, blocked work and deadlines." actions={hasPermission('construction_tasks.create') ? <Link className="btn btn-primary" to="/app/construction/tasks/new">Add task</Link> : undefined} />
         {state.error && <ErrorAlert message={state.error} onRetry={state.reload} />}
         {state.loading ? <div className="panel"><LoadingState /></div> : !state.rows.length ? <div className="panel"><EmptyState title="No project progress to show" /></div> :
             <div className="space-y-5">{state.rows.map((project) => {
