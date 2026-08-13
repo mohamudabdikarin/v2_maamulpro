@@ -10,7 +10,9 @@ const blank = { type: 'EXPENSE', status: 'CLEARED', description: '', amount: '',
 const csvCell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
 const FinancialsPage = () => {
-    const { hasPermission } = usePermissions();
+    const { user, hasPermission } = usePermissions();
+    const canUseConstruction = Boolean(user?.constructionEnabled && user.entitlements?.features.construction && hasPermission('projects.read'));
+    const canUseRealEstate = Boolean(user?.realEstateEnabled && user.entitlements?.features.realEstate && hasPermission('properties.read'));
     const [rows, setRows] = useState<Transaction[]>([]);
     const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0, totalCount: 0 });
     const [categories, setCategories] = useState<Record<string, any>[]>([]);
@@ -30,12 +32,12 @@ const FinancialsPage = () => {
         setLoading(true); setError('');
         try {
             const [transactionResult, summaryResult, categoryRows, projectResult, propertyResult] = await Promise.all([
-                hasPermission('transactions.read') ? api<unknown>(`/api/financials/transactions?${query}`) : Promise.resolve([]), api<typeof summary>(`/api/financials/summary?${query}`), api<any[]>('/api/financials/categories'), hasPermission('projects.read') ? api<unknown>('/api/construction/projects') : Promise.resolve([]), hasPermission('properties.read') ? api<unknown>('/api/real-estate/properties') : Promise.resolve([]),
+                hasPermission('transactions.read') ? api<unknown>(`/api/financials/transactions?${query}`) : Promise.resolve([]), api<typeof summary>(`/api/financials/summary?${query}`), api<any[]>('/api/financials/categories'), canUseConstruction ? api<unknown>('/api/construction/projects') : Promise.resolve([]), canUseRealEstate ? api<unknown>('/api/real-estate/properties') : Promise.resolve([]),
             ]);
             setRows(unwrapRows<Transaction>(transactionResult)); setSummary(summaryResult); setCategories(categoryRows); setProjects(unwrapRows(projectResult)); setProperties(unwrapRows(propertyResult));
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load financials'); } finally { setLoading(false); }
     };
-    useEffect(() => { const timer = setTimeout(load, 200); return () => clearTimeout(timer); }, [query]);
+    useEffect(() => { const timer = setTimeout(load, 200); return () => clearTimeout(timer); }, [query, canUseConstruction, canUseRealEstate]);
     const save = async (event: FormEvent) => {
         event.preventDefault(); setError('');
         try {
@@ -47,7 +49,7 @@ const FinancialsPage = () => {
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to save transaction'); }
     };
     const [sourceType, setSourceType] = useState<'none' | 'project' | 'property'>('none');
-    const edit = (row: Transaction) => { setEditing(row); setForm(Object.fromEntries(Object.keys(blank).map((key) => [key, key === 'date' ? row.date?.slice(0, 10) || '' : key === 'amount' ? Number(row.amount) : row[key as keyof Transaction] ?? blank[key as keyof typeof blank]]))); setSourceType(row.projectId ? 'project' : row.propertyId ? 'property' : 'none'); setOpen(true); };
+    const edit = (row: Transaction) => { setEditing(row); setForm(Object.fromEntries(Object.keys(blank).map((key) => [key, key === 'date' ? row.date?.slice(0, 10) || '' : key === 'amount' ? Number(row.amount) : row[key as keyof Transaction] ?? blank[key as keyof typeof blank]]))); setSourceType(canUseConstruction && row.projectId ? 'project' : canUseRealEstate && row.propertyId ? 'property' : 'none'); setOpen(true); };
     const confirmDelete = async () => { if (!deleteTarget) return; setDeleting(true); try { await api(`/api/financials/transactions/${deleteTarget.id}`, { method: 'DELETE' }); setDeleteTarget(null); await load(); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to delete transaction'); } finally { setDeleting(false); } };
     const exportCsv = () => {
         const headers = ['Date', 'Reference', 'Type', 'Description', 'Category', 'Source', 'Amount', 'Status', 'Notes'];
@@ -64,9 +66,9 @@ const FinancialsPage = () => {
             <Field label="Type" required><select className="form-select mt-1" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}><option>INCOME</option><option>EXPENSE</option></select></Field><Field label="Status"><select className="form-select mt-1" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{['PENDING', 'PROCESSING', 'CLEARED', 'CANCELLED'].map((value) => <option key={value}>{value}</option>)}</select></Field>
             <div className="sm:col-span-2"><Field label="Description" required><input className="form-input mt-1" required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field></div><Field label="Amount" required><input className="form-input mt-1" type="number" min=".01" step=".01" required value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></Field><Field label="Date"><input className="form-input mt-1" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></Field>
             <Field label="Category"><select className="form-select mt-1" value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}><option value="">Uncategorized</option>{categories.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></Field>
-            <Field label="Source Module"><select className="form-select mt-1" value={sourceType} onChange={(e) => { const type = e.target.value as 'none' | 'project' | 'property'; setSourceType(type); setForm({ ...form, projectId: '', propertyId: '' }); }}><option value="none">General / Unassigned</option>{hasPermission('projects.read') && <option value="project">Construction Project</option>}{hasPermission('properties.read') && <option value="property">Real Estate Property</option>}</select></Field>
-            {sourceType === 'project' && <Field label="Project"><select className="form-select mt-1" value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value, propertyId: '' })}><option value="">Select project…</option>{projects.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></Field>}
-            {sourceType === 'property' && <Field label="Property"><select className="form-select mt-1" value={form.propertyId} onChange={(e) => setForm({ ...form, propertyId: e.target.value, projectId: '' })}><option value="">Select property…</option>{properties.map((row) => <option key={row.id} value={row.id}>{row.title}</option>)}</select></Field>}
+            <Field label="Source Module"><select className="form-select mt-1" value={sourceType} onChange={(e) => { const type = e.target.value as 'none' | 'project' | 'property'; setSourceType(type); setForm({ ...form, projectId: '', propertyId: '' }); }}><option value="none">General / Unassigned</option>{canUseConstruction && <option value="project">Construction Project</option>}{canUseRealEstate && <option value="property">Real Estate Property</option>}</select></Field>
+            {canUseConstruction && sourceType === 'project' && <Field label="Project"><select className="form-select mt-1" value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value, propertyId: '' })}><option value="">Select project…</option>{projects.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></Field>}
+            {canUseRealEstate && sourceType === 'property' && <Field label="Property"><select className="form-select mt-1" value={form.propertyId} onChange={(e) => setForm({ ...form, propertyId: e.target.value, projectId: '' })}><option value="">Select property…</option>{properties.map((row) => <option key={row.id} value={row.id}>{row.title}</option>)}</select></Field>}
             <div className="sm:col-span-2"><Field label="Notes"><textarea className="form-textarea mt-1" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field></div><FormActions onCancel={() => setOpen(false)} saveLabel="Save transaction" />
         </form></Modal>
         <Modal open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete transaction">
