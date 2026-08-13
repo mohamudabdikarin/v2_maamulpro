@@ -61,6 +61,7 @@ export type Session = {
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '');
 const STORAGE_KEY = 'maamulpro.session';
+let volatileSession: Session | null = null;
 
 const requestUrl = (path: string) => {
     if (!API_URL) throw new Error('Application API URL is not configured. Set VITE_API_URL in Vercel and redeploy.');
@@ -69,14 +70,29 @@ const requestUrl = (path: string) => {
 
 export const sessionStore = {
     get(): Session | null {
+        if (volatileSession) return volatileSession;
         try {
             const value = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
-            return JSON.parse(value || 'null');
+            const stored = JSON.parse(value || 'null') as Session | null;
+            if (stored?.user.isImpersonating) {
+                sessionStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STORAGE_KEY);
+                return null;
+            }
+            return stored;
         } catch {
             return null;
         }
     },
     set(session: Session, remember = Boolean(localStorage.getItem(STORAGE_KEY))) {
+        if (session.user.isImpersonating) {
+            volatileSession = session;
+            sessionStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_KEY);
+            window.dispatchEvent(new CustomEvent('maamulpro:session', { detail: session }));
+            return;
+        }
+        volatileSession = null;
         const target = remember ? localStorage : sessionStorage;
         const other = remember ? sessionStorage : localStorage;
         other.removeItem(STORAGE_KEY);
@@ -91,6 +107,7 @@ export const sessionStore = {
         return updated;
     },
     clear() {
+        volatileSession = null;
         sessionStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(STORAGE_KEY);
         window.dispatchEvent(new CustomEvent('maamulpro:session', { detail: null }));

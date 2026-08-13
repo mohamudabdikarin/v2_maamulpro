@@ -684,12 +684,19 @@ export class SuperAdminService {
     const token = randomBytes(32).toString('base64url');
     const tokenHash = createHash('sha256').update(token).digest('hex');
     const expiresAt = new Date(Date.now() + 60_000);
-    await this.central.$transaction(async (tx: any) => {
-      await tx.impersonationGrant.deleteMany({ where: { expiresAt: { lt: new Date() } } });
-      await tx.impersonationGrant.create({
-        data: { tokenHash, adminId, companyId: company.id, userId: owner.id, expiresAt },
+    try {
+      await this.central.$transaction(async (tx: any) => {
+        await tx.impersonationGrant.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+        await tx.impersonationGrant.create({
+          data: { tokenHash, adminId, companyId: company.id, userId: owner.id, expiresAt },
+        });
       });
-    });
+    } catch (error: any) {
+      if (error?.code === 'P2021' || /impersonation.?grant/i.test(String(error?.message || ''))) {
+        throw new ServiceUnavailableException('Impersonation storage is not initialized. Apply the central database migration and retry.');
+      }
+      throw error;
+    }
     return { token, expiresAt, subdomain: company.subdomain };
   }
 

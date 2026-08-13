@@ -18,7 +18,7 @@ import { SubscriptionEntitlementService } from '../../common/subscriptions/subsc
 import { hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
 import { ENTERPRISE_CONFIG_KEY, parseEnterpriseModuleConfiguration } from '../../common/database/enterprise-config';
 import { assertStrongPassword } from '../../common/security/password-policy';
-import { ROLE_PERMISSIONS } from '../../common/database/registry';
+import { ALL_PERMISSIONS, ROLE_PERMISSIONS } from '../../common/database/registry';
 import type { AppRole } from '../../common/database/roles';
 
 @Injectable()
@@ -270,14 +270,14 @@ export class AuthService {
     if (!claim.count) throw new UnauthorizedException('The impersonation grant is invalid or expired');
 
     const company = companyUser.company;
-    const permissions = [...(ROLE_PERMISSIONS[companyUser.role as AppRole] || [])];
+    const permissions = [...ALL_PERMISSIONS];
     const entitlements = this.entitlements.fromCompany(company);
     const accessGranted = hasSubscriptionAccess(company);
     const enterpriseConfiguration = await this.enterpriseConfiguration(company);
     const payload = {
       sub: companyUser.id,
       email: companyUser.email,
-      role: companyUser.role,
+      role: 'COMPANY_OWNER',
       companyId: company.id,
       subdomain: company.subdomain,
       companyName: company.name,
@@ -297,11 +297,11 @@ export class AuthService {
       sessionVersion: Number(companyUser.sessionVersion || 0),
     };
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload, { expiresIn: 10 * 60 }),
       user: {
         id: companyUser.id,
         email: companyUser.email,
-        role: companyUser.role,
+        role: 'COMPANY_OWNER',
         companyId: company.id,
         companyName: company.name,
         subdomain: company.subdomain,
@@ -392,11 +392,11 @@ export class AuthService {
     return {
       id: companyUser.id,
       email: companyUser.email,
-      role: companyUser.role,
+      role: user?.isImpersonating ? 'COMPANY_OWNER' : companyUser.role,
       companyId: company.id,
       companyName: company.name,
       subdomain: company.subdomain,
-      permissions: userPermissions,
+      permissions: user?.isImpersonating ? [...ALL_PERMISSIONS] : userPermissions,
       constructionEnabled: company.constructionEnabled,
       realEstateEnabled: company.realEstateEnabled,
       materialManagementEnabled: company.materialManagementEnabled,

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, Session, sessionStore } from '../../lib/api';
 
 let exchange: Promise<Session> | null = null;
 
 const ImpersonationPage = () => {
+    const navigate = useNavigate();
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -21,10 +23,10 @@ const ImpersonationPage = () => {
         exchange
             .then((session) => {
                 sessionStore.set(session, false);
-                window.location.replace('/app/dashboard');
+                navigate('/app/dashboard', { replace: true });
             })
             .catch((reason) => setError(reason instanceof Error ? reason.message : 'Unable to enter the company workspace.'));
-    }, []);
+    }, [navigate]);
 
     return <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6 dark:bg-black">
         <div className="panel max-w-md text-center">

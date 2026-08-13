@@ -102,7 +102,7 @@ const Sidebar = () => {
     }, []);
     const isPlatform = Boolean(session?.user.isSuperAdmin);
     const userPermissions = useMemo(() => new Set(session?.user.permissions || []), [session]);
-    const isOwner = isPlatform || ['COMPANY_OWNER', 'SUPER_ADMIN'].includes(session?.user.role || '');
+    const isOwner = isPlatform || Boolean(session?.user.isImpersonating) || ['COMPANY_OWNER', 'SUPER_ADMIN'].includes(session?.user.role || '');
     const hasPerm = (perm?: string) => !perm || isOwner || userPermissions.has(perm);
 
     const groups = useMemo(() => {

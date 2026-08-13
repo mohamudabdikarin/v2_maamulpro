@@ -1,4 +1,4 @@
-CREATE TABLE "impersonation_grants" (
+CREATE TABLE IF NOT EXISTS "impersonation_grants" (
   "id" TEXT NOT NULL,
   "token_hash" TEXT NOT NULL,
   "admin_id" TEXT NOT NULL,
@@ -10,6 +10,6 @@ CREATE TABLE "impersonation_grants" (
   CONSTRAINT "impersonation_grants_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "impersonation_grants_token_hash_key" ON "impersonation_grants"("token_hash");
-CREATE INDEX "impersonation_grants_expires_at_idx" ON "impersonation_grants"("expires_at");
-CREATE INDEX "impersonation_grants_admin_id_created_at_idx" ON "impersonation_grants"("admin_id", "created_at");
+CREATE UNIQUE INDEX IF NOT EXISTS "impersonation_grants_token_hash_key" ON "impersonation_grants"("token_hash");
+CREATE INDEX IF NOT EXISTS "impersonation_grants_expires_at_idx" ON "impersonation_grants"("expires_at");
+CREATE INDEX IF NOT EXISTS "impersonation_grants_admin_id_created_at_idx" ON "impersonation_grants"("admin_id", "created_at");
