@@ -13,7 +13,7 @@ export function usePermissions() {
     }, []);
 
     const user = session?.user;
-    const isOwner = Boolean(user?.isSuperAdmin) || OWNER_ROLES.includes(user?.role || '');
+    const isOwner = Boolean(user?.isSuperAdmin || user?.isImpersonating) || OWNER_ROLES.includes(user?.role || '');
     const granted = new Set(user?.permissions || []);
 
     const hasPermission = (perm: string): boolean => isOwner || granted.has(perm);

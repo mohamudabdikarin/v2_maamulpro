@@ -4,8 +4,10 @@ import AppShell from '../components/maamulpro/AppShell';
 import { EmptyState, ErrorAlert, LoadingState, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 import { unwrapRows } from '../hooks/useApiData';
+import { usePermissions } from '../hooks/usePermissions';
 
 const RentalHubPage = () => {
+    const { hasPermission } = usePermissions();
     const [data, setData] = useState<{ tenants: any[]; contracts: any[]; payments: any[] } | null>(null);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
@@ -31,10 +33,10 @@ const RentalHubPage = () => {
 
     return <AppShell>
         <PageHeader eyebrow="Rental management" title="Rentals" description="Tenants, leases, renewals, payment obligations and collections in one workspace." actions={<>
-            <button className="btn btn-outline-success" disabled={generating} onClick={generateInvoices}>{generating ? 'Generating…' : 'Generate monthly invoices'}</button>
+            {hasPermission('rentals.create') && <button className="btn btn-outline-success" disabled={generating} onClick={generateInvoices}>{generating ? 'Generating…' : 'Generate monthly invoices'}</button>}
             <Link className="btn btn-outline-primary" to="/app/real-estate/tenants">Manage tenants</Link>
             <Link className="btn btn-outline-primary" to="/app/real-estate/rent-payments">Rent payments</Link>
-            <Link className="btn btn-primary" to="/app/real-estate/rental-contracts/new">New lease</Link>
+            {hasPermission('rentals.create') && <Link className="btn btn-primary" to="/app/real-estate/rental-contracts/new">New lease</Link>}
         </>} />
         {message && <div className="mb-5 rounded-md bg-success-light p-4 text-sm font-semibold text-success">{message}</div>}
         {error && <ErrorAlert message={error} onRetry={load} />}{!data ? <div className="panel"><LoadingState /></div> : <><StatGrid items={[

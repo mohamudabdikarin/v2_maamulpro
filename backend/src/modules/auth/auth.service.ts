@@ -9,7 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcryptjs';
-import { randomInt } from 'crypto';
+import { createHash, randomInt } from 'crypto';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import { TenantConnectionManager } from '../../common/database/tenant-connection.manager';
 import { revealDatabaseUrl } from '../../common/database/database-credentials';
@@ -18,7 +18,7 @@ import { SubscriptionEntitlementService } from '../../common/subscriptions/subsc
 import { hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
 import { ENTERPRISE_CONFIG_KEY, parseEnterpriseModuleConfiguration } from '../../common/database/enterprise-config';
 import { assertStrongPassword } from '../../common/security/password-policy';
-import { ROLE_PERMISSIONS } from '../../common/database/registry';
+import { ALL_PERMISSIONS, ROLE_PERMISSIONS } from '../../common/database/registry';
 import type { AppRole } from '../../common/database/roles';
 
 @Injectable()
@@ -240,6 +240,89 @@ export class AuthService {
     };
   }
 
+  async exchangeImpersonation(token: string) {
+    if (!/^[A-Za-z0-9_-]{40,60}$/.test(token)) {
+      throw new UnauthorizedException('The impersonation grant is invalid or expired');
+    }
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    const grant = await this.central.impersonationGrant.findUnique({ where: { tokenHash } });
+    const now = new Date();
+    if (!grant || grant.usedAt || grant.expiresAt <= now) {
+      throw new UnauthorizedException('The impersonation grant is invalid or expired');
+    }
+    const [companyUser, admin] = await Promise.all([
+      this.central.companyUser.findUnique({ where: { id: grant.userId }, include: { company: true } }),
+      this.central.centralAdmin.findUnique({ where: { id: grant.adminId }, select: { id: true } }),
+    ]);
+    if (
+      !admin
+      || !companyUser
+      || !companyUser.isActive
+      || companyUser.deletedAt
+      || companyUser.companyId !== grant.companyId
+    ) {
+      throw new UnauthorizedException('The impersonation grant is invalid or expired');
+    }
+    const claim = await this.central.impersonationGrant.updateMany({
+      where: { id: grant.id, usedAt: null, expiresAt: { gt: now } },
+      data: { usedAt: now },
+    });
+    if (!claim.count) throw new UnauthorizedException('The impersonation grant is invalid or expired');
+
+    const company = companyUser.company;
+    const permissions = [...ALL_PERMISSIONS];
+    const entitlements = this.entitlements.fromCompany(company);
+    const accessGranted = hasSubscriptionAccess(company);
+    const enterpriseConfiguration = await this.enterpriseConfiguration(company);
+    const payload = {
+      sub: companyUser.id,
+      email: companyUser.email,
+      role: 'COMPANY_OWNER',
+      companyId: company.id,
+      subdomain: company.subdomain,
+      companyName: company.name,
+      permissions,
+      constructionEnabled: company.constructionEnabled,
+      realEstateEnabled: company.realEstateEnabled,
+      materialManagementEnabled: company.materialManagementEnabled,
+      subscriptionStatus: company.subscriptionStatus,
+      subscriptionExpiresAt: company.subscriptionExpiresAt,
+      accessGranted,
+      planKey: company.planKey,
+      entitlements,
+      enterpriseConfiguration,
+      isSuperAdmin: false,
+      isImpersonating: true,
+      impersonatedBy: grant.adminId,
+      sessionVersion: Number(companyUser.sessionVersion || 0),
+    };
+    return {
+      accessToken: this.jwtService.sign(payload, { expiresIn: 10 * 60 }),
+      user: {
+        id: companyUser.id,
+        email: companyUser.email,
+        role: 'COMPANY_OWNER',
+        companyId: company.id,
+        companyName: company.name,
+        subdomain: company.subdomain,
+        permissions,
+        constructionEnabled: company.constructionEnabled,
+        realEstateEnabled: company.realEstateEnabled,
+        materialManagementEnabled: company.materialManagementEnabled,
+        subscriptionStatus: company.subscriptionStatus,
+        subscriptionExpiresAt: company.subscriptionExpiresAt,
+        companyStatus: company.status,
+        accessGranted,
+        planKey: company.planKey,
+        entitlements,
+        enterpriseConfiguration,
+        isSuperAdmin: false,
+        isImpersonating: true,
+        impersonatedBy: grant.adminId,
+      },
+    };
+  }
+
   async currentSession(user: any) {
     if (user?.isSuperAdmin) {
       const admin = await this.central.centralAdmin.findUnique({
@@ -309,11 +392,11 @@ export class AuthService {
     return {
       id: companyUser.id,
       email: companyUser.email,
-      role: companyUser.role,
+      role: user?.isImpersonating ? 'COMPANY_OWNER' : companyUser.role,
       companyId: company.id,
       companyName: company.name,
       subdomain: company.subdomain,
-      permissions: userPermissions,
+      permissions: user?.isImpersonating ? [...ALL_PERMISSIONS] : userPermissions,
       constructionEnabled: company.constructionEnabled,
       realEstateEnabled: company.realEstateEnabled,
       materialManagementEnabled: company.materialManagementEnabled,
@@ -325,10 +408,15 @@ export class AuthService {
       entitlements: this.entitlements.fromCompany(company),
       enterpriseConfiguration,
       isSuperAdmin: false,
+      isImpersonating: Boolean(user?.isImpersonating),
+      impersonatedBy: user?.impersonatedBy,
     };
   }
 
   async logout(user: any) {
+    if (user?.isImpersonating) {
+      return { loggedOut: true };
+    }
     if (user?.isSuperAdmin) {
       await this.central.centralAdmin.update({
         where: { id: user.id },

@@ -20,7 +20,7 @@ const PermissionGuard = ({ permission, children }: Props) => {
     const user = session?.user;
     if (!user) return <Navigate to="/" replace />;
 
-    if (user.isSuperAdmin || OWNER_ROLES.includes(user.role)) return <>{children}</>;
+    if (user.isSuperAdmin || user.isImpersonating || OWNER_ROLES.includes(user.role)) return <>{children}</>;
 
     const granted = new Set(user.permissions || []);
     if (granted.has(permission)) return <>{children}</>;

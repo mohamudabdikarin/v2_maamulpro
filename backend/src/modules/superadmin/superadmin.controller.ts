@@ -136,6 +136,15 @@ export class SuperAdminController {
     return this.superAdminService.generateCompanyOwnerTemporaryPassword(id);
   }
 
+  @Post('companies/:id/impersonation')
+  @HttpCode(HttpStatus.OK)
+  createCompanyImpersonation(
+    @Param('id') id: string,
+    @CurrentUser('id') adminId: string,
+  ) {
+    return this.superAdminService.createCompanyImpersonation(id, adminId);
+  }
+
   @Get('companies/:id/enterprise-configuration')
   getCompanyEnterpriseConfiguration(@Param('id') id: string) {
     return this.superAdminService.getCompanyEnterpriseConfiguration(id);

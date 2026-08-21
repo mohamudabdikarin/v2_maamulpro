@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
 import { Field, FormActions, Modal } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
+import { usePermissions } from '../hooks/usePermissions';
 
 type Project = { id: string; name: string };
 type Staff = { id: string; firstName: string; lastName: string };
@@ -36,6 +37,12 @@ const allowedTransitions: Record<string, string[]> = {
 };
 
 const WorkforceContractsPage = () => {
+    const { hasPermission } = usePermissions();
+    const canCreate = hasPermission('workforce_contracts.create');
+    const canUpdate = hasPermission('workforce_contracts.update');
+    const canDelete = hasPermission('workforce_contracts.delete');
+    const canPay = hasPermission('workforce_contracts.pay');
+    const canAssign = canUpdate && hasPermission('users.read');
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [staff, setStaff] = useState<Staff[]>([]);
@@ -53,8 +60,8 @@ const WorkforceContractsPage = () => {
         try {
             const [contractRows, projectRows, staffRows] = await Promise.all([
                 api<Contract[]>('/api/construction/contracts'),
-                api<Project[]>('/api/construction/projects'),
-                api<Staff[]>('/api/staff'),
+                hasPermission('projects.read') ? api<Project[]>('/api/construction/projects') : Promise.resolve([]),
+                hasPermission('users.read') ? api<Staff[]>('/api/staff') : Promise.resolve([]),
             ]);
             setContracts(contractRows);
             setProjects(projectRows);
@@ -143,22 +150,22 @@ const WorkforceContractsPage = () => {
     };
 
     return <AppShell>
-        <div className="mb-6 flex items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">Workforce Contracts</h1><p className="mt-1 text-white-dark">Contract budgets, assigned workers, payments and controlled lifecycle transitions.</p></div><button className="btn btn-primary" onClick={openCreate}>New contract</button></div>
+        <div className="mb-6 flex items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">Workforce Contracts</h1><p className="mt-1 text-white-dark">Contract budgets, assigned workers, payments and controlled lifecycle transitions.</p></div>{canCreate && <button className="btn btn-primary" onClick={openCreate}>New contract</button>}</div>
         {error && <div className="mb-5 rounded-md bg-danger-light p-4 text-danger">{error}</div>}
         <div className="panel overflow-x-auto p-0">
             <table className="table-hover w-full"><thead><tr><th>Contract</th><th>Project</th><th>Status</th><th>Budget</th><th>Paid</th><th>Workers</th><th>Actions</th></tr></thead>
-                <tbody>{contracts.map((row) => <tr key={row.id} className={selectedId === row.id ? 'bg-primary-light' : ''}><td><button className="font-semibold text-primary" onClick={() => setSelectedId(row.id)}>{row.title}</button></td><td>{row.project?.name}</td><td><span className="badge bg-primary">{row.status}</span></td><td>${Number(row.originalBudget).toLocaleString()}</td><td>${Number(row.totalPaid).toLocaleString()}</td><td>{row.workerAssignments.filter((entry) => !entry.removedAt).length}</td><td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(row)}>Edit</button>{allowedTransitions[row.status]?.map((status) => <button className="btn btn-sm btn-outline-info" key={status} onClick={() => transition(row, status)}>{status}</button>)}<button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteTarget(row)}>Delete</button></div></td></tr>)}</tbody>
+                <tbody>{contracts.map((row) => <tr key={row.id} className={selectedId === row.id ? 'bg-primary-light' : ''}><td><button className="font-semibold text-primary" onClick={() => setSelectedId(row.id)}>{row.title}</button></td><td>{row.project?.name}</td><td><span className="badge bg-primary">{row.status}</span></td><td>${Number(row.originalBudget).toLocaleString()}</td><td>${Number(row.totalPaid).toLocaleString()}</td><td>{row.workerAssignments.filter((entry) => !entry.removedAt).length}</td><td><div className="flex flex-wrap gap-2">{canUpdate && <><button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(row)}>Edit</button>{allowedTransitions[row.status]?.map((status) => <button className="btn btn-sm btn-outline-info" key={status} onClick={() => transition(row, status)}>{status}</button>)}</>}{canDelete && <button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteTarget(row)}>Delete</button>}</div></td></tr>)}</tbody>
             </table>
         </div>
         {selected && <div className="mt-6 space-y-6">
             <div className="grid gap-4 sm:grid-cols-3"><div className="panel"><p className="text-white-dark">Adjusted budget</p><p className="mt-2 text-2xl font-bold">${adjustedBudget.toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Total paid</p><p className="mt-2 text-2xl font-bold">${Number(selected.totalPaid).toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Remaining</p><p className="mt-2 text-2xl font-bold text-success">${(adjustedBudget - Number(selected.totalPaid)).toLocaleString()}</p></div></div>
             <div className="grid gap-6 xl:grid-cols-3">
-                <form className="panel space-y-3" onSubmit={assignWorker}><h2 className="font-bold">Assign worker</h2><select className="form-select" required value={worker.staffId} onChange={(e) => setWorker({ ...worker, staffId: e.target.value })}><option value="">Select worker…</option>{staff.map((person) => <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>)}</select><input className="form-input" placeholder="Role" value={worker.role} onChange={(e) => setWorker({ ...worker, role: e.target.value })} /><textarea className="form-textarea" placeholder="Notes" value={worker.notes} onChange={(e) => setWorker({ ...worker, notes: e.target.value })} /><button className="btn btn-primary w-full">Assign</button></form>
-                <form className="panel space-y-3" onSubmit={addPayment}><h2 className="font-bold">Record payment</h2><select className="form-select" required value={payment.staffId} onChange={(e) => setPayment({ ...payment, staffId: e.target.value })}><option value="">Assigned worker…</option>{selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <option key={entry.staffId} value={entry.staffId}>{entry.staff.firstName} {entry.staff.lastName}</option>)}</select><input className="form-input" type="number" min="0.01" step="0.01" placeholder="Amount" required value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} /><input className="form-input" type="date" value={payment.date} onChange={(e) => setPayment({ ...payment, date: e.target.value })} /><input className="form-input" placeholder="Description" required value={payment.description} onChange={(e) => setPayment({ ...payment, description: e.target.value })} /><button className="btn btn-success w-full">Record payment</button></form>
-                <form className="panel space-y-3" onSubmit={addAdjustment}><h2 className="font-bold">Adjust budget</h2><input className="form-input" type="number" step="0.01" placeholder="Positive or negative amount" required value={adjustment.amount} onChange={(e) => setAdjustment({ ...adjustment, amount: e.target.value })} /><textarea className="form-textarea" placeholder="Reason" required value={adjustment.reason} onChange={(e) => setAdjustment({ ...adjustment, reason: e.target.value })} /><button className="btn btn-warning w-full">Apply adjustment</button></form>
+                {canAssign && <form className="panel space-y-3" onSubmit={assignWorker}><h2 className="font-bold">Assign worker</h2><select className="form-select" required value={worker.staffId} onChange={(e) => setWorker({ ...worker, staffId: e.target.value })}><option value="">Select worker…</option>{staff.map((person) => <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>)}</select><input className="form-input" placeholder="Role" value={worker.role} onChange={(e) => setWorker({ ...worker, role: e.target.value })} /><textarea className="form-textarea" placeholder="Notes" value={worker.notes} onChange={(e) => setWorker({ ...worker, notes: e.target.value })} /><button className="btn btn-primary w-full">Assign</button></form>}
+                {canPay && <form className="panel space-y-3" onSubmit={addPayment}><h2 className="font-bold">Record payment</h2><select className="form-select" required value={payment.staffId} onChange={(e) => setPayment({ ...payment, staffId: e.target.value })}><option value="">Assigned worker…</option>{selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <option key={entry.staffId} value={entry.staffId}>{entry.staff.firstName} {entry.staff.lastName}</option>)}</select><input className="form-input" type="number" min="0.01" step="0.01" placeholder="Amount" required value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} /><input className="form-input" type="date" value={payment.date} onChange={(e) => setPayment({ ...payment, date: e.target.value })} /><input className="form-input" placeholder="Description" required value={payment.description} onChange={(e) => setPayment({ ...payment, description: e.target.value })} /><button className="btn btn-success w-full">Record payment</button></form>}
+                {canUpdate && <form className="panel space-y-3" onSubmit={addAdjustment}><h2 className="font-bold">Adjust budget</h2><input className="form-input" type="number" step="0.01" placeholder="Positive or negative amount" required value={adjustment.amount} onChange={(e) => setAdjustment({ ...adjustment, amount: e.target.value })} /><textarea className="form-textarea" placeholder="Reason" required value={adjustment.reason} onChange={(e) => setAdjustment({ ...adjustment, reason: e.target.value })} /><button className="btn btn-warning w-full">Apply adjustment</button></form>}
             </div>
             <div className="grid gap-6 xl:grid-cols-2">
-                <div className="panel"><h2 className="mb-4 font-bold">Active workers</h2><div className="space-y-2">{selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <div className="flex items-center justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={entry.staffId}><span>{entry.staff.firstName} {entry.staff.lastName} <small className="text-white-dark">{entry.role}</small></span><button className="btn btn-sm btn-outline-danger" onClick={() => removeWorker(entry.staffId)}>Remove</button></div>)}</div></div>
+                <div className="panel"><h2 className="mb-4 font-bold">Active workers</h2><div className="space-y-2">{selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <div className="flex items-center justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={entry.staffId}><span>{entry.staff.firstName} {entry.staff.lastName} <small className="text-white-dark">{entry.role}</small></span>{canUpdate && <button className="btn btn-sm btn-outline-danger" onClick={() => removeWorker(entry.staffId)}>Remove</button>}</div>)}</div></div>
                 <div className="panel"><h2 className="mb-4 font-bold">Payment history</h2><div className="space-y-2">{selected.payments.map((row) => <div className="flex justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={row.id}><span>{row.staff.firstName} {row.staff.lastName}<small className="block text-white-dark">{row.description}</small></span><strong>${Number(row.amount).toLocaleString()}</strong></div>)}</div></div>
             </div>
         </div>}

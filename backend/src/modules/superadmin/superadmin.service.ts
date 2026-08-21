@@ -22,13 +22,14 @@ import { SubscriptionLifecycleService } from '../../common/subscriptions/subscri
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { syncPermissionsToDb } from '../../common/database/rbac-sync';
 import { ResendEmailService } from '../../common/email/resend-email.service';
-import { randomBytes, randomInt } from 'crypto';
+import { createHash, randomBytes, randomInt } from 'crypto';
 import {
   EnterpriseModuleConfiguration,
   ENTERPRISE_CONFIG_KEY,
   parseEnterpriseModuleConfiguration,
 } from '../../common/database/enterprise-config';
 import { assertStrongPassword } from '../../common/security/password-policy';
+import { hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
 
 const tenantUrl = (subdomain: string) => {
   const baseDomain = String(process.env.TENANT_BASE_DOMAIN || 'maamulpro.site')
@@ -280,9 +281,9 @@ export class SuperAdminService {
             dbCreatedByMaamulPro: neonDatabase.createdByMaamulPro,
             companyType: data.companyType?.trim() || null,
             mode: this.moduleMode(modules),
-            status: 'ACTIVE',
-            subscriptionStatus: 'ACTIVE',
-            accessGranted: true,
+            status: 'PENDING_SETUP',
+            subscriptionStatus: 'PENDING',
+            accessGranted: false,
             constructionEnabled: modules.construction,
             realEstateEnabled: modules.realEstate,
             materialManagementEnabled: modules.materials,
@@ -349,10 +350,31 @@ export class SuperAdminService {
         },
       };
     } catch (error) {
-      if (companyId) {
-        await this.central.company.delete({ where: { id: companyId } }).catch(() => undefined);
+      let cleanupFailure: unknown;
+      if (neonDatabase?.runtimeUrl) {
+        try {
+          await this.tenantManager.disconnectTenant(neonDatabase.runtimeUrl);
+        } catch (cleanupError) {
+          cleanupFailure = cleanupError;
+        }
       }
-      await this.neonManagement.deleteCreatedDatabase(neonDatabase).catch(() => undefined);
+      if (companyId) {
+        try {
+          await this.central.company.delete({ where: { id: companyId } });
+        } catch (cleanupError) {
+          cleanupFailure = cleanupError;
+        }
+      }
+      try {
+        await this.neonManagement.deleteCreatedDatabase(neonDatabase);
+      } catch (cleanupError) {
+        cleanupFailure = cleanupError;
+      }
+      if (cleanupFailure) {
+        throw new ServiceUnavailableException(
+          `Company onboarding failed and rollback did not complete${neonDatabase?.databaseName ? ` for database '${neonDatabase.databaseName}'` : ''}. Remove the orphaned onboarding resources before retrying.`,
+        );
+      }
       if (error instanceof HttpException) throw error;
       throw new BadRequestException(
         'Company onboarding failed; provisioned records were rolled back',
@@ -648,6 +670,36 @@ export class SuperAdminService {
     return { password: temporaryPassword, adminEmail: owner.email, passwordResetAt };
   }
 
+  async createCompanyImpersonation(id: string, adminId: string) {
+    const company = await this.central.company.findUnique({
+      where: { id },
+      include: { users: { where: { isActive: true, deletedAt: null }, orderBy: { createdAt: 'asc' } } },
+    });
+    if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
+    const owner = company.users.find((user: any) => user.email.toLowerCase() === company.adminEmail.toLowerCase())
+      || company.users.find((user: any) => user.role === 'COMPANY_OWNER')
+      || company.users[0];
+    if (!owner) throw new NotFoundException('Company owner account was not found');
+
+    const token = randomBytes(32).toString('base64url');
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 60_000);
+    try {
+      await this.central.$transaction(async (tx: any) => {
+        await tx.impersonationGrant.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+        await tx.impersonationGrant.create({
+          data: { tokenHash, adminId, companyId: company.id, userId: owner.id, expiresAt },
+        });
+      });
+    } catch (error: any) {
+      if (error?.code === 'P2021' || /impersonation.?grant/i.test(String(error?.message || ''))) {
+        throw new ServiceUnavailableException('Impersonation storage is not initialized. Apply the central database migration and retry.');
+      }
+      throw error;
+    }
+    return { token, expiresAt, subdomain: company.subdomain };
+  }
+
   async getCompanyEnterpriseConfiguration(id: string) {
     const company = await this.central.company.findUnique({ where: { id } });
     if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
@@ -701,7 +753,7 @@ export class SuperAdminService {
     if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
     const amount = Number(data.amount);
     const termDurationMonths = Number(data.termDurationMonths);
-    if (company.subscriptionStatus === 'ACTIVE' && company.accessGranted) {
+    if (hasSubscriptionAccess(company)) {
       await this.central.$transaction(async (tx: any) => {
         await tx.company.update({
           where: { id: companyId },
@@ -805,6 +857,10 @@ export class SuperAdminService {
       await tx.company.update({
         where: { id: companyId },
         data: { autoRecur: autoRenew, version: { increment: 1 } },
+      });
+      await tx.tenantSubscription.updateMany({
+        where: { companyId, status: { in: ['ACTIVE', 'SUSPENDED'] } },
+        data: { autoRenew, version: { increment: 1 } },
       });
       await tx.subscriptionTransaction.create({
         data: {

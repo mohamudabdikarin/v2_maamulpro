@@ -12,6 +12,7 @@ import {
     StatusPill,
 } from '../components/maamulpro/PageKit';
 import { PermissionButton } from '../components/PermissionButton';
+import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../lib/api';
 import { toast } from '../lib/toast';
 
@@ -48,6 +49,7 @@ const initialForm = { materialId: '', type: 'RESTOCK', quantity: '', projectId: 
 const currency = (value: number | string) => `$${Number(value || 0).toLocaleString()}`;
 
 const ConstructionInventoryPage = () => {
+    const { hasPermission } = usePermissions();
     const [inventory, setInventory] = useState<InventoryResponse | null>(null);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(true);
@@ -121,7 +123,7 @@ const ConstructionInventoryPage = () => {
         <PageHeader
             title="Construction inventory"
             actions={<>
-                <Link to="/app/materials/inventory/manage" className="btn btn-outline-primary">Manage material catalog</Link>
+                {hasPermission('materials_products.read') && <Link to="/app/materials/inventory/manage" className="btn btn-outline-primary">Manage material catalog</Link>}
                 <PermissionButton perm="construction_inventory.create" className="btn btn-primary" onClick={openModal}>Record movement</PermissionButton>
             </>}
         />
@@ -156,7 +158,7 @@ const ConstructionInventoryPage = () => {
                     <EmptyState
                         title="No materials registered yet"
                         description="Add your material items (such as Cement, Steel, Bricks) to the catalog to start tracking construction inventory and site usage."
-                        action={<Link to="/app/materials/inventory/manage/new" className="btn btn-primary">Add material product</Link>}
+                        action={hasPermission('materials_products.create') ? <Link to="/app/materials/inventory/manage/new" className="btn btn-primary">Add material product</Link> : undefined}
                     />
                 ) : (
                     <div className="overflow-x-auto">

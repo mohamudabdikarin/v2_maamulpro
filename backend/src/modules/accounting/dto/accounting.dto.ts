@@ -24,7 +24,7 @@ export const BATCH_STATUSES = ['POSTED', 'PENDING_APPROVAL', 'REVERSED', 'VOID']
 export type BatchStatus = (typeof BATCH_STATUSES)[number];
 
 export class UpsertAccountDto {
-  @IsString() @MaxLength(30) code!: string;
+  @IsOptional() @IsString() @MaxLength(30) code?: string;
   @IsString() @MaxLength(120) name!: string;
   @IsOptional() @IsString() @MaxLength(30) parentCode?: string;
   @IsIn(ACCOUNT_TYPES) type!: AccountType;

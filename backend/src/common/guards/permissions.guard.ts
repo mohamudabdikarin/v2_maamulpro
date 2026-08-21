@@ -99,7 +99,7 @@ export class PermissionsGuard implements CanActivate {
       return false;
     }
 
-    if (user.isSuperAdmin || user.role === 'SUPER_ADMIN') {
+    if (user.isSuperAdmin || user.isImpersonating || user.role === 'SUPER_ADMIN') {
       return true;
     }
 

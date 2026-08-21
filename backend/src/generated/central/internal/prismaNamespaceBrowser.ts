@@ -55,6 +55,7 @@ export const ModelName = {
   SubscriptionTransaction: 'SubscriptionTransaction',
   CompanyUser: 'CompanyUser',
   CentralAdmin: 'CentralAdmin',
+  ImpersonationGrant: 'ImpersonationGrant',
   EmailVerification: 'EmailVerification',
   SubscriptionPlan: 'SubscriptionPlan',
   TenantSubscription: 'TenantSubscription',
@@ -169,6 +170,20 @@ export const CentralAdminScalarFieldEnum = {
 } as const
 
 export type CentralAdminScalarFieldEnum = (typeof CentralAdminScalarFieldEnum)[keyof typeof CentralAdminScalarFieldEnum]
+
+
+export const ImpersonationGrantScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  adminId: 'adminId',
+  companyId: 'companyId',
+  userId: 'userId',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ImpersonationGrantScalarFieldEnum = (typeof ImpersonationGrantScalarFieldEnum)[keyof typeof ImpersonationGrantScalarFieldEnum]
 
 
 export const EmailVerificationScalarFieldEnum = {

@@ -3,12 +3,14 @@ import AppShell from '../components/maamulpro/AppShell';
 import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
 import { EmptyState, ErrorAlert, LoadingState, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { useApiRows } from '../hooks/useApiData';
+import { usePermissions } from '../hooks/usePermissions';
 
 type Project = { id: string; name: string; location?: string; status: string; budget: number; progress: number; imageUrl?: string; endDate?: string; tasks?: { status: string }[]; dailyExpenses?: { amount: number }[]; assignedStaff?: unknown[] };
 
 const ConstructionOverviewPage = () => {
+    const { hasPermission } = usePermissions();
     const state = useApiRows<Project>('/api/construction/projects');
-    const spentState = useApiRows<{ id: string; spentToDate: number }>('/api/reports/projects');
+    const spentState = useApiRows<{ id: string; spentToDate: number }>(hasPermission('reports.construction.read') ? '/api/reports/projects' : '');
     const projects = state.rows;
     const spentById = Object.fromEntries((spentState.rows || []).map((row) => [row.id, Number(row.spentToDate || 0)]));
     const active = projects.filter((project) => ['PLANNING', 'ONGOING', 'ON_HOLD'].includes(project.status));
@@ -17,8 +19,8 @@ const ConstructionOverviewPage = () => {
     const tasks = projects.flatMap((project) => project.tasks || []);
     return <AppShell>
         <PageHeader eyebrow="Construction workspace" title="Construction overview" description="Live project delivery, site costs, staffing, task progress and deadlines." actions={<>
-            <Link className="btn btn-outline-primary" to="/app/construction/reports">Reports</Link>
-            <Link className="btn btn-primary" to="/app/construction/projects/new">New project</Link>
+            {hasPermission('reports.construction.read') && <Link className="btn btn-outline-primary" to="/app/construction/reports">Reports</Link>}
+            {hasPermission('projects.create') && <Link className="btn btn-primary" to="/app/construction/projects/new">New project</Link>}
         </>} />
         <StatGrid items={[
             { label: 'Active projects', value: active.length, hint: `${projects.length} total` },
@@ -27,11 +29,11 @@ const ConstructionOverviewPage = () => {
             { label: 'Tasks complete', value: `${tasks.filter((task) => task.status === 'COMPLETED').length}/${tasks.length}`, tone: 'success' },
         ]} />
         <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {[['Projects', '/app/construction/projects', 'Budgets and delivery'], ['Tasks', '/app/construction/tasks', 'Assignments and deadlines'], ['Manpower', '/app/construction/manpower', 'Workers and labor costs'], ['Inventory', '/app/construction/inventory', 'Site stock and movements']].map(([title, to, description]) =>
+            {[['Projects', '/app/construction/projects', 'Budgets and delivery', 'projects.read'], ['Tasks', '/app/construction/tasks', 'Assignments and deadlines', 'construction_tasks.read'], ['Manpower', '/app/construction/manpower', 'Workers and labor costs', 'manpower.read'], ['Inventory', '/app/construction/inventory', 'Site stock and movements', 'construction_inventory.read']].filter(([, , , permission]) => hasPermission(permission)).map(([title, to, description]) =>
                 <Link className="panel transition hover:-translate-y-1 hover:border-primary" to={to} key={to}><h2 className="font-bold text-primary">{title}</h2><p className="mt-1 text-sm text-white-dark">{description}</p></Link>)}
         </div>
         {state.error && <ErrorAlert message={state.error} onRetry={state.reload} />}
-        {state.loading ? <div className="panel"><LoadingState /></div> : !projects.length ? <div className="panel"><EmptyState title="No construction projects" description="Create the first project to begin tracking delivery." action={<Link className="btn btn-primary" to="/app/construction/projects/new">Create project</Link>} /></div> :
+        {state.loading ? <div className="panel"><LoadingState /></div> : !projects.length ? <div className="panel"><EmptyState title="No construction projects" description="Create the first project to begin tracking delivery." action={hasPermission('projects.create') ? <Link className="btn btn-primary" to="/app/construction/projects/new">Create project</Link> : undefined} /></div> :
             <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">{projects.slice(0, 6).map((project) => {
                 const completed = (project.tasks || []).filter((task) => task.status === 'COMPLETED').length;
                 return <Link className="panel overflow-hidden p-0 transition hover:-translate-y-1" to={`/app/construction/projects/${project.id}`} key={project.id}>

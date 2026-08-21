@@ -13,6 +13,7 @@ import {
     shortDate,
 } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
+import { usePermissions } from '../hooks/usePermissions';
 
 type BatchListItem = {
     id: string;
@@ -51,6 +52,7 @@ const statusTone: Record<BatchListItem['status'], string> = {
 };
 
 const JournalEntriesPage = () => {
+    const { hasPermission } = usePermissions();
     const [rows, setRows] = useState<BatchListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -125,7 +127,7 @@ const JournalEntriesPage = () => {
             <PageHeader
                 eyebrow="Accounting"
                 title="Journal Entries"
-                description="Every balanced double-entry batch posted to the ledger. Auto-posted batches from invoices, payments and manual entries all appear here."
+                description="Every balanced double-entry batch posted to the ledger. Transactions, invoices, payments and payroll postings appear here."
             />
             {error && <ErrorAlert message={error} onRetry={reload} />}
             <StatGrid
@@ -329,7 +331,7 @@ const JournalEntriesPage = () => {
                                 </tbody>
                             </table>
                         </div>
-                        {detail.status === 'POSTED' && !detail.reversedByBatchId && (
+                        {hasPermission('accounting.post') && detail.status === 'POSTED' && !detail.reversedByBatchId && (
                             <div className="flex justify-end gap-2">
                                 <button
                                     className="btn btn-outline-warning"

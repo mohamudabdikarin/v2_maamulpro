@@ -401,6 +401,7 @@ export const ModelName = {
   SubscriptionTransaction: 'SubscriptionTransaction',
   CompanyUser: 'CompanyUser',
   CentralAdmin: 'CentralAdmin',
+  ImpersonationGrant: 'ImpersonationGrant',
   EmailVerification: 'EmailVerification',
   SubscriptionPlan: 'SubscriptionPlan',
   TenantSubscription: 'TenantSubscription',
@@ -420,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "company" | "subscriptionTransaction" | "companyUser" | "centralAdmin" | "emailVerification" | "subscriptionPlan" | "tenantSubscription" | "invoice"
+    modelProps: "company" | "subscriptionTransaction" | "companyUser" | "centralAdmin" | "impersonationGrant" | "emailVerification" | "subscriptionPlan" | "tenantSubscription" | "invoice"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -717,6 +718,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CentralAdminCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CentralAdminCountAggregateOutputType> | number
+        }
+      }
+    }
+    ImpersonationGrant: {
+      payload: Prisma.$ImpersonationGrantPayload<ExtArgs>
+      fields: Prisma.ImpersonationGrantFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ImpersonationGrantFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ImpersonationGrantFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>
+        }
+        findFirst: {
+          args: Prisma.ImpersonationGrantFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ImpersonationGrantFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>
+        }
+        findMany: {
+          args: Prisma.ImpersonationGrantFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>[]
+        }
+        create: {
+          args: Prisma.ImpersonationGrantCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>
+        }
+        createMany: {
+          args: Prisma.ImpersonationGrantCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ImpersonationGrantCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>[]
+        }
+        delete: {
+          args: Prisma.ImpersonationGrantDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>
+        }
+        update: {
+          args: Prisma.ImpersonationGrantUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>
+        }
+        deleteMany: {
+          args: Prisma.ImpersonationGrantDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ImpersonationGrantUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ImpersonationGrantUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>[]
+        }
+        upsert: {
+          args: Prisma.ImpersonationGrantUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationGrantPayload>
+        }
+        aggregate: {
+          args: Prisma.ImpersonationGrantAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImpersonationGrant>
+        }
+        groupBy: {
+          args: Prisma.ImpersonationGrantGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImpersonationGrantGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ImpersonationGrantCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImpersonationGrantCountAggregateOutputType> | number
         }
       }
     }
@@ -1147,6 +1222,20 @@ export const CentralAdminScalarFieldEnum = {
 } as const
 
 export type CentralAdminScalarFieldEnum = (typeof CentralAdminScalarFieldEnum)[keyof typeof CentralAdminScalarFieldEnum]
+
+
+export const ImpersonationGrantScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  adminId: 'adminId',
+  companyId: 'companyId',
+  userId: 'userId',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ImpersonationGrantScalarFieldEnum = (typeof ImpersonationGrantScalarFieldEnum)[keyof typeof ImpersonationGrantScalarFieldEnum]
 
 
 export const EmailVerificationScalarFieldEnum = {
@@ -1622,6 +1711,7 @@ export type GlobalOmitConfig = {
   subscriptionTransaction?: Prisma.SubscriptionTransactionOmit
   companyUser?: Prisma.CompanyUserOmit
   centralAdmin?: Prisma.CentralAdminOmit
+  impersonationGrant?: Prisma.ImpersonationGrantOmit
   emailVerification?: Prisma.EmailVerificationOmit
   subscriptionPlan?: Prisma.SubscriptionPlanOmit
   tenantSubscription?: Prisma.TenantSubscriptionOmit

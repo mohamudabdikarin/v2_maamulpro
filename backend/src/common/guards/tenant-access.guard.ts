@@ -105,7 +105,7 @@ export class TenantAccessGuard implements CanActivate {
       throw new ForbiddenException('Cross-tenant data access denied');
     }
 
-    if (!user.isSuperAdmin) {
+    if (!user.isSuperAdmin && !user.isImpersonating) {
       const principal = await this.currentPrincipal(user.id);
       if (!principal) throw new UnauthorizedException('User account is inactive');
       if (principal.companyId !== tenant.companyId) throw new ForbiddenException('Cross-tenant data access denied');

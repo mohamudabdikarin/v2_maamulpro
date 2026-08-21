@@ -221,8 +221,10 @@ export class AccountingService {
   }
 
   async upsertAccount(tenantDb: any, tenantId: string, data: UpsertAccountDto) {
+    const code = data.code || String((await tenantDb.account.findMany({ select: { code: true } }))
+      .reduce((largest: number, account: { code: string }) => Math.max(largest, Number(account.code) || 0), 990) + 10);
     if (data.parentCode) {
-      if (data.parentCode === data.code) {
+      if (data.parentCode === code) {
         throw new BadRequestException('Account cannot be its own parent');
       }
       const parent = await tenantDb.account.findUnique({ where: { code: data.parentCode } });
@@ -232,13 +234,13 @@ export class AccountingService {
       }
     }
     const normalBalance = data.normalBalance ?? NORMAL_BALANCE_BY_TYPE[data.type];
-    const existing = await tenantDb.account.findUnique({ where: { code: data.code } });
+    const existing = await tenantDb.account.findUnique({ where: { code } });
     if (existing) {
       if (existing.isSystem && existing.type !== data.type) {
         throw new BadRequestException('System account type cannot be changed');
       }
       return tenantDb.account.update({
-        where: { code: data.code },
+        where: { code },
         data: {
           name: data.name,
           parentCode: data.parentCode ?? null,
@@ -252,7 +254,7 @@ export class AccountingService {
     }
     return tenantDb.account.create({
       data: {
-        code: data.code,
+        code,
         name: data.name,
         parentCode: data.parentCode ?? null,
         type: data.type,
