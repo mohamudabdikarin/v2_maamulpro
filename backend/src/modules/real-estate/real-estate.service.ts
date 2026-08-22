@@ -43,6 +43,14 @@ export class RealEstateService {
     });
   }
 
+  getPropertyOptions(tenantDb: any) {
+    return tenantDb.property.findMany({
+      where: { deletedAt: null },
+      select: { id: true, title: true },
+      orderBy: { title: 'asc' },
+    });
+  }
+
   async getProperty(tenantDb: any, id: string) {
     const property = await tenantDb.property.findFirst({
       where: { id, deletedAt: null },
@@ -63,20 +71,20 @@ export class RealEstateService {
       tenantDb,
       'properties',
       (tx) => tx.property.create({
-        data: { ...data, type: data.type as any, status: (data.status as any) || 'AVAILABLE' },
+        data: { ...data, type: data.type as any, status: 'AVAILABLE' },
       }),
     );
   }
 
   async updateProperty(tenantDb: any, id: string, data: PropertyDto) {
+    const { status: _status, ...propertyData } = data;
     const where: any = { id, deletedAt: null };
     if (data.version !== undefined) where.version = data.version;
     const result = await tenantDb.property.updateMany({
       where,
       data: {
-        ...data,
-        type: data.type as any,
-        status: data.status as any,
+        ...propertyData,
+        type: propertyData.type as any,
         version: { increment: 1 },
       },
     });
@@ -113,6 +121,14 @@ export class RealEstateService {
     });
   }
 
+  getTenantOptions(tenantDb: any) {
+    return tenantDb.tenant.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   async getDeal(tenantDb: any, id: string) {
     const deal = await tenantDb.deal.findFirst({
       where: { id, deletedAt: null },
@@ -129,7 +145,7 @@ export class RealEstateService {
       const client = await tx.tenant.findFirst({ where: { id: data.clientId, deletedAt: null } });
       if (!client) throw new NotFoundException('Client not found');
       const paidAmount = Number(data.paidAmount || 0);
-      const paymentStatus = this.dealPaymentStatus(Number(data.totalAmount), paidAmount, data.paymentStatus);
+      const paymentStatus = this.dealPaymentStatus(Number(data.totalAmount), paidAmount);
       const deal = await tx.deal.create({
         data: {
           ...data,
@@ -155,7 +171,7 @@ export class RealEstateService {
       if (data.version !== undefined) where.version = data.version;
       const paidAmount = Number(data.paidAmount ?? existing.paidAmount ?? 0);
       const totalAmount = Number(data.totalAmount ?? existing.totalAmount);
-      const paymentStatus = this.dealPaymentStatus(totalAmount, paidAmount, data.paymentStatus);
+      const paymentStatus = this.dealPaymentStatus(totalAmount, paidAmount);
       const result = await tx.deal.updateMany({
         where,
         data: {
@@ -248,7 +264,7 @@ export class RealEstateService {
       const tenant = await tx.tenant.findFirst({ where: { id: data.tenantId, deletedAt: null } });
       if (!tenant) throw new NotFoundException('Tenant not found');
       const contract = await tx.rentalContract.create({
-        data: { ...data, status: (data.status as any) || 'ACTIVE' },
+        data: { ...data, status: 'ACTIVE' },
       });
       await tx.property.update({
         where: { id: data.propertyId },
@@ -265,7 +281,7 @@ export class RealEstateService {
       const existing = await tx.rentalContract.findFirst({ where: { id, deletedAt: null } });
       if (!existing) throw new NotFoundException('Rental contract not found');
       const targetPropertyId = data.propertyId || existing.propertyId;
-      const targetStatus = (data.status as any) || existing.status;
+      const targetStatus = existing.status;
       // Lock every affected property in a deterministic order so concurrent
       // updates cannot double-assign the same property.
       const propertyIds = [...new Set([existing.propertyId, targetPropertyId])].sort();
@@ -285,12 +301,30 @@ export class RealEstateService {
       }
       const contract = await tx.rentalContract.update({
         where: { id },
-        data: { ...data, status: data.status as any },
+        data: { ...data, status: existing.status },
       });
       await this.syncDealPropertyStatus(tx, contract.propertyId);
       if (existing.propertyId !== contract.propertyId) await this.syncDealPropertyStatus(tx, existing.propertyId);
       await this.syncTenantProperty(tx, existing.tenantId);
       if (existing.tenantId !== contract.tenantId) await this.syncTenantProperty(tx, contract.tenantId);
+      return contract;
+    });
+  }
+
+  async transitionRentalContract(tenantDb: any, id: string, status: string) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const existing = await tx.rentalContract.findFirst({ where: { id, deletedAt: null } });
+      if (!existing) throw new NotFoundException('Rental contract not found');
+      const allowed: Record<string, string[]> = {
+        ACTIVE: ['RENEWAL_DUE', 'EXPIRED', 'TERMINATED'],
+        RENEWAL_DUE: ['ACTIVE', 'EXPIRED', 'TERMINATED'],
+        EXPIRED: ['ACTIVE', 'TERMINATED'],
+        TERMINATED: [],
+      };
+      if (!allowed[existing.status]?.includes(status)) throw new BadRequestException(`Cannot change ${existing.status} lease to ${status}`);
+      const contract = await tx.rentalContract.update({ where: { id }, data: { status: status as any } });
+      await this.syncDealPropertyStatus(tx, existing.propertyId);
+      await this.syncTenantProperty(tx, existing.tenantId);
       return contract;
     });
   }

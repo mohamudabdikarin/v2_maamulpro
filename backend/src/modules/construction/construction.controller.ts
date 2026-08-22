@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Query, UseGuards, Param, Patch, Delete, Fo
 import { ConstructionService } from './construction.service';
 import { GetTenantContext, GetTenantDb } from '../../common/decorators/tenant-context.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { RequireAnyPermission, RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { StaffService } from '../staff/staff.service';
 import { CreateStaffDto, UpdateStaffDto } from '../staff/dto/staff.dto';
@@ -42,6 +42,12 @@ export class ConstructionController {
     @Query('search') search?: string,
   ) {
     return this.constructionService.getProjects(tenantDb, { status, search });
+  }
+
+  @Get('projects/options')
+  @RequireAnyPermission('projects.read', 'construction_tasks.read', 'construction_tasks.create', 'construction_expenses.read', 'construction_expenses.create', 'workforce_contracts.read', 'workforce_contracts.create', 'construction_inventory.read', 'construction_inventory.create', 'users.create', 'users.update')
+  getProjectOptions(@GetTenantDb() db: any) {
+    return this.constructionService.getProjectOptions(db);
   }
 
   @Post('projects')

@@ -8,7 +8,6 @@ export const payrollFields: CrudField[] = [
     { name: 'payPeriod', label: 'Pay period label', placeholder: 'Aug 2026' },
     { name: 'paymentDate', label: 'Payment date', type: 'date' },
     { name: 'expenseAccountCode', label: 'Expense account', lookup: { endpoint: '/api/payroll/options/accounts', valueKey: 'code', labelKeys: ['code', 'name'] } },
-    { name: 'status', label: 'Initial status', type: 'select', options: ['DRAFT', 'PENDING_APPROVAL'].map((value) => ({ value, label: value.replace(/_/g, ' ') })) },
     { name: 'items', label: 'Employees and payroll amounts', type: 'lineItems', required: true, lineItems: {
         endpoint: '/api/payroll/options/staff', idField: 'staffId', labelKeys: ['firstName', 'lastName'], selectorLabel: 'Employee',
         populate: { 'firstName+lastName': 'employeeName', position: 'employeePosition', department: 'employeeDepartment', salary: 'baseSalary' },

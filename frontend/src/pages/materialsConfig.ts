@@ -1,5 +1,13 @@
 import { CrudField } from './CrudPage';
 
+const materialQuickFields: CrudField[] = [
+    { name: 'name', label: 'Material name', required: true },
+    { name: 'unit', label: 'Unit', type: 'select', required: true, options: ['BAG', 'KG', 'PIECE', 'METER', 'LITER', 'TON'].map((value) => ({ value, label: value })) },
+    { name: 'unitCost', label: 'Unit cost ($)', type: 'number', required: true },
+];
+const supplierQuickFields: CrudField[] = [{ name: 'name', label: 'Name', required: true }, { name: 'phone', label: 'Phone' }];
+const customerQuickFields: CrudField[] = [{ name: 'name', label: 'Name', required: true }, { name: 'phone', label: 'Phone' }];
+
 export const materialFields: CrudField[] = [
     { name: 'name', label: 'Material name', required: true, placeholder: 'Sibidhka Dangote 50kg' },
     { name: 'unit', label: 'Unit', type: 'select', required: true, options: ['BAG', 'KG', 'PIECE', 'METER', 'LITER', 'TON'].map((value) => ({ value, label: value })) },
@@ -22,12 +30,10 @@ export const supplierFields: CrudField[] = [
 
 export const purchaseFields: CrudField[] = [
     { name: 'orderNo', label: 'Order number', required: true, placeholder: 'PO-2026-001' },
-    { name: 'supplierId', label: 'Supplier', lookup: { endpoint: '/api/materials/suppliers', labelKeys: ['name'] } },
-    { name: 'status', label: 'Status', type: 'select', options: ['DRAFT', 'ORDERED', 'RECEIVED', 'CANCELLED'].map((value) => ({ value, label: value })) },
+    { name: 'supplierId', label: 'Supplier', lookup: { endpoint: '/api/materials/suppliers/options', labelKeys: ['name'], create: { fields: supplierQuickFields, permission: 'suppliers.create' } } },
     { name: 'orderedAt', label: 'Ordered date', type: 'date' },
-    { name: 'receivedAt', label: 'Received date', type: 'date' },
     { name: 'items', label: 'Purchase items', type: 'lineItems', required: true, lineItems: {
-        endpoint: '/api/materials/products', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
+        endpoint: '/api/materials/products/options', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
         populate: { unitCost: 'unitCost' },
         fields: [{ name: 'quantity', label: 'Quantity', type: 'number', min: 0.01, required: true }, { name: 'unitCost', label: 'Unit cost', type: 'number', min: 0, required: true }],
     } },
@@ -44,12 +50,12 @@ export const customerFields: CrudField[] = [
 
 export const saleFields: CrudField[] = [
     { name: 'invoiceNo', label: 'Invoice number', required: true, placeholder: 'INV-2026-001' },
-    { name: 'customerId', label: 'Customer', lookup: { endpoint: '/api/materials/customers', labelKeys: ['name'] } },
+    { name: 'customerId', label: 'Customer', lookup: { endpoint: '/api/materials/customers/options', labelKeys: ['name'], create: { fields: customerQuickFields, permission: 'material_sales.create' } } },
     { name: 'paidAmount', label: 'Paid amount', type: 'number' },
     { name: 'discountPercent', label: 'Discount %', type: 'number' },
     { name: 'date', label: 'Invoice date', type: 'date' },
     { name: 'items', label: 'Invoice items', type: 'lineItems', required: true, lineItems: {
-        endpoint: '/api/materials/products', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
+        endpoint: '/api/materials/products/options', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
         populate: { salePrice: 'unitPrice' },
         fields: [{ name: 'quantity', label: 'Quantity', type: 'number', min: 0.01, required: true }, { name: 'unitPrice', label: 'Unit price', type: 'number', min: 0, required: true }],
     } },
@@ -59,10 +65,9 @@ export const saleFields: CrudField[] = [
 export const transportationFields: CrudField[] = [
     { name: 'deliveryNo', label: 'Delivery number', required: true, placeholder: 'DEL-2026-001' },
     { name: 'responsiblePerson', label: 'Responsible person', required: true, placeholder: 'Maxamed Axmed' },
-    { name: 'materialId', label: 'Material', required: true, lookup: { endpoint: '/api/materials/products', labelKeys: ['name'] } },
+    { name: 'materialId', label: 'Material', required: true, lookup: { endpoint: '/api/materials/products/options', labelKeys: ['name'], create: { fields: materialQuickFields, permission: 'materials_products.create' } } },
     { name: 'quantity', label: 'Quantity', type: 'number', required: true },
     { name: 'cost', label: 'Cost', type: 'number', required: true },
-    { name: 'status', label: 'Status', type: 'select', options: ['PENDING', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'].map((value) => ({ value, label: value.replace(/_/g, ' ') })) },
     { name: 'deliveryDate', label: 'Delivery date', type: 'date' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
 ];

@@ -24,7 +24,7 @@ const RentalHubPage = () => {
 
     const load = () => Promise.all([
         api<unknown>('/api/real-estate/tenants'),
-        api<unknown>('/api/real-estate/properties'),
+        hasPermission('properties.read') ? api<unknown>('/api/real-estate/properties') : api<unknown>('/api/real-estate/properties/options'),
         api<unknown>('/api/real-estate/rental-contracts'),
         api<unknown>('/api/real-estate/rent-payments'),
     ]).then(([a, b, c, d]) => setData({ tenants: unwrapRows(a), properties: unwrapRows(b), contracts: unwrapRows(c), payments: unwrapRows(d) })).catch((reason) => setError(reason.message));

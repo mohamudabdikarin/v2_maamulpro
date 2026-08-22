@@ -174,14 +174,14 @@ export class PayrollService {
           month: data.month,
           payPeriod: data.payPeriod || `${data.year}-${String(data.month).padStart(2, '0')}`,
           paymentDate: data.paymentDate,
-          status: (data.status as any) || 'DRAFT',
+          status: 'DRAFT',
           expenseAccountCode: data.expenseAccountCode || null,
           createdById: userId,
           ...calculated.totals,
           items: {
             create: calculated.items.map((item) => ({
               ...item,
-              status: (data.status as any) || 'DRAFT',
+              status: 'DRAFT',
             })),
           },
         },
@@ -232,7 +232,7 @@ export class PayrollService {
     if (!payroll) throw new NotFoundException('Payroll not found');
     const allowed: Record<string, string[]> = {
       submit: ['DRAFT', 'REJECTED'],
-      approve: ['DRAFT', 'PENDING_APPROVAL'],
+      approve: ['PENDING_APPROVAL'],
       reject: ['PENDING_APPROVAL'],
       pay: ['APPROVED'],
       reopen: ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED'],

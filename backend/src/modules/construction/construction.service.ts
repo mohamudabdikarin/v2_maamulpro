@@ -56,6 +56,14 @@ export class ConstructionService {
     });
   }
 
+  getProjectOptions(tenantDb: any) {
+    return tenantDb.project.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   async createProject(
     tenantDb: any,
     companyId: string,

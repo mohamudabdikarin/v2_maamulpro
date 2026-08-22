@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { IRootState } from '../../store';
@@ -11,16 +11,96 @@ import IconMoon from '../Icon/IconMoon';
 import IconSun from '../Icon/IconSun';
 import IconUser from '../Icon/IconUser';
 import IconLogout from '../Icon/IconLogout';
+import IconSearch from '../Icon/IconSearch';
+import { usePermissions } from '../../hooks/usePermissions';
 
 type PlatformNotification = { id: string; title: string; details: string; createdAt: string; category: string; companyId?: string };
+type NavigationDestination = { label: string; section: string; to: string; permissions?: string[]; feature?: 'construction' | 'realEstate' | 'materials' | 'payroll' | 'advancedReports'; workspace?: 'construction' | 'real_estate' | 'material_management'; keywords?: string; platform?: boolean };
+
+const navigationDestinations: NavigationDestination[] = [
+    { label: 'Dashboard', section: 'Overview', to: '/app/dashboard', permissions: ['dashboard.executive.read'], keywords: 'home overview' },
+    { label: 'Analytics', section: 'Overview', to: '/app/analytics', permissions: ['analytics.read'], keywords: 'metrics insights' },
+    { label: 'Staff', section: 'People & finance', to: '/app/staff', permissions: ['users.read'], keywords: 'employees people users' },
+    { label: 'Financials', section: 'People & finance', to: '/app/financials', permissions: ['financials.read'], keywords: 'income expense transactions' },
+    { label: 'Chart of accounts', section: 'People & finance', to: '/app/financials/accounts', permissions: ['accounting.read'], keywords: 'ledger accounting' },
+    { label: 'Journal entries', section: 'People & finance', to: '/app/financials/journals', permissions: ['accounting.read'], keywords: 'ledger accounting' },
+    { label: 'Financial reports', section: 'People & finance', to: '/app/financials/financial-reports', permissions: ['accounting.read'], keywords: 'profit loss balance sheet' },
+    { label: 'Payroll', section: 'People & finance', to: '/app/payroll', permissions: ['payroll.read'], feature: 'payroll', keywords: 'salary wages employees' },
+    { label: 'Payslips', section: 'People & finance', to: '/app/payroll/payslips', permissions: ['payroll.read'], feature: 'payroll', keywords: 'salary wages employees' },
+    { label: 'Construction overview', section: 'Construction', to: '/app/construction/overview', permissions: ['workspace.construction.read'], feature: 'construction', workspace: 'construction' },
+    { label: 'Projects', section: 'Construction', to: '/app/construction/projects', permissions: ['projects.read'], feature: 'construction', workspace: 'construction' },
+    { label: 'Tasks', section: 'Construction', to: '/app/construction/tasks', permissions: ['construction_tasks.read'], feature: 'construction', workspace: 'construction' },
+    { label: 'Expenses', section: 'Construction', to: '/app/construction/expenses', permissions: ['construction_expenses.read'], feature: 'construction', workspace: 'construction' },
+    { label: 'Manpower', section: 'Construction', to: '/app/construction/manpower', permissions: ['manpower.read'], feature: 'construction', workspace: 'construction', keywords: 'workers labour' },
+    { label: 'Worker types', section: 'Construction', to: '/app/construction/worker-types', permissions: ['manpower.read'], feature: 'construction', workspace: 'construction' },
+    { label: 'Worker ledger', section: 'Construction', to: '/app/construction/worker-ledger', permissions: ['manpower.read'], feature: 'construction', workspace: 'construction', keywords: 'labour income expense' },
+    { label: 'Construction inventory', section: 'Construction', to: '/app/construction/inventory', permissions: ['construction_inventory.read'], feature: 'construction', workspace: 'construction' },
+    { label: 'Workforce contracts', section: 'Construction', to: '/app/construction/contracts', permissions: ['workforce_contracts.read'], feature: 'construction', workspace: 'construction', keywords: 'labour workers agreements' },
+    { label: 'Construction reports', section: 'Construction', to: '/app/construction/reports', permissions: ['reports.construction.read'], feature: 'construction', workspace: 'construction' },
+    { label: 'Real estate overview', section: 'Real estate', to: '/app/real-estate/overview', permissions: ['workspace.real_estate.read'], feature: 'realEstate', workspace: 'real_estate', keywords: 'property' },
+    { label: 'Properties', section: 'Real estate', to: '/app/real-estate/properties', permissions: ['properties.read'], feature: 'realEstate', workspace: 'real_estate', keywords: 'buildings listings' },
+    { label: 'Clients', section: 'Real estate', to: '/app/real-estate/clients', permissions: ['clients.read', 'rentals.read'], feature: 'realEstate', workspace: 'real_estate', keywords: 'tenants buyers customers' },
+    { label: 'Deals', section: 'Real estate', to: '/app/real-estate/deals', permissions: ['deals.read'], feature: 'realEstate', workspace: 'real_estate', keywords: 'sales transactions' },
+    { label: 'Property sales', section: 'Real estate', to: '/app/real-estate/sales', permissions: ['deals.read'], feature: 'realEstate', workspace: 'real_estate', keywords: 'deals transactions' },
+    { label: 'Rentals', section: 'Real estate', to: '/app/real-estate/rentals', permissions: ['rentals.read'], feature: 'realEstate', workspace: 'real_estate', keywords: 'leases tenants' },
+    { label: 'Rental contracts', section: 'Real estate', to: '/app/real-estate/rental-contracts', permissions: ['rentals.read'], feature: 'realEstate', workspace: 'real_estate', keywords: 'leases tenants' },
+    { label: 'Rent payments', section: 'Real estate', to: '/app/real-estate/rent-payments', permissions: ['rentals.read'], feature: 'realEstate', workspace: 'real_estate', keywords: 'leases collections' },
+    { label: 'Real estate reports', section: 'Real estate', to: '/app/real-estate/reports', permissions: ['reports.real_estate.read'], feature: 'realEstate', workspace: 'real_estate' },
+    { label: 'Materials overview', section: 'Materials', to: '/app/materials/overview', permissions: ['workspace.material_management.read'], feature: 'materials', workspace: 'material_management', keywords: 'stock products' },
+    { label: 'Material inventory', section: 'Materials', to: '/app/materials/inventory', permissions: ['materials_products.read'], feature: 'materials', workspace: 'material_management', keywords: 'stock products' },
+    { label: 'Manage material products', section: 'Materials', to: '/app/materials/inventory/manage', permissions: ['materials_products.read'], feature: 'materials', workspace: 'material_management', keywords: 'stock products' },
+    { label: 'Suppliers', section: 'Materials', to: '/app/materials/suppliers', permissions: ['suppliers.read'], feature: 'materials', workspace: 'material_management', keywords: 'vendors procurement' },
+    { label: 'Purchases', section: 'Materials', to: '/app/materials/purchases', permissions: ['purchases.read'], feature: 'materials', workspace: 'material_management', keywords: 'orders procurement' },
+    { label: 'Material customers', section: 'Materials', to: '/app/materials/customers', permissions: ['material_customers.read'], feature: 'materials', workspace: 'material_management', keywords: 'buyers clients' },
+    { label: 'Material sales', section: 'Materials', to: '/app/materials/sales', permissions: ['material_sales.read'], feature: 'materials', workspace: 'material_management', keywords: 'invoices customers' },
+    { label: 'Transportation', section: 'Materials', to: '/app/materials/transportation', permissions: ['transportation.read'], feature: 'materials', workspace: 'material_management', keywords: 'deliveries logistics' },
+    { label: 'Materials reports', section: 'Materials', to: '/app/materials/reports', permissions: ['reports.material.read'], feature: 'materials', workspace: 'material_management' },
+    { label: 'Reports', section: 'Administration', to: '/app/reports', permissions: ['reports.read'], feature: 'advancedReports' },
+    { label: 'Report schedules', section: 'Administration', to: '/app/report-schedules', permissions: ['reports.admin'], feature: 'advancedReports', keywords: 'scheduled reports' },
+    { label: 'Audit logs', section: 'Administration', to: '/app/audits', permissions: ['activity_logs.read'], keywords: 'activity history' },
+    { label: 'Roles', section: 'Administration', to: '/app/roles', permissions: ['roles.read'], keywords: 'permissions access rbac' },
+    { label: 'Settings', section: 'Administration', to: '/app/settings', permissions: ['settings.read'], keywords: 'account configuration' },
+    { label: 'Notifications', section: 'Administration', to: '/app/notifications', keywords: 'alerts updates' },
+    { label: 'Platform dashboard', section: 'Platform', to: '/superadmin/dashboard', platform: true, keywords: 'home overview' },
+    { label: 'Companies', section: 'Platform', to: '/superadmin/companies', platform: true, keywords: 'tenants businesses' },
+    { label: 'Subscriptions & billing', section: 'Platform', to: '/superadmin/billing', platform: true, keywords: 'plans invoices payments' },
+    { label: 'My account', section: 'Platform', to: '/superadmin/account', platform: true, keywords: 'settings profile' },
+];
 
 const Header = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
-    const session = sessionStore.get();
-    const isSuperAdmin = Boolean(session?.user.isSuperAdmin);
+    const { session, user, hasPermission, hasAnyPermission } = usePermissions();
+    const isSuperAdmin = Boolean(user?.isSuperAdmin);
     const [notifications, setNotifications] = useState<PlatformNotification[]>([]);
+    const [navigationQuery, setNavigationQuery] = useState('');
+    const [navigationOpen, setNavigationOpen] = useState(false);
+    const navigationInput = useRef<HTMLInputElement>(null);
+
+    const availableDestinations = useMemo(() => navigationDestinations.filter((destination) => {
+        if (Boolean(destination.platform) !== isSuperAdmin) return false;
+        if (destination.feature && !user?.entitlements?.features?.[destination.feature]) return false;
+        if (destination.workspace && user?.enterpriseConfiguration?.workspaceControls?.[destination.workspace] === false) return false;
+        return !destination.permissions || (destination.permissions.length === 1 ? hasPermission(destination.permissions[0]) : hasAnyPermission(destination.permissions));
+    }), [hasAnyPermission, hasPermission, isSuperAdmin, user]);
+    const navigationMatches = useMemo(() => {
+        const query = navigationQuery.trim().toLowerCase();
+        if (!query) return [];
+        return availableDestinations.filter((destination) => `${destination.label} ${destination.section} ${destination.keywords || ''}`.toLowerCase().includes(query)).slice(0, 8);
+    }, [availableDestinations, navigationQuery]);
+
+    useEffect(() => {
+        const focusNavigation = (event: KeyboardEvent) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+                event.preventDefault();
+                navigationInput.current?.focus();
+                setNavigationOpen(true);
+            }
+        };
+        window.addEventListener('keydown', focusNavigation);
+        return () => window.removeEventListener('keydown', focusNavigation);
+    }, []);
 
     useEffect(() => {
         if (!isSuperAdmin) return;
@@ -47,6 +127,15 @@ const Header = () => {
         }
     };
     const accountPath = isSuperAdmin ? '/superadmin/account' : '/app/settings';
+    const openDestination = (to: string) => {
+        navigate(to);
+        setNavigationQuery('');
+        setNavigationOpen(false);
+    };
+    const submitNavigation = (event: FormEvent) => {
+        event.preventDefault();
+        if (navigationMatches[0]) openDestination(navigationMatches[0].to);
+    };
 
     return (
         <header className="z-40">
@@ -55,8 +144,15 @@ const Header = () => {
                     <button type="button" className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-dark-light/10" onClick={() => dispatch(toggleSidebar())} aria-label="Toggle navigation">
                         <IconMenu />
                     </button>
-                    <div className="flex-1" />
-                    <div className="flex items-center gap-1 sm:gap-2">
+                    <form className="relative ml-3 min-w-0 max-w-xl flex-1" onSubmit={submitNavigation}>
+                        <IconSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white-dark" />
+                        <input ref={navigationInput} className="form-input h-9 w-full rounded-full py-1 pl-9 pr-12 text-sm" value={navigationQuery} onChange={(event) => { setNavigationQuery(event.target.value); setNavigationOpen(true); }} onFocus={() => setNavigationOpen(true)} onKeyDown={(event) => { if (event.key === 'Escape') { setNavigationOpen(false); event.currentTarget.blur(); } }} placeholder="Search pages…" aria-label="Search pages" />
+                        <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-white-light px-1 text-[10px] text-white-dark md:inline">Ctrl K</span>
+                        {navigationOpen && navigationQuery.trim() && <div className="absolute left-0 top-[calc(100%+0.5rem)] z-50 w-[min(32rem,calc(100vw-2.5rem))] overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-black/5 dark:bg-[#1b2e4b]">
+                            {navigationMatches.length ? navigationMatches.map((destination) => <button className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-[#152136]" key={destination.to} onMouseDown={(event) => event.preventDefault()} onClick={() => openDestination(destination.to)} type="button"><span className="font-semibold">{destination.label}</span><span className="text-xs text-white-dark">{destination.section}</span></button>) : <p className="p-4 text-sm text-white-dark">No accessible page matches “{navigationQuery}”.</p>}
+                        </div>}
+                    </form>
+                    <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
                         <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-dark-light/10" onClick={() => dispatch(toggleTheme(themeConfig.theme === 'light' ? 'dark' : 'light'))} aria-label="Toggle color theme">
                             {themeConfig.theme === 'light' ? <IconMoon /> : <IconSun />}
                         </button>

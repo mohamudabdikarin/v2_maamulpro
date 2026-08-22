@@ -47,6 +47,10 @@ export class RentalContractDto {
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
 }
 
+export class RentalContractStatusDto {
+  @IsIn(['ACTIVE', 'EXPIRED', 'RENEWAL_DUE', 'TERMINATED']) status: string;
+}
+
 export class RentPaymentDto {
   @IsString() tenantId: string;
   @IsOptional() @IsString() contractId?: string;

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../lib/api';
@@ -16,7 +16,7 @@ export type CrudField = {
     hint?: string;
     options?: { value: string; label: string }[];
     uploadFolder?: 'avatars' | 'staff' | 'projects' | 'properties' | 'materials' | 'branding';
-    lookup?: { endpoint: string; valueKey?: string; labelKeys: string[]; populate?: Record<string, string>; create?: { fields: CrudField[]; label?: string; endpoint?: string } };
+    lookup?: { endpoint: string; valueKey?: string; labelKeys: string[]; populate?: Record<string, string>; create?: { fields: CrudField[]; label?: string; endpoint?: string; permission?: string | string[] } };
     lineItems?: LineItemConfig;
     hideWhen?: (form: Record<string, any>) => boolean;
 };
@@ -34,11 +34,15 @@ export type CrudPageProps = {
     createPermission?: string | string[];
     updatePermission?: string | string[];
     deletePermission?: string | string[];
-    transitions?: { action: string; label: string; tone?: 'primary' | 'success' | 'danger' | 'warning'; when?: string[]; path?: string; method?: 'POST' | 'PATCH'; body?: Record<string, unknown> }[];
+    transitions?: { action: string; label: string; tone?: 'primary' | 'success' | 'danger' | 'warning'; when?: string[]; path?: string; method?: 'POST' | 'PATCH'; body?: Record<string, unknown>; permission?: string | string[] }[];
     initialMode?: 'create' | 'edit';
     recordId?: string;
     returnTo?: string;
     printable?: boolean;
+    initialValues?: Record<string, any>;
+    standalone?: boolean;
+    createTo?: string;
+    editTo?: (id: string) => string;
 };
 
 const emptyForm = (fields: CrudField[]) => Object.fromEntries(fields.map((field) => [field.name, field.type === 'checkbox' ? false : field.type === 'lineItems' ? [] : '']));
@@ -64,7 +68,7 @@ const printableValue = (value: any): string => {
     return String(value);
 };
 
-const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, createPermission, updatePermission, deletePermission, transitions = [], initialMode, recordId, returnTo, printable = false }: CrudPageProps) => {
+const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, createPermission, updatePermission, deletePermission, transitions = [], initialMode, recordId, returnTo, printable = false, initialValues, standalone = false, createTo, editTo }: CrudPageProps) => {
     const navigate = useNavigate();
     const { hasPermission, hasAnyPermission } = usePermissions();
     const allowed = (perm?: string | string[]) => !perm || (Array.isArray(perm) ? hasAnyPermission(perm) : hasPermission(perm));
@@ -79,7 +83,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const [success, setSuccess] = useState('');
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [saving, setSaving] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!standalone);
     const [uploading, setUploading] = useState('');
     const [viewing, setViewing] = useState<Record<string, any> | null>(null);
     const [filterValue, setFilterValue] = useState('');
@@ -93,7 +97,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         setLoading(true);
         return api<unknown>(endpoint).then((result) => setRows(unwrap(result))).catch((reason) => setError(reason.message)).finally(() => setLoading(false));
     };
-    useEffect(() => { load(); }, [endpoint]);
+    useEffect(() => { if (!standalone) load(); }, [endpoint, standalone]);
     const loadLookupOptions = async (field: CrudField) => {
         const rows = unwrap(await api<unknown>(field.lookup!.endpoint));
         const options = rows.map((row) => ({ value: String(row[field.lookup!.valueKey || 'id']), label: lookupLabel(row, field.lookup!.labelKeys) }));
@@ -106,6 +110,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         return { rows, options };
     };
     useEffect(() => {
+        if (!open) return;
         const lookupFields = fields.filter((field) => field.lookup);
         if (!lookupFields.length) return;
         Promise.allSettled(lookupFields.map(async (field) => {
@@ -120,7 +125,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                 setRawLookups(Object.fromEntries(fulfilled.map(([name, _, rawRows]) => [name, rawRows])));
             }
         });
-    }, [fields]);
+    }, [fields, open]);
     const filterKey = useMemo(() => ['status', 'type', 'priority', 'category'].find((key) => new Set(rows.map((row) => row[key]).filter(Boolean)).size > 1), [rows]);
     const filterOptions = useMemo(() => filterKey ? Array.from(new Set(rows.map((row) => String(row[filterKey])).filter(Boolean))) : [], [rows, filterKey]);
     const filtered = useMemo(() => rows.filter((row) => (!filterKey || !filterValue || String(row[filterKey]) === filterValue) && JSON.stringify(row).toLowerCase().includes(search.toLowerCase())), [rows, search, filterKey, filterValue]);
@@ -150,7 +155,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         return formatTableValue(key, value);
     };
 
-    const showCreate = () => { setEditing(null); setForm(emptyForm(fields)); setFieldErrors({}); setError(''); setOpen(true); };
+    const showCreate = () => { setEditing(null); setForm({ ...emptyForm(fields), ...initialValues }); setFieldErrors({}); setError(''); setOpen(true); };
     const showEdit = (row: Record<string, any>) => {
         setEditing(row);
         setFieldErrors({}); setError('');
@@ -264,7 +269,8 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     };
 
     return <AppShell>
-        <PageHeader title={title} description={description} eyebrow="Workspace records" actions={canCreate && allowed(createPermission) ? <button className="btn btn-primary shrink-0" onClick={showCreate}>Add new</button> : undefined} />
+        {!standalone && <>
+        <PageHeader title={title} description={description} eyebrow="Workspace records" actions={canCreate && allowed(createPermission) ? createTo ? <Link className="btn btn-primary shrink-0" to={createTo}>Add new</Link> : <button className="btn btn-primary shrink-0" onClick={showCreate}>Add new</button> : undefined} />
         <StatGrid items={[
             { label: 'Total records', value: rows.length },
             { label: 'Matching records', value: filtered.length, tone: 'info' },
@@ -275,9 +281,13 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         {success && <SuccessAlert message={success} onDismiss={() => setSuccess('')} />}
         {error && <ErrorAlert message={error} onRetry={load} />}
         <div className="panel overflow-x-auto p-0">
-            {loading ? <LoadingState /> : !filtered.length ? <EmptyState title="No records found" description="Adjust the filters or add the first record." /> :
+            {loading ? <LoadingState /> : !filtered.length ? <EmptyState
+                title={rows.length ? `No matching ${noun.toLowerCase()}` : `No ${noun.toLowerCase()} yet`}
+                description={rows.length ? 'Clear or change the current search and filter to see records.' : `Create the first ${noun.toLowerCase()} to get started.`}
+                action={rows.length ? <button className="btn btn-outline-primary" onClick={() => { setSearch(''); setFilterValue(''); }}>Clear filters</button> : canCreate && allowed(createPermission) ? createTo ? <Link className="btn btn-primary" to={createTo}>Add new</Link> : <button className="btn btn-primary" onClick={showCreate}>Add new</button> : undefined}
+            /> :
                 <table className="table-hover w-full"><thead><tr>{columns.map((column) => <th key={column}>{humanize(column)}</th>)}<th>Actions</th></tr></thead>
-                    <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{displayCell(column, row[column])}</td>)}<td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && allowed(updatePermission) && <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>}{allowed(updatePermission) && transitions.filter((item) => !item.when || item.when.includes(row.status)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && allowed(deletePermission) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
+                    <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{displayCell(column, row[column])}</td>)}<td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && allowed(updatePermission) && (editTo ? <Link className="btn btn-sm btn-outline-primary" to={editTo(String(row.id))}>Edit</Link> : <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>)}{allowed(updatePermission) && transitions.filter((item) => (!item.when || item.when.includes(row.status)) && allowed(item.permission)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && allowed(deletePermission) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
                 </table>}
         </div>
         <Modal open={Boolean(viewing)} onClose={() => setViewing(null)} title={`${title} details`} wide>
@@ -287,15 +297,21 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                     : typeof value === 'object' && value ? <p className="mt-1 font-semibold">{labelOf(value)}</p> : <p className="mt-1 whitespace-pre-wrap font-semibold">{displayCell(key, value)}</p>}
             </div>)}{printable && <button className="btn btn-primary" onClick={() => printRecord(viewing)}>Print record</button>}</div>}
         </Modal>
-        {open && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4" onMouseDown={(e) => { if (e.currentTarget === e.target) returnTo ? navigate(returnTo) : setOpen(false); }}>
-            <form className="panel max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto" noValidate onSubmit={submit}>
+        </>}
+        {standalone && <>
+            <PageHeader title={editing ? `Edit ${noun}` : `Add ${noun}`} description={description} eyebrow="Workspace records" actions={returnTo ? <button className="btn btn-outline-primary" onClick={() => navigate(returnTo)}>Back to list</button> : undefined} />
+            {error && !open && <ErrorAlert message={error} />}
+            {!open && !error && <div className="panel"><LoadingState label="Opening record…" /></div>}
+        </>}
+        {open && <div className={standalone ? '' : 'fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4'} onMouseDown={standalone ? undefined : (e) => { if (e.currentTarget === e.target) returnTo ? navigate(returnTo) : setOpen(false); }}>
+            <form className={`panel w-full max-w-2xl space-y-4 ${standalone ? 'mx-auto' : 'max-h-[90vh] overflow-y-auto'}`} noValidate onSubmit={submit}>
                 <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${noun}` : `Add ${noun}`}</h2><button aria-label="Close" className="btn btn-outline-dark btn-sm p-1.5" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)} type="button"><X size={16} /></button></div>
                 {error && <ErrorAlert message={error} />}
                 <div className="grid gap-4 sm:grid-cols-2">{fields.filter((field) => !field.hideWhen?.(form)).map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
                     <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
                     {field.type === 'select' || field.lookup ? <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} onChange={(e) => {
                         const val = e.target.value;
-                        if (val === INLINE_CREATE_SENTINEL && field.lookup?.create) {
+                        if (val === INLINE_CREATE_SENTINEL && field.lookup?.create && allowed(field.lookup.create.permission)) {
                             setInlineCreate({ field, form: emptyForm(field.lookup.create.fields), errors: {}, saving: false, error: '' });
                             return;
                         }
@@ -311,7 +327,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                         }
                         setForm((current) => ({ ...current, ...updates }));
                         setFieldErrors((current) => ({ ...current, [field.name]: '' }));
-                    }}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}{field.lookup?.create && <option value={INLINE_CREATE_SENTINEL}>{field.lookup.create.label || `+ Add new ${field.label.toLowerCase()}`}</option>}</select>
+                    }}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}{field.lookup?.create && allowed(field.lookup.create.permission) && <option value={INLINE_CREATE_SENTINEL}>{field.lookup.create.label || `+ Add new ${field.label.toLowerCase()}`}</option>}</select>
                         : field.type === 'textarea' || field.type === 'json' ? <textarea id={field.name} className={`form-textarea mt-1 ${field.type === 'json' ? 'min-h-40 font-mono text-xs' : ''} ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
                         : field.type === 'lineItems' && field.lineItems ? <div className="mt-1"><LineItemsEditor value={form[field.name]} onChange={(items) => setForm({ ...form, [field.name]: items })} config={field.lineItems} /></div>
                         : field.type === 'image' ? <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">{form[field.name] && <img className="h-20 w-20 rounded-lg border border-white-light object-cover dark:border-[#191e3a]" src={form[field.name]} alt="" />}<div className="flex-1"><input id={field.name} className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === field.name} onChange={(e) => uploadImage(field, e.target.files?.[0])} />{uploading === field.name && <p className="mt-1 text-xs text-primary">Uploading…</p>}{form[field.name] && <button type="button" className="mt-2 text-xs text-danger hover:underline" onClick={() => setForm({ ...form, [field.name]: '' })}>Remove from record</button>}</div></div>

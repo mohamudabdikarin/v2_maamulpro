@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Query, UseGuards, Param, Patch, Delete } f
 import { StaffService } from './staff.service';
 import { GetTenantDb, GetTenantContext } from '../../common/decorators/tenant-context.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { RequireAnyPermission, RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import {
@@ -29,6 +29,12 @@ export class StaffController {
     @Query('status') status?: string,
   ) {
     return this.staffService.getStaff(tenantDb, { ...query, department, status });
+  }
+
+  @Get('options')
+  @RequireAnyPermission('users.read', 'construction_tasks.create', 'construction_tasks.update', 'construction_expenses.create', 'construction_expenses.update', 'workforce_contracts.create', 'workforce_contracts.update')
+  getStaffOptions(@GetTenantDb() db: any, @Query('department') department?: string) {
+    return this.staffService.getStaffOptions(db, department);
   }
 
   @Get('accounts')

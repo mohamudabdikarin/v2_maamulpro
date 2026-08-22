@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
 import { CurrencyInput, EmptyState, ErrorAlert, Field, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, formatDescription, formatReference, money, shortDate } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
@@ -30,16 +30,28 @@ const FinancialsPage = () => {
     const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
     const [deleting, setDeleting] = useState(false);
     const query = useMemo(() => { const params = new URLSearchParams({ limit: '100' }); Object.entries(filters).forEach(([key, value]) => value && params.set(key, value)); return params.toString(); }, [filters]);
+    const loadLookups = useCallback(async () => {
+        try {
+            const [categoryRows, projectResult, propertyResult, materialResult] = await Promise.all([
+                api<any[]>('/api/financials/categories'),
+                canUseConstruction ? api<unknown>('/api/construction/projects') : Promise.resolve([]),
+                canUseRealEstate ? api<unknown>('/api/real-estate/properties') : Promise.resolve([]),
+                canUseMaterials ? api<unknown>('/api/materials/products') : Promise.resolve([]),
+            ]);
+            setCategories(categoryRows); setProjects(unwrapRows(projectResult)); setProperties(unwrapRows(propertyResult)); setMaterials(unwrapRows(materialResult));
+        } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load transaction options'); }
+    }, [canUseConstruction, canUseRealEstate, canUseMaterials]);
     const load = async () => {
         setLoading(true); setError('');
         try {
-            const [transactionResult, summaryResult, categoryRows, projectResult, propertyResult, materialResult] = await Promise.all([
-                hasPermission('transactions.read') ? api<unknown>(`/api/financials/transactions?${query}`) : Promise.resolve([]), api<typeof summary>(`/api/financials/summary?${query}`), api<any[]>('/api/financials/categories'), canUseConstruction ? api<unknown>('/api/construction/projects') : Promise.resolve([]), canUseRealEstate ? api<unknown>('/api/real-estate/properties') : Promise.resolve([]), canUseMaterials ? api<unknown>('/api/materials/products') : Promise.resolve([]),
+            const [transactionResult, summaryResult] = await Promise.all([
+                hasPermission('transactions.read') ? api<unknown>(`/api/financials/transactions?${query}`) : Promise.resolve([]), api<typeof summary>(`/api/financials/summary?${query}`),
             ]);
-            setRows(unwrapRows<Transaction>(transactionResult)); setSummary(summaryResult); setCategories(categoryRows); setProjects(unwrapRows(projectResult)); setProperties(unwrapRows(propertyResult)); setMaterials(unwrapRows(materialResult));
+            setRows(unwrapRows<Transaction>(transactionResult)); setSummary(summaryResult);
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load financials'); } finally { setLoading(false); }
     };
     useEffect(() => { const timer = setTimeout(load, 200); return () => clearTimeout(timer); }, [query, canUseConstruction, canUseRealEstate, canUseMaterials]);
+    useEffect(() => { void loadLookups(); }, [loadLookups]);
     const save = async (event: FormEvent) => {
         event.preventDefault(); setError('');
         try {

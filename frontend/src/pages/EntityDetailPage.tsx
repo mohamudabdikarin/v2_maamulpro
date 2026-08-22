@@ -18,6 +18,7 @@ type Props = {
     dateKeys?: string[];
     primaryFields: string[];
     sections?: { key: string; title: string; empty?: string }[];
+    relatedActions?: { label: string; to: (id: string) => string; permission?: string }[];
     actions?: (row: Record<string, any>, reload: () => void) => ReactNode;
 };
 
@@ -31,6 +32,7 @@ const EntityDetailPage = (props: Props) => {
         <PageHeader eyebrow="Record details" title={title} description={row.location || row.description || undefined} actions={<>
             <Link className="btn btn-outline-primary" to={props.backTo}>Back to list</Link>
             {props.editTo && (!props.editPermission || hasPermission(props.editPermission)) && <Link className="btn btn-primary" to={props.editTo(id)}>Edit</Link>}
+            {props.relatedActions?.filter((action) => !action.permission || hasPermission(action.permission)).map((action) => <Link className="btn btn-outline-primary" key={action.label} to={action.to(id)}>{action.label}</Link>)}
             {props.actions?.(row, state.reload)}
         </>} />
         {state.loading && <div className="panel"><LoadingState /></div>}

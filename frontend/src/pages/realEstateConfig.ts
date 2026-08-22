@@ -5,7 +5,6 @@ const options = (values: string[]) => values.map((value) => ({ value, label: val
 export const propertyFields: CrudField[] = [
     { name: 'title', label: 'Title', required: true, placeholder: 'Guri 4-qol ah oo Hodan ku yaal' },
     { name: 'type', label: 'Type', type: 'select', required: true, options: options(['HOUSE', 'APARTMENT', 'LAND', 'COMMERCIAL']) },
-    { name: 'status', label: 'Status', type: 'select', options: options(['AVAILABLE', 'SOLD', 'RENTED', 'UNDER_CONTRACT']) },
     { name: 'price', label: 'Price', type: 'number', required: true, placeholder: '85000' },
     { name: 'area', label: 'Area', type: 'number', placeholder: '180' },
     { name: 'bedrooms', label: 'Bedrooms', type: 'number', placeholder: '4' },
@@ -31,10 +30,9 @@ export const clientFields: CrudField[] = [
 ];
 
 export const dealFields: CrudField[] = [
-    { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'], create: { fields: propertyQuickFields } } },
-    { name: 'clientId', label: 'Client', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'], create: { fields: clientFields } } },
+    { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties/options', labelKeys: ['title'], create: { fields: propertyQuickFields, permission: 'properties.create' } } },
+    { name: 'clientId', label: 'Client', required: true, lookup: { endpoint: '/api/real-estate/tenants/options', labelKeys: ['name'], create: { fields: clientFields, permission: ['clients.create', 'rentals.create'] } } },
     { name: 'type', label: 'Type', type: 'select', required: true, options: options(['SALE', 'RENTAL']) },
-    { name: 'paymentStatus', label: 'Payment status', type: 'select', options: options(['PAID', 'PARTIAL', 'PENDING', 'OVERDUE', 'REFUNDED']) },
     { name: 'totalAmount', label: 'Total amount', type: 'number', required: true, placeholder: '85000' },
     { name: 'paidAmount', label: 'Paid amount', type: 'number', placeholder: '25000' },
     { name: 'closedAt', label: 'Closed date', type: 'date' },
@@ -50,24 +48,22 @@ export const tenantFields: CrudField[] = [
 ];
 
 export const rentalContractFields: CrudField[] = [
-    { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'], create: { fields: tenantFields } } },
-    { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'], create: { fields: propertyQuickFields } } },
+    { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants/options', labelKeys: ['name'], create: { fields: tenantFields, permission: ['clients.create', 'rentals.create'] } } },
+    { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties/options', labelKeys: ['title'], create: { fields: propertyQuickFields, permission: 'properties.create' } } },
     { name: 'monthlyRent', label: 'Monthly rent', type: 'number', required: true },
     { name: 'startDate', label: 'Start date', type: 'date', required: true },
     { name: 'endDate', label: 'End date', type: 'date', required: true },
     { name: 'renewalDate', label: 'Renewal date', type: 'date' },
-    { name: 'status', label: 'Status', type: 'select', options: options(['ACTIVE', 'EXPIRED', 'RENEWAL_DUE', 'TERMINATED']) },
     { name: 'notes', label: 'Notes', type: 'textarea' },
 ];
 
 export const rentPaymentFields: CrudField[] = [
     { name: 'contractId', label: 'Rental contract', lookup: { endpoint: '/api/real-estate/rental-contracts', labelKeys: ['tenant.name', 'property.title', 'startDate'], populate: { tenantId: 'tenantId', monthlyRent: 'amountDue' } } },
-    { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'] } },
+    { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants/options', labelKeys: ['name'] } },
     { name: 'dueDate', label: 'Due date', type: 'date', required: true },
     { name: 'paidDate', label: 'Paid date', type: 'date' },
     { name: 'amountDue', label: 'Amount due', type: 'number', required: true },
     { name: 'amountPaid', label: 'Amount paid', type: 'number' },
-    { name: 'status', label: 'Status', type: 'select', options: options(['PAID', 'UNPAID', 'LATE', 'PARTIAL']) },
     { name: 'receiptNo', label: 'Receipt number' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
 ];

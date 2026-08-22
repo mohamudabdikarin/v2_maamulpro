@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
-import { CurrencyInput, Field, FormActions, Modal } from '../components/maamulpro/PageKit';
+import { CurrencyInput, EmptyState, Field, FormActions, LoadingState, Modal } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 import { usePermissions } from '../hooks/usePermissions';
 
@@ -42,8 +42,9 @@ const WorkforceContractsPage = () => {
     const canUpdate = hasPermission('workforce_contracts.update');
     const canDelete = hasPermission('workforce_contracts.delete');
     const canPay = hasPermission('workforce_contracts.pay');
-    const canAssign = canUpdate && hasPermission('users.read');
+    const canAssign = canUpdate;
     const [contracts, setContracts] = useState<Contract[]>([]);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
     const [staff, setStaff] = useState<Staff[]>([]);
     const [selectedId, setSelectedId] = useState('');
@@ -64,8 +65,8 @@ const WorkforceContractsPage = () => {
         try {
             const [contractRows, projectRows, staffRows] = await Promise.all([
                 api<Contract[]>('/api/construction/contracts'),
-                hasPermission('projects.read') ? api<Project[]>('/api/construction/projects') : Promise.resolve([]),
-                hasPermission('users.read') ? api<Staff[]>('/api/staff') : Promise.resolve([]),
+                canCreate || canUpdate ? api<Project[]>('/api/construction/projects/options') : Promise.resolve([]),
+                canUpdate ? api<Staff[]>('/api/staff/options?department=CONSTRUCTION') : Promise.resolve([]),
             ]);
             setContracts(contractRows);
             setProjects(projectRows);
@@ -73,6 +74,8 @@ const WorkforceContractsPage = () => {
             if (selectedId && !contractRows.some((row) => row.id === selectedId)) setSelectedId('');
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : 'Unable to load contracts');
+        } finally {
+            setInitialLoading(false);
         }
     };
     useEffect(() => { load(); }, []);
@@ -159,9 +162,9 @@ const WorkforceContractsPage = () => {
         <div className="mb-6 flex items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">Workforce Contracts</h1><p className="mt-1 text-white-dark">Contract budgets, assigned workers, payments and controlled lifecycle transitions.</p></div>{canCreate && <button className="btn btn-primary" onClick={openCreate}>New contract</button>}</div>
         {error && <div className="mb-5 rounded-md bg-danger-light p-4 text-danger">{error}</div>}
         <div className="panel overflow-x-auto p-0">
-            <table className="table-hover w-full"><thead><tr><th>Contract</th><th>Project</th><th>Status</th><th>Budget</th><th>Paid</th><th>Workers</th><th>Actions</th></tr></thead>
+            {initialLoading ? <LoadingState label="Loading workforce contracts…" /> : !contracts.length ? <EmptyState title="No workforce contracts" description="Create a contract to track budgets, workers, and payments." action={canCreate ? <button className="btn btn-primary" onClick={openCreate}>New contract</button> : undefined} /> : <table className="table-hover w-full"><thead><tr><th>Contract</th><th>Project</th><th>Status</th><th>Budget</th><th>Paid</th><th>Workers</th><th>Actions</th></tr></thead>
                 <tbody>{contracts.map((row) => <tr key={row.id}><td><button className="font-semibold text-primary" onClick={() => { setSelectedId(row.id); setDetailOpen(true); }}>{row.title}</button></td><td>{row.project?.name}</td><td><span className="badge bg-primary">{row.status}</span></td><td>${Number(row.originalBudget).toLocaleString()}</td><td>${Number(row.totalPaid).toLocaleString()}</td><td>{row.workerAssignments.filter((entry) => !entry.removedAt).length}</td><td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-dark" onClick={() => { setSelectedId(row.id); setDetailOpen(true); }}>View</button>{canUpdate && <><button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(row)}>Edit</button>{allowedTransitions[row.status]?.map((status) => <button className="btn btn-sm btn-outline-info" key={status} onClick={() => transition(row, status)}>{status}</button>)}</>}{canDelete && <button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteTarget(row)}>Delete</button>}</div></td></tr>)}</tbody>
-            </table>
+            </table>}
         </div>
         <Modal open={detailOpen && Boolean(selected)} onClose={() => setDetailOpen(false)} title={selected?.title || 'Contract details'} wide>{selected && <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-3"><div className="panel"><p className="text-white-dark">Adjusted budget</p><p className="mt-2 text-2xl font-bold">${adjustedBudget.toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Total paid</p><p className="mt-2 text-2xl font-bold">${Number(selected.totalPaid).toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Remaining</p><p className="mt-2 text-2xl font-bold text-success">${(adjustedBudget - Number(selected.totalPaid)).toLocaleString()}</p></div></div>

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { RequireAnyPermission, RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { GetTenantDb } from '../../common/decorators/tenant-context.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import {
@@ -25,6 +25,10 @@ export class MaterialManagementController {
   getProducts(@GetTenantDb() db: any, @Query('search') search?: string) {
     return this.service.getProducts(db, search);
   }
+
+  @Get('products/options')
+  @RequireAnyPermission('materials_products.read', 'purchases.create', 'material_sales.create', 'transportation.create')
+  getProductOptions(@GetTenantDb() db: any) { return this.service.getProductOptions(db); }
 
   @Get('products/:id')
   @RequirePermissions('materials_products.read')
@@ -53,6 +57,10 @@ export class MaterialManagementController {
   @Get('suppliers')
   @RequirePermissions('suppliers.read')
   getSuppliers(@GetTenantDb() db: any) { return this.service.getSuppliers(db); }
+
+  @Get('suppliers/options')
+  @RequireAnyPermission('suppliers.read', 'purchases.create')
+  getSupplierOptions(@GetTenantDb() db: any) { return this.service.getSupplierOptions(db); }
 
   @Get('suppliers/:id')
   @RequirePermissions('suppliers.read')
@@ -133,6 +141,10 @@ export class MaterialManagementController {
   @Get('customers')
   @RequirePermissions('material_customers.read')
   getCustomers(@GetTenantDb() db: any) { return this.service.getCustomers(db); }
+
+  @Get('customers/options')
+  @RequireAnyPermission('material_customers.read', 'material_sales.create')
+  getCustomerOptions(@GetTenantDb() db: any) { return this.service.getCustomerOptions(db); }
 
   @Get('customers/:id')
   @RequirePermissions('material_customers.read')

@@ -58,6 +58,14 @@ export class StaffService {
     return { data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
+  getStaffOptions(tenantDb: any, department?: string) {
+    return tenantDb.staff.findMany({
+      where: { deletedAt: null, status: 'ACTIVE', ...(department ? { department } : {}) },
+      select: { id: true, firstName: true, lastName: true, position: true, department: true, salary: true },
+      orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
+    });
+  }
+
   async getStaffById(tenantDb: any, id: string) {
     const staff = await tenantDb.staff.findFirst({
       where: { id, deletedAt: null },

@@ -15,10 +15,10 @@ const blank = { firstName: '', lastName: '', phone: '', position: '', department
 const StaffPage = () => {
     const currentUserId = sessionStore.get()?.user.id;
     const { user, hasPermission } = usePermissions();
-    const canUseConstruction = Boolean(user?.constructionEnabled && user.entitlements?.features.construction);
     const canCreate = hasPermission('users.create');
     const canUpdate = hasPermission('users.update');
     const canDelete = hasPermission('users.delete');
+    const canUseConstruction = Boolean(user?.constructionEnabled && user.entitlements?.features.construction) && (hasPermission('projects.read') || canCreate || canUpdate);
     const state = useApiRows<Staff>('/api/staff?limit=100');
     const [search, setSearch] = useState('');
     const [department, setDepartment] = useState('');
@@ -33,7 +33,7 @@ const StaffPage = () => {
     const [projects, setProjects] = useState<Record<string, any>[]>([]);
     const [activity, setActivity] = useState<Record<string, any>[]>([]);
     const [saving, setSaving] = useState(false);
-    useEffect(() => { Promise.all([api<Role[]>('/api/rbac/roles'), canUseConstruction ? api<any>('/api/construction/projects') : Promise.resolve([])]).then(([roleRows, projectRows]) => { setRoles(roleRows.filter((role) => ACCOUNT_ROLE_KEYS.has(role.key))); setProjects(Array.isArray(projectRows) ? projectRows : projectRows.data || []); }).catch(() => undefined); }, [canUseConstruction]);
+    useEffect(() => { Promise.all([api<Role[]>('/api/rbac/roles'), canUseConstruction ? api<any>('/api/construction/projects/options') : Promise.resolve([])]).then(([roleRows, projectRows]) => { setRoles(roleRows.filter((role) => ACCOUNT_ROLE_KEYS.has(role.key))); setProjects(Array.isArray(projectRows) ? projectRows : projectRows.data || []); }).catch(() => undefined); }, [canUseConstruction]);
     useEffect(() => { if (selected?.user) api<Record<string, any>[]>(`/api/staff/${selected.id}/activity`).then(setActivity).catch(() => setActivity([])); else setActivity([]); }, [selected]);
     const filtered = useMemo(() => state.rows.filter((row) => {
         const text = `${row.firstName} ${row.lastName} ${row.phone || ''} ${row.position || ''}`.toLowerCase();

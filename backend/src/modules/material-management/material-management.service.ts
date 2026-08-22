@@ -23,6 +23,14 @@ export class MaterialManagementService {
     return db.material.findMany({ where, orderBy: { createdAt: 'desc' } });
   }
 
+  getProductOptions(db: any) {
+    return db.material.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true, unitCost: true, salePrice: true, quantity: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   async getProduct(db: any, id: string) {
     const product = await db.material.findFirst({ where: { id, deletedAt: null } });
     if (!product) throw new NotFoundException('Material not found');
@@ -71,6 +79,10 @@ export class MaterialManagementService {
       include: { _count: { select: { purchaseOrders: true, transactions: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  getSupplierOptions(db: any) {
+    return db.supplier.findMany({ where: { deletedAt: null }, select: { id: true, name: true }, orderBy: { name: 'asc' } });
   }
 
   async getSupplier(db: any, id: string) {
@@ -124,10 +136,10 @@ export class MaterialManagementService {
         data: {
           orderNo: data.orderNo,
           supplierId: data.supplierId,
-          status: (data.status as any) || 'DRAFT',
+          status: 'DRAFT',
           totalCost,
           orderedAt: data.orderedAt,
-          receivedAt: data.receivedAt,
+          receivedAt: undefined,
           notes: data.notes,
           items: { create: data.items },
         },
@@ -185,7 +197,7 @@ export class MaterialManagementService {
         throw new ConflictException('Received purchase orders cannot be edited; change the status first');
       }
 
-      const status = (data.status as any) || existing.status;
+    const status = existing.status;
       const claimed = await tx.purchaseOrder.updateMany({
         where: { id, deletedAt: null, status: existing.status },
         data: {
@@ -194,7 +206,7 @@ export class MaterialManagementService {
           status,
           totalCost,
           orderedAt: data.orderedAt,
-          receivedAt: status === 'RECEIVED' ? data.receivedAt || new Date() : data.receivedAt,
+          receivedAt: existing.receivedAt,
           notes: data.notes,
         },
       });
@@ -242,6 +254,10 @@ export class MaterialManagementService {
       include: { _count: { select: { sales: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  getCustomerOptions(db: any) {
+    return db.materialCustomer.findMany({ where: { deletedAt: null }, select: { id: true, name: true }, orderBy: { name: 'asc' } });
   }
 
   async getCustomer(db: any, id: string) {
@@ -395,7 +411,7 @@ export class MaterialManagementService {
           deliveryNo: data.deliveryNo,
           responsiblePerson: data.responsiblePerson,
           cost: data.cost,
-          status: (data.status as any) || 'PENDING',
+          status: 'PENDING',
           deliveryDate: data.deliveryDate,
           notes: data.notes,
           items: { create: { materialId: data.materialId, quantity: data.quantity } },
@@ -418,7 +434,7 @@ export class MaterialManagementService {
           deliveryNo: data.deliveryNo,
           responsiblePerson: data.responsiblePerson,
           cost: data.cost,
-          status: data.status as any,
+          status: existing.status,
           deliveryDate: data.deliveryDate,
           notes: data.notes,
           items: { create: { materialId: data.materialId, quantity: data.quantity } },

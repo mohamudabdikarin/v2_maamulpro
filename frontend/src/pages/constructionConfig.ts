@@ -14,14 +14,19 @@ export const projectFields: CrudField[] = [
     { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Sharax ujeedada mashruuca iyo baaxaddiisa.' },
 ];
 
+const projectQuickFields: CrudField[] = [
+    { name: 'name', label: 'Project name', required: true, placeholder: 'Dhismaha Xarunta Hodan' },
+    { name: 'budget', label: 'Budget', type: 'number', required: true, placeholder: '250000' },
+];
+
 export const taskFields: CrudField[] = [
-    { name: 'projectId', label: 'Project', required: true, lookup: { endpoint: '/api/construction/projects', labelKeys: ['name'] } },
+    { name: 'projectId', label: 'Project', required: true, lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'], create: { fields: projectQuickFields, permission: 'projects.create' } } },
     { name: 'title', label: 'Task title', required: true, placeholder: 'Dhammaystir darbiga koowaad' },
     { name: 'status', label: 'Status', type: 'select', options: options(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED']) },
     { name: 'priority', label: 'Priority', type: 'select', options: options(['LOW', 'MEDIUM', 'HIGH', 'URGENT']) },
     { name: 'progress', label: 'Progress %', type: 'number', placeholder: '50', hint: 'Geli boqolkiiba u dhexeeya 0 iyo 100.' },
     { name: 'dueDate', label: 'Due date', type: 'date' },
-    { name: 'staffId', label: 'Assigned staff member', lookup: { endpoint: '/api/staff', labelKeys: ['firstName', 'lastName'] } },
+    { name: 'staffId', label: 'Assigned staff member', lookup: { endpoint: '/api/staff/options', labelKeys: ['firstName', 'lastName'] } },
     { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Sharax shaqada, natiijada la filayo, iyo wixii caqabad ah.' },
 ];
 
@@ -30,6 +35,6 @@ export const expenseFields: CrudField[] = [
     { name: 'description', label: 'Description', required: true, placeholder: 'Iibsiga sibidhka goobta' },
     { name: 'category', label: 'Category', type: 'select', options: options(['UNSKILLED_LABOR', 'LABOR', 'MATERIALS', 'EQUIPMENT', 'TRANSPORT', 'UTILITIES', 'FOOD', 'SUPPORT_COSTS', 'OTHER']) },
     { name: 'date', label: 'Date', type: 'date' },
-    { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects', labelKeys: ['name'] } },
-    { name: 'staffId', label: 'Staff member', lookup: { endpoint: '/api/staff', labelKeys: ['firstName', 'lastName'] }, hideWhen: (form) => form.category === 'UNSKILLED_LABOR' },
+    { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'], create: { fields: projectQuickFields, permission: 'projects.create' } } },
+    { name: 'staffId', label: 'Staff member', lookup: { endpoint: '/api/staff/options', labelKeys: ['firstName', 'lastName'] }, hideWhen: (form) => form.category === 'UNSKILLED_LABOR' },
 ];

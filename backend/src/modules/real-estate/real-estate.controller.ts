@@ -7,6 +7,7 @@ import {
   DealDto,
   PropertyDto,
   RentalContractDto,
+  RentalContractStatusDto,
   RentPaymentDto,
   RentPaymentStatusDto,
   TenantDto,
@@ -27,6 +28,12 @@ export class RealEstateController {
     @Query('search') search?: string,
   ) {
     return this.service.getProperties(db, { type, status, search });
+  }
+
+  @Get('properties/options')
+  @RequireAnyPermission('properties.read', 'deals.create', 'rentals.read', 'rentals.create')
+  getPropertyOptions(@GetTenantDb() db: any) {
+    return this.service.getPropertyOptions(db);
   }
 
   @Post('properties')
@@ -103,6 +110,12 @@ export class RealEstateController {
     return this.service.getTenants(db);
   }
 
+  @Get('tenants/options')
+  @RequireAnyPermission('clients.read', 'rentals.read', 'deals.create', 'rentals.create')
+  getTenantOptions(@GetTenantDb() db: any) {
+    return this.service.getTenantOptions(db);
+  }
+
   @Post('tenants')
   @RequireAnyPermission('clients.create', 'rentals.create')
   createTenant(@GetTenantDb() db: any, @Body() body: TenantDto) {
@@ -141,6 +154,16 @@ export class RealEstateController {
     @Body() body: RentalContractDto,
   ) {
     return this.service.updateRentalContract(db, id, body);
+  }
+
+  @Post('rental-contracts/:id/status')
+  @RequirePermissions('rentals.update')
+  transitionRentalContract(
+    @GetTenantDb() db: any,
+    @Param('id') id: string,
+    @Body() body: RentalContractStatusDto,
+  ) {
+    return this.service.transitionRentalContract(db, id, body.status);
   }
 
   @Delete('rental-contracts/:id')

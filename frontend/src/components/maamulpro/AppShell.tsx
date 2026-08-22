@@ -29,14 +29,14 @@ const AppShell = ({ children }: PropsWithChildren) => {
         if (!session || session.user.isSuperAdmin || !location.pathname.startsWith('/app')) return;
 
         let active = true;
-        const synchronize = () => {
+        const synchronize = (force = false) => {
             if (document.visibilityState !== 'visible') return;
-            void refreshSession(true)
+            void refreshSession(force)
                 .then((value) => { if (active) setSession(value); })
                 .catch(() => { if (active) setSession(sessionStore.get()); });
         };
-        const onVisibilityChange = () => synchronize();
-        const interval = window.setInterval(synchronize, 2_000);
+        const onVisibilityChange = () => synchronize(true);
+        const interval = window.setInterval(synchronize, 30_000);
         document.addEventListener('visibilitychange', onVisibilityChange);
         return () => {
             active = false;
