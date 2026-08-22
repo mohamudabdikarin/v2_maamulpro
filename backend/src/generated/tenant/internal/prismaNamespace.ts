@@ -408,11 +408,15 @@ export const ModelName = {
   Category: 'Category',
   Transaction: 'Transaction',
   ActivityLog: 'ActivityLog',
+  OperationalAlert: 'OperationalAlert',
+  OperationalAlertRead: 'OperationalAlertRead',
   Project: 'Project',
   ProjectTask: 'ProjectTask',
   Material: 'Material',
   InventoryTransaction: 'InventoryTransaction',
   ReportSchedule: 'ReportSchedule',
+  AccountingPeriod: 'AccountingPeriod',
+  DocumentAttachment: 'DocumentAttachment',
   Tenant: 'Tenant',
   RentalContract: 'RentalContract',
   RentPayment: 'RentPayment',
@@ -455,7 +459,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "project" | "projectTask" | "material" | "inventoryTransaction" | "reportSchedule" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
+    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "operationalAlert" | "operationalAlertRead" | "project" | "projectTask" | "material" | "inventoryTransaction" | "reportSchedule" | "accountingPeriod" | "documentAttachment" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1273,6 +1277,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OperationalAlert: {
+      payload: Prisma.$OperationalAlertPayload<ExtArgs>
+      fields: Prisma.OperationalAlertFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OperationalAlertFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OperationalAlertFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>
+        }
+        findFirst: {
+          args: Prisma.OperationalAlertFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OperationalAlertFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>
+        }
+        findMany: {
+          args: Prisma.OperationalAlertFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>[]
+        }
+        create: {
+          args: Prisma.OperationalAlertCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>
+        }
+        createMany: {
+          args: Prisma.OperationalAlertCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OperationalAlertCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>[]
+        }
+        delete: {
+          args: Prisma.OperationalAlertDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>
+        }
+        update: {
+          args: Prisma.OperationalAlertUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>
+        }
+        deleteMany: {
+          args: Prisma.OperationalAlertDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OperationalAlertUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OperationalAlertUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>[]
+        }
+        upsert: {
+          args: Prisma.OperationalAlertUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertPayload>
+        }
+        aggregate: {
+          args: Prisma.OperationalAlertAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOperationalAlert>
+        }
+        groupBy: {
+          args: Prisma.OperationalAlertGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OperationalAlertGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OperationalAlertCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OperationalAlertCountAggregateOutputType> | number
+        }
+      }
+    }
+    OperationalAlertRead: {
+      payload: Prisma.$OperationalAlertReadPayload<ExtArgs>
+      fields: Prisma.OperationalAlertReadFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OperationalAlertReadFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OperationalAlertReadFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>
+        }
+        findFirst: {
+          args: Prisma.OperationalAlertReadFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OperationalAlertReadFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>
+        }
+        findMany: {
+          args: Prisma.OperationalAlertReadFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>[]
+        }
+        create: {
+          args: Prisma.OperationalAlertReadCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>
+        }
+        createMany: {
+          args: Prisma.OperationalAlertReadCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OperationalAlertReadCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>[]
+        }
+        delete: {
+          args: Prisma.OperationalAlertReadDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>
+        }
+        update: {
+          args: Prisma.OperationalAlertReadUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>
+        }
+        deleteMany: {
+          args: Prisma.OperationalAlertReadDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OperationalAlertReadUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OperationalAlertReadUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>[]
+        }
+        upsert: {
+          args: Prisma.OperationalAlertReadUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalAlertReadPayload>
+        }
+        aggregate: {
+          args: Prisma.OperationalAlertReadAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOperationalAlertRead>
+        }
+        groupBy: {
+          args: Prisma.OperationalAlertReadGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OperationalAlertReadGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OperationalAlertReadCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OperationalAlertReadCountAggregateOutputType> | number
+        }
+      }
+    }
     Project: {
       payload: Prisma.$ProjectPayload<ExtArgs>
       fields: Prisma.ProjectFieldRefs
@@ -1640,6 +1792,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ReportScheduleCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ReportScheduleCountAggregateOutputType> | number
+        }
+      }
+    }
+    AccountingPeriod: {
+      payload: Prisma.$AccountingPeriodPayload<ExtArgs>
+      fields: Prisma.AccountingPeriodFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccountingPeriodFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccountingPeriodFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>
+        }
+        findFirst: {
+          args: Prisma.AccountingPeriodFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccountingPeriodFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>
+        }
+        findMany: {
+          args: Prisma.AccountingPeriodFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>[]
+        }
+        create: {
+          args: Prisma.AccountingPeriodCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>
+        }
+        createMany: {
+          args: Prisma.AccountingPeriodCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AccountingPeriodCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>[]
+        }
+        delete: {
+          args: Prisma.AccountingPeriodDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>
+        }
+        update: {
+          args: Prisma.AccountingPeriodUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>
+        }
+        deleteMany: {
+          args: Prisma.AccountingPeriodDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccountingPeriodUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AccountingPeriodUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>[]
+        }
+        upsert: {
+          args: Prisma.AccountingPeriodUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountingPeriodPayload>
+        }
+        aggregate: {
+          args: Prisma.AccountingPeriodAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccountingPeriod>
+        }
+        groupBy: {
+          args: Prisma.AccountingPeriodGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountingPeriodGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccountingPeriodCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountingPeriodCountAggregateOutputType> | number
+        }
+      }
+    }
+    DocumentAttachment: {
+      payload: Prisma.$DocumentAttachmentPayload<ExtArgs>
+      fields: Prisma.DocumentAttachmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DocumentAttachmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DocumentAttachmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>
+        }
+        findFirst: {
+          args: Prisma.DocumentAttachmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DocumentAttachmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>
+        }
+        findMany: {
+          args: Prisma.DocumentAttachmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>[]
+        }
+        create: {
+          args: Prisma.DocumentAttachmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>
+        }
+        createMany: {
+          args: Prisma.DocumentAttachmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DocumentAttachmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>[]
+        }
+        delete: {
+          args: Prisma.DocumentAttachmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>
+        }
+        update: {
+          args: Prisma.DocumentAttachmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.DocumentAttachmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DocumentAttachmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DocumentAttachmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.DocumentAttachmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentAttachmentPayload>
+        }
+        aggregate: {
+          args: Prisma.DocumentAttachmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDocumentAttachment>
+        }
+        groupBy: {
+          args: Prisma.DocumentAttachmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentAttachmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DocumentAttachmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentAttachmentCountAggregateOutputType> | number
         }
       }
     }
@@ -3710,7 +4010,8 @@ export const UserScalarFieldEnum = {
   passwordResetAt: 'passwordResetAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
+  deletedAt: 'deletedAt',
+  approvalLimit: 'approvalLimit'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -3859,6 +4160,38 @@ export const ActivityLogScalarFieldEnum = {
 export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
 
 
+export const OperationalAlertScalarFieldEnum = {
+  id: 'id',
+  sourceKey: 'sourceKey',
+  type: 'type',
+  severity: 'severity',
+  title: 'title',
+  details: 'details',
+  targetPath: 'targetPath',
+  requiredPermission: 'requiredPermission',
+  assigneeId: 'assigneeId',
+  activeAt: 'activeAt',
+  resolvedAt: 'resolvedAt',
+  escalatedAt: 'escalatedAt',
+  lastEmailedAt: 'lastEmailedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OperationalAlertScalarFieldEnum = (typeof OperationalAlertScalarFieldEnum)[keyof typeof OperationalAlertScalarFieldEnum]
+
+
+export const OperationalAlertReadScalarFieldEnum = {
+  id: 'id',
+  alertId: 'alertId',
+  userId: 'userId',
+  readAt: 'readAt',
+  dismissedAt: 'dismissedAt'
+} as const
+
+export type OperationalAlertReadScalarFieldEnum = (typeof OperationalAlertReadScalarFieldEnum)[keyof typeof OperationalAlertReadScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -3946,12 +4279,49 @@ export const ReportScheduleScalarFieldEnum = {
   filters: 'filters',
   isActive: 'isActive',
   nextRunAt: 'nextRunAt',
+  lastRunAt: 'lastRunAt',
+  lastSuccessAt: 'lastSuccessAt',
+  lastFailureAt: 'lastFailureAt',
+  lastError: 'lastError',
+  lastDeliveryId: 'lastDeliveryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
 } as const
 
 export type ReportScheduleScalarFieldEnum = (typeof ReportScheduleScalarFieldEnum)[keyof typeof ReportScheduleScalarFieldEnum]
+
+
+export const AccountingPeriodScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  status: 'status',
+  lockedAt: 'lockedAt',
+  lockedById: 'lockedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountingPeriodScalarFieldEnum = (typeof AccountingPeriodScalarFieldEnum)[keyof typeof AccountingPeriodScalarFieldEnum]
+
+
+export const DocumentAttachmentScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  filename: 'filename',
+  url: 'url',
+  contentType: 'contentType',
+  size: 'size',
+  uploadedById: 'uploadedById',
+  signedAt: 'signedAt',
+  signedById: 'signedById',
+  createdAt: 'createdAt'
+} as const
+
+export type DocumentAttachmentScalarFieldEnum = (typeof DocumentAttachmentScalarFieldEnum)[keyof typeof DocumentAttachmentScalarFieldEnum]
 
 
 export const TenantScalarFieldEnum = {
@@ -4486,20 +4856,6 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'Department'
- */
-export type EnumDepartmentFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Department'>
-    
-
-
-/**
- * Reference to a field of type 'Department[]'
- */
-export type ListEnumDepartmentFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Department[]'>
-    
-
-
-/**
  * Reference to a field of type 'Decimal'
  */
 export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -4510,6 +4866,20 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Decimal[]'
  */
 export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Department'
+ */
+export type EnumDepartmentFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Department'>
+    
+
+
+/**
+ * Reference to a field of type 'Department[]'
+ */
+export type ListEnumDepartmentFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Department[]'>
     
 
 
@@ -4996,11 +5366,15 @@ export type GlobalOmitConfig = {
   category?: Prisma.CategoryOmit
   transaction?: Prisma.TransactionOmit
   activityLog?: Prisma.ActivityLogOmit
+  operationalAlert?: Prisma.OperationalAlertOmit
+  operationalAlertRead?: Prisma.OperationalAlertReadOmit
   project?: Prisma.ProjectOmit
   projectTask?: Prisma.ProjectTaskOmit
   material?: Prisma.MaterialOmit
   inventoryTransaction?: Prisma.InventoryTransactionOmit
   reportSchedule?: Prisma.ReportScheduleOmit
+  accountingPeriod?: Prisma.AccountingPeriodOmit
+  documentAttachment?: Prisma.DocumentAttachmentOmit
   tenant?: Prisma.TenantOmit
   rentalContract?: Prisma.RentalContractOmit
   rentPayment?: Prisma.RentPaymentOmit

@@ -6,6 +6,7 @@ import {
   AssignUserRolesDto,
   CreateRoleDto,
   SetDirectPermissionDto,
+  SetApprovalLimitDto,
   UpdateRoleDto,
 } from './dto/rbac.dto';
 import { RbacService } from './rbac.service';
@@ -59,6 +60,12 @@ export class RbacController {
     @Body() body: AssignUserRolesDto,
   ) {
     return this.rbac.assignUserRoles(db, userId, body);
+  }
+
+  @Patch('users/:userId/approval-limit')
+  @RequirePermissions('users.update', 'roles.update')
+  setApprovalLimit(@GetTenantDb() db: any, @Param('userId') userId: string, @Body() body: SetApprovalLimitDto) {
+    return this.rbac.setApprovalLimit(db, userId, body.approvalLimit);
   }
 
   @Post('users/:userId/permissions')

@@ -122,6 +122,24 @@ export class ConstructionController {
     return this.constructionService.getWorkforceContracts(tenantDb, projectId);
   }
 
+  @Get('contracts/workspace')
+  @RequirePermissions('workforce_contracts.read')
+  async getWorkforceContractsWorkspace(
+    @GetTenantDb() db: any,
+    @CurrentUser() user: any,
+  ) {
+    const permissions = user?.permissions || [];
+    const isOwner = user?.isImpersonating || ['COMPANY_OWNER', 'SUPER_ADMIN'].includes(user?.role);
+    const canEdit = isOwner || permissions.includes('workforce_contracts.create') || permissions.includes('workforce_contracts.update');
+    const canAssign = isOwner || permissions.includes('workforce_contracts.update');
+    const [contracts, projects, staff] = await Promise.all([
+      this.constructionService.getWorkforceContracts(db),
+      canEdit ? this.constructionService.getProjectOptions(db) : [],
+      canAssign ? this.staffService.getStaffOptions(db, 'CONSTRUCTION') : [],
+    ]);
+    return { contracts, projects, staff };
+  }
+
   @Post('contracts')
   @RequirePermissions('workforce_contracts.create')
   async createWorkforceContract(@GetTenantDb() tenantDb: any, @Body() body: WorkforceContractDto) {

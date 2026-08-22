@@ -21,6 +21,7 @@ import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import {
   AccountBalanceQueryDto,
   CreateJournalBatchDto,
+  CreateAccountingPeriodDto,
   GeneralLedgerQueryDto,
   JournalBatchQueryDto,
   ReportRangeQueryDto,
@@ -35,6 +36,22 @@ export class AccountingController {
     private readonly accounting: AccountingService,
     private readonly mappings: AccountMappingsService,
   ) {}
+
+  @Get('periods')
+  @RequirePermissions('accounting.read')
+  listPeriods(@GetTenantDb() db: any) { return this.accounting.listPeriods(db); }
+
+  @Post('periods')
+  @RequirePermissions('accounting.approve')
+  createPeriod(@GetTenantDb() db: any, @Body() dto: CreateAccountingPeriodDto) { return this.accounting.createPeriod(db, dto); }
+
+  @Post('periods/:id/lock')
+  @RequirePermissions('accounting.approve')
+  lockPeriod(@GetTenantDb() db: any, @Param('id') id: string, @CurrentUser('id') userId: string) { return this.accounting.setPeriodLock(db, id, true, userId); }
+
+  @Post('periods/:id/unlock')
+  @RequirePermissions('accounting.approve')
+  unlockPeriod(@GetTenantDb() db: any, @Param('id') id: string) { return this.accounting.setPeriodLock(db, id, false); }
 
   // ── Account Mappings ───────────────────────────────────────
 

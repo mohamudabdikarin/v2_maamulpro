@@ -9,6 +9,7 @@ import { AccountMappingsService } from './account-mappings.service';
 import {
   AccountBalanceQueryDto,
   CreateJournalBatchDto,
+  CreateAccountingPeriodDto,
   JournalBatchQueryDto,
   JournalLineDto,
   UpsertAccountDto,
@@ -57,6 +58,36 @@ function generateBatchNumber(): string {
 export class AccountingService {
 
   constructor(private readonly mappings: AccountMappingsService) {}
+
+  listPeriods(tenantDb: any) {
+    return tenantDb.accountingPeriod.findMany({ orderBy: { startDate: 'desc' } });
+  }
+
+  async createPeriod(tenantDb: any, dto: CreateAccountingPeriodDto) {
+    if (dto.endDate < dto.startDate) throw new BadRequestException('Period end date must be on or after its start date');
+    const overlap = await tenantDb.accountingPeriod.findFirst({
+      where: { startDate: { lte: dto.endDate }, endDate: { gte: dto.startDate } },
+    });
+    if (overlap) throw new ConflictException(`Accounting period overlaps '${overlap.name}'`);
+    return tenantDb.accountingPeriod.create({ data: dto });
+  }
+
+  async setPeriodLock(tenantDb: any, id: string, locked: boolean, userId?: string) {
+    const period = await tenantDb.accountingPeriod.findUnique({ where: { id } });
+    if (!period) throw new NotFoundException('Accounting period not found');
+    return tenantDb.accountingPeriod.update({
+      where: { id },
+      data: { status: locked ? 'LOCKED' : 'OPEN', lockedAt: locked ? new Date() : null, lockedById: locked ? userId : null },
+    });
+  }
+
+  private async assertPeriodOpen(tx: any, date: Date) {
+    const locked = await tx.accountingPeriod.findFirst({
+      where: { status: 'LOCKED', startDate: { lte: date }, endDate: { gte: date } },
+      select: { name: true },
+    });
+    if (locked) throw new ConflictException(`Accounting period '${locked.name}' is locked`);
+  }
 
   // ────────────────────────────────────────────────────────────
   // Integration helper — post a balanced 2-line batch from a
@@ -377,6 +408,8 @@ export class AccountingService {
     userId: string | undefined,
     dto: CreateJournalBatchDto,
   ) {
+    const postingDate = dto.date ?? new Date();
+    await this.assertPeriodOpen(tx, postingDate);
     const lines = this.normalizeLines(dto.lines);
     const totalDebit = roundToCents(lines.reduce((s, l) => s + l.debit, 0));
     const totalCredit = roundToCents(lines.reduce((s, l) => s + l.credit, 0));

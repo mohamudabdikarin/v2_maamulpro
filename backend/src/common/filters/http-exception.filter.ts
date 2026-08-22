@@ -52,6 +52,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message: Array.isArray(message) ? message[0] : message,
       errors,
       path: request.url,
+      requestId: (request as any).requestId,
       timestamp: new Date().toISOString(),
     });
   }

@@ -121,12 +121,19 @@ export class RbacService {
         name: true,
         email: true,
         role: true,
+        approvalLimit: true,
         rbacUserRoles: { include: { role: true } },
         rbacUserPermissions: { include: { permission: true } },
       },
     });
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async setApprovalLimit(tenantDb: any, userId: string, approvalLimit: number) {
+    await this.getUserAccess(tenantDb, userId);
+    await tenantDb.user.update({ where: { id: userId }, data: { approvalLimit: approvalLimit > 0 ? approvalLimit : null } });
+    return this.getUserAccess(tenantDb, userId);
   }
 
   async assignUserRoles(tenantDb: any, userId: string, data: AssignUserRolesDto) {

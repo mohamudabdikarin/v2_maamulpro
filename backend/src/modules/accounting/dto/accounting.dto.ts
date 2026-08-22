@@ -77,3 +77,9 @@ export class GeneralLedgerQueryDto {
   @IsOptional() @Type(() => Date) @IsDate() endDate?: Date;
   @IsOptional() @IsString() accountCodes?: string;
 }
+
+export class CreateAccountingPeriodDto {
+  @IsString() @MaxLength(120) name!: string;
+  @Type(() => Date) @IsDate() startDate!: Date;
+  @Type(() => Date) @IsDate() endDate!: Date;
+}

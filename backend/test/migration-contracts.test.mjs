@@ -37,7 +37,10 @@ test('tenant controllers declare permission contracts for migrated business rout
     'reports.read',
   ];
   for (const permission of requiredPermissions) {
-    assert.match(source, new RegExp(`RequirePermissions\\('${permission.replace('.', '\\.')}\\'\\)`), permission);
+    const guard = permission === 'clients.read'
+      ? /RequireAnyPermission\('clients\.read', 'rentals\.read'\)/
+      : new RegExp(`RequirePermissions\\('${permission.replace('.', '\\.')}\\'\\)`);
+    assert.match(source, guard, permission);
   }
 });
 

@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 18;
+export const CURRENT_TENANT_SCHEMA_VERSION = 22;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -138,6 +138,11 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "filters" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "next_run_at" TIMESTAMP(3),
+    "last_run_at" TIMESTAMP(3),
+    "last_success_at" TIMESTAMP(3),
+    "last_failure_at" TIMESTAMP(3),
+    "last_error" TEXT,
+    "last_delivery_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3)
@@ -268,6 +273,32 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "ip_address" TEXT,
     "device_info" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "operational_alerts" (
+    "id"                  TEXT         NOT NULL PRIMARY KEY,
+    "source_key"          TEXT         NOT NULL,
+    "type"                TEXT         NOT NULL,
+    "severity"            TEXT         NOT NULL,
+    "title"               TEXT         NOT NULL,
+    "details"             TEXT,
+    "target_path"         TEXT,
+    "required_permission" TEXT         NOT NULL,
+    "assignee_id"         TEXT,
+    "active_at"           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolved_at"         TIMESTAMP(3),
+    "escalated_at"        TIMESTAMP(3),
+    "last_emailed_at"     TIMESTAMP(3),
+    "created_at"          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "operational_alert_reads" (
+    "id"       TEXT         NOT NULL PRIMARY KEY,
+    "alert_id" TEXT         NOT NULL REFERENCES "operational_alerts"("id") ON DELETE CASCADE,
+    "user_id"  TEXT         NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+    "read_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "dismissed_at" TIMESTAMP(3)
   )`,
 
   `CREATE TABLE IF NOT EXISTS "project_tasks" (
@@ -867,6 +898,11 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "users_email_idx"              ON "users"("email")`,
   `CREATE INDEX IF NOT EXISTS "report_schedules_report_id_idx" ON "report_schedules"("report_id")`,
   `CREATE INDEX IF NOT EXISTS "report_schedules_is_active_idx" ON "report_schedules"("is_active")`,
+  `ALTER TABLE "report_schedules" ADD COLUMN IF NOT EXISTS "last_run_at" TIMESTAMP(3)`,
+  `ALTER TABLE "report_schedules" ADD COLUMN IF NOT EXISTS "last_success_at" TIMESTAMP(3)`,
+  `ALTER TABLE "report_schedules" ADD COLUMN IF NOT EXISTS "last_failure_at" TIMESTAMP(3)`,
+  `ALTER TABLE "report_schedules" ADD COLUMN IF NOT EXISTS "last_error" TEXT`,
+  `ALTER TABLE "report_schedules" ADD COLUMN IF NOT EXISTS "last_delivery_id" TEXT`,
   `CREATE INDEX IF NOT EXISTS "staff_department_idx"         ON "staff"("department")`,
   `CREATE INDEX IF NOT EXISTS "staff_status_idx"             ON "staff"("status")`,
   `CREATE INDEX IF NOT EXISTS "transactions_type_idx"        ON "transactions"("type")`,
@@ -877,6 +913,48 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "activity_logs_user_id_idx"    ON "activity_logs"("user_id")`,
   `CREATE INDEX IF NOT EXISTS "activity_logs_entity_idx"     ON "activity_logs"("entity")`,
   `CREATE INDEX IF NOT EXISTS "activity_logs_created_at_idx" ON "activity_logs"("created_at")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "operational_alerts_source_key_active_key" ON "operational_alerts"("source_key") WHERE "resolved_at" IS NULL`,
+  `CREATE INDEX IF NOT EXISTS "operational_alerts_permission_active_idx" ON "operational_alerts"("required_permission", "resolved_at")`,
+  `CREATE INDEX IF NOT EXISTS "operational_alerts_active_at_idx" ON "operational_alerts"("active_at")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "operational_alert_reads_alert_id_user_id_key" ON "operational_alert_reads"("alert_id", "user_id")`,
+  `CREATE INDEX IF NOT EXISTS "operational_alert_reads_user_id_read_at_idx" ON "operational_alert_reads"("user_id", "read_at")`,
+
+  `ALTER TABLE "operational_alerts" ADD COLUMN IF NOT EXISTS "assignee_id" TEXT`,
+  `ALTER TABLE "operational_alerts" ADD COLUMN IF NOT EXISTS "escalated_at" TIMESTAMP(3)`,
+  `ALTER TABLE "operational_alerts" ADD COLUMN IF NOT EXISTS "last_emailed_at" TIMESTAMP(3)`,
+  `ALTER TABLE "operational_alert_reads" ADD COLUMN IF NOT EXISTS "dismissed_at" TIMESTAMP(3)`,
+  `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "approval_limit" DECIMAL(12,2)`,
+  `CREATE TABLE IF NOT EXISTS "accounting_periods" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "start_date" TIMESTAMP(3) NOT NULL,
+    "end_date" TIMESTAMP(3) NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'OPEN',
+    "locked_at" TIMESTAMP(3),
+    "locked_by_id" TEXT REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE INDEX IF NOT EXISTS "accounting_periods_start_date_end_date_status_idx" ON "accounting_periods"("start_date", "end_date", "status")`,
+  `CREATE TABLE IF NOT EXISTS "document_attachments" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "entity_type" TEXT NOT NULL,
+    "entity_id" TEXT NOT NULL,
+    "filename" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "content_type" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "uploaded_by_id" TEXT NOT NULL REFERENCES "users"("id") ON DELETE RESTRICT,
+    "signed_at" TIMESTAMP(3),
+    "signed_by_id" TEXT REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE INDEX IF NOT EXISTS "document_attachments_entity_type_entity_id_idx" ON "document_attachments"("entity_type", "entity_id")`,
+  `CREATE INDEX IF NOT EXISTS "operational_alerts_assignee_id_resolved_at_idx" ON "operational_alerts"("assignee_id", "resolved_at")`,
+  `DO $$ BEGIN
+    ALTER TABLE "operational_alerts" ADD CONSTRAINT "operational_alerts_assignee_id_fkey"
+      FOREIGN KEY ("assignee_id") REFERENCES "users"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
   `CREATE INDEX IF NOT EXISTS "projects_status_idx"          ON "projects"("status")`,
   `CREATE INDEX IF NOT EXISTS "project_tasks_project_id_idx" ON "project_tasks"("project_id")`,
   `CREATE INDEX IF NOT EXISTS "project_tasks_status_idx"     ON "project_tasks"("status")`,

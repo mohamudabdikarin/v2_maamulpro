@@ -20,8 +20,18 @@ export type UserModel = runtime.Types.Result.DefaultSelection<Prisma.$UserPayloa
 
 export type AggregateUser = {
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
+}
+
+export type UserAvgAggregateOutputType = {
+  approvalLimit: runtime.Decimal | null
+}
+
+export type UserSumAggregateOutputType = {
+  approvalLimit: runtime.Decimal | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -44,6 +54,7 @@ export type UserMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
+  approvalLimit: runtime.Decimal | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -66,6 +77,7 @@ export type UserMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
+  approvalLimit: runtime.Decimal | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -88,9 +100,18 @@ export type UserCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   deletedAt: number
+  approvalLimit: number
   _all: number
 }
 
+
+export type UserAvgAggregateInputType = {
+  approvalLimit?: true
+}
+
+export type UserSumAggregateInputType = {
+  approvalLimit?: true
+}
 
 export type UserMinAggregateInputType = {
   id?: true
@@ -112,6 +133,7 @@ export type UserMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  approvalLimit?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -134,6 +156,7 @@ export type UserMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  approvalLimit?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -156,6 +179,7 @@ export type UserCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  approvalLimit?: true
   _all?: true
 }
 
@@ -197,6 +221,18 @@ export type UserAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: UserAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: UserSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: UserMinAggregateInputType
@@ -227,6 +263,8 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: UserCountAggregateInputType | true
+  _avg?: UserAvgAggregateInputType
+  _sum?: UserSumAggregateInputType
   _min?: UserMinAggregateInputType
   _max?: UserMaxAggregateInputType
 }
@@ -251,7 +289,10 @@ export type UserGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
+  approvalLimit: runtime.Decimal | null
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
 }
@@ -294,8 +335,14 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  approvalLimit?: Prisma.DecimalNullableFilter<"User"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
   activityLogs?: Prisma.ActivityLogListRelationFilter
+  operationalAlertReads?: Prisma.OperationalAlertReadListRelationFilter
+  assignedOperationalAlerts?: Prisma.OperationalAlertListRelationFilter
+  lockedAccountingPeriods?: Prisma.AccountingPeriodListRelationFilter
+  uploadedDocuments?: Prisma.DocumentAttachmentListRelationFilter
+  signedDocuments?: Prisma.DocumentAttachmentListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   projectTasks?: Prisma.ProjectTaskListRelationFilter
   createdDeals?: Prisma.DealListRelationFilter
@@ -332,8 +379,14 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvalLimit?: Prisma.SortOrderInput | Prisma.SortOrder
   staff?: Prisma.StaffOrderByWithRelationInput
   activityLogs?: Prisma.ActivityLogOrderByRelationAggregateInput
+  operationalAlertReads?: Prisma.OperationalAlertReadOrderByRelationAggregateInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertOrderByRelationAggregateInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodOrderByRelationAggregateInput
+  uploadedDocuments?: Prisma.DocumentAttachmentOrderByRelationAggregateInput
+  signedDocuments?: Prisma.DocumentAttachmentOrderByRelationAggregateInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   projectTasks?: Prisma.ProjectTaskOrderByRelationAggregateInput
   createdDeals?: Prisma.DealOrderByRelationAggregateInput
@@ -373,8 +426,14 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  approvalLimit?: Prisma.DecimalNullableFilter<"User"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
   activityLogs?: Prisma.ActivityLogListRelationFilter
+  operationalAlertReads?: Prisma.OperationalAlertReadListRelationFilter
+  assignedOperationalAlerts?: Prisma.OperationalAlertListRelationFilter
+  lockedAccountingPeriods?: Prisma.AccountingPeriodListRelationFilter
+  uploadedDocuments?: Prisma.DocumentAttachmentListRelationFilter
+  signedDocuments?: Prisma.DocumentAttachmentListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   projectTasks?: Prisma.ProjectTaskListRelationFilter
   createdDeals?: Prisma.DealListRelationFilter
@@ -411,9 +470,12 @@ export type UserOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvalLimit?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
+  _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
+  _sum?: Prisma.UserSumOrderByAggregateInput
 }
 
 export type UserScalarWhereWithAggregatesInput = {
@@ -439,6 +501,7 @@ export type UserScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  approvalLimit?: Prisma.DecimalNullableWithAggregatesFilter<"User"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type UserCreateInput = {
@@ -461,8 +524,14 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -499,8 +568,14 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -537,8 +612,14 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -575,8 +656,14 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -613,6 +700,7 @@ export type UserCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -635,6 +723,7 @@ export type UserUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -657,6 +746,7 @@ export type UserUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -679,6 +769,11 @@ export type UserCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  approvalLimit?: Prisma.SortOrder
+}
+
+export type UserAvgOrderByAggregateInput = {
+  approvalLimit?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -701,6 +796,7 @@ export type UserMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  approvalLimit?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -723,6 +819,11 @@ export type UserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  approvalLimit?: Prisma.SortOrder
+}
+
+export type UserSumOrderByAggregateInput = {
+  approvalLimit?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -749,6 +850,14 @@ export type BoolFieldUpdateOperationsInput = {
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
+}
+
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type UserCreateNestedOneWithoutRbacUserRolesInput = {
@@ -825,6 +934,36 @@ export type UserUpdateOneRequiredWithoutActivityLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutActivityLogsInput, Prisma.UserUpdateWithoutActivityLogsInput>, Prisma.UserUncheckedUpdateWithoutActivityLogsInput>
 }
 
+export type UserCreateNestedOneWithoutAssignedOperationalAlertsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssignedOperationalAlertsInput, Prisma.UserUncheckedCreateWithoutAssignedOperationalAlertsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssignedOperationalAlertsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutAssignedOperationalAlertsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssignedOperationalAlertsInput, Prisma.UserUncheckedCreateWithoutAssignedOperationalAlertsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssignedOperationalAlertsInput
+  upsert?: Prisma.UserUpsertWithoutAssignedOperationalAlertsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAssignedOperationalAlertsInput, Prisma.UserUpdateWithoutAssignedOperationalAlertsInput>, Prisma.UserUncheckedUpdateWithoutAssignedOperationalAlertsInput>
+}
+
+export type UserCreateNestedOneWithoutOperationalAlertReadsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOperationalAlertReadsInput, Prisma.UserUncheckedCreateWithoutOperationalAlertReadsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOperationalAlertReadsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOperationalAlertReadsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOperationalAlertReadsInput, Prisma.UserUncheckedCreateWithoutOperationalAlertReadsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOperationalAlertReadsInput
+  upsert?: Prisma.UserUpsertWithoutOperationalAlertReadsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOperationalAlertReadsInput, Prisma.UserUpdateWithoutOperationalAlertReadsInput>, Prisma.UserUncheckedUpdateWithoutOperationalAlertReadsInput>
+}
+
 export type UserCreateNestedOneWithoutProjectTasksInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutProjectTasksInput, Prisma.UserUncheckedCreateWithoutProjectTasksInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectTasksInput
@@ -853,6 +992,52 @@ export type UserUpdateOneRequiredWithoutInventoryTransactionsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutInventoryTransactionsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutInventoryTransactionsInput, Prisma.UserUpdateWithoutInventoryTransactionsInput>, Prisma.UserUncheckedUpdateWithoutInventoryTransactionsInput>
+}
+
+export type UserCreateNestedOneWithoutLockedAccountingPeriodsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLockedAccountingPeriodsInput, Prisma.UserUncheckedCreateWithoutLockedAccountingPeriodsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLockedAccountingPeriodsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutLockedAccountingPeriodsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLockedAccountingPeriodsInput, Prisma.UserUncheckedCreateWithoutLockedAccountingPeriodsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLockedAccountingPeriodsInput
+  upsert?: Prisma.UserUpsertWithoutLockedAccountingPeriodsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLockedAccountingPeriodsInput, Prisma.UserUpdateWithoutLockedAccountingPeriodsInput>, Prisma.UserUncheckedUpdateWithoutLockedAccountingPeriodsInput>
+}
+
+export type UserCreateNestedOneWithoutUploadedDocumentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUploadedDocumentsInput, Prisma.UserUncheckedCreateWithoutUploadedDocumentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUploadedDocumentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutSignedDocumentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSignedDocumentsInput, Prisma.UserUncheckedCreateWithoutSignedDocumentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSignedDocumentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutUploadedDocumentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUploadedDocumentsInput, Prisma.UserUncheckedCreateWithoutUploadedDocumentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUploadedDocumentsInput
+  upsert?: Prisma.UserUpsertWithoutUploadedDocumentsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUploadedDocumentsInput, Prisma.UserUpdateWithoutUploadedDocumentsInput>, Prisma.UserUncheckedUpdateWithoutUploadedDocumentsInput>
+}
+
+export type UserUpdateOneWithoutSignedDocumentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSignedDocumentsInput, Prisma.UserUncheckedCreateWithoutSignedDocumentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSignedDocumentsInput
+  upsert?: Prisma.UserUpsertWithoutSignedDocumentsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSignedDocumentsInput, Prisma.UserUpdateWithoutSignedDocumentsInput>, Prisma.UserUncheckedUpdateWithoutSignedDocumentsInput>
 }
 
 export type UserCreateNestedOneWithoutMaterialSalesInput = {
@@ -1015,8 +1200,14 @@ export type UserCreateWithoutRbacUserRolesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -1052,8 +1243,14 @@ export type UserUncheckedCreateWithoutRbacUserRolesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1105,8 +1302,14 @@ export type UserUpdateWithoutRbacUserRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -1142,8 +1345,14 @@ export type UserUncheckedUpdateWithoutRbacUserRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1179,8 +1388,14 @@ export type UserCreateWithoutRbacUserPermissionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -1216,8 +1431,14 @@ export type UserUncheckedCreateWithoutRbacUserPermissionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1269,8 +1490,14 @@ export type UserUpdateWithoutRbacUserPermissionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -1306,8 +1533,14 @@ export type UserUncheckedUpdateWithoutRbacUserPermissionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1343,7 +1576,13 @@ export type UserCreateWithoutStaffInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -1380,7 +1619,13 @@ export type UserUncheckedCreateWithoutStaffInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1433,7 +1678,13 @@ export type UserUpdateWithoutStaffInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -1470,7 +1721,13 @@ export type UserUncheckedUpdateWithoutStaffInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1507,8 +1764,14 @@ export type UserCreateWithoutTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
@@ -1544,8 +1807,14 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -1597,8 +1866,14 @@ export type UserUpdateWithoutTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
@@ -1634,8 +1909,14 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1671,7 +1952,13 @@ export type UserCreateWithoutActivityLogsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -1708,7 +1995,13 @@ export type UserUncheckedCreateWithoutActivityLogsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1761,7 +2054,13 @@ export type UserUpdateWithoutActivityLogsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -1798,7 +2097,389 @@ export type UserUncheckedUpdateWithoutActivityLogsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserCreateWithoutAssignedOperationalAlertsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
+}
+
+export type UserUncheckedCreateWithoutAssignedOperationalAlertsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
+}
+
+export type UserCreateOrConnectWithoutAssignedOperationalAlertsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssignedOperationalAlertsInput, Prisma.UserUncheckedCreateWithoutAssignedOperationalAlertsInput>
+}
+
+export type UserUpsertWithoutAssignedOperationalAlertsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAssignedOperationalAlertsInput, Prisma.UserUncheckedUpdateWithoutAssignedOperationalAlertsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssignedOperationalAlertsInput, Prisma.UserUncheckedCreateWithoutAssignedOperationalAlertsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAssignedOperationalAlertsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAssignedOperationalAlertsInput, Prisma.UserUncheckedUpdateWithoutAssignedOperationalAlertsInput>
+}
+
+export type UserUpdateWithoutAssignedOperationalAlertsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAssignedOperationalAlertsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserCreateWithoutOperationalAlertReadsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
+}
+
+export type UserUncheckedCreateWithoutOperationalAlertReadsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
+}
+
+export type UserCreateOrConnectWithoutOperationalAlertReadsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOperationalAlertReadsInput, Prisma.UserUncheckedCreateWithoutOperationalAlertReadsInput>
+}
+
+export type UserUpsertWithoutOperationalAlertReadsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOperationalAlertReadsInput, Prisma.UserUncheckedUpdateWithoutOperationalAlertReadsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOperationalAlertReadsInput, Prisma.UserUncheckedCreateWithoutOperationalAlertReadsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOperationalAlertReadsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOperationalAlertReadsInput, Prisma.UserUncheckedUpdateWithoutOperationalAlertReadsInput>
+}
+
+export type UserUpdateWithoutOperationalAlertReadsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOperationalAlertReadsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1835,8 +2516,14 @@ export type UserCreateWithoutProjectTasksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
@@ -1872,8 +2559,14 @@ export type UserUncheckedCreateWithoutProjectTasksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -1925,8 +2618,14 @@ export type UserUpdateWithoutProjectTasksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
@@ -1962,8 +2661,14 @@ export type UserUncheckedUpdateWithoutProjectTasksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1999,8 +2704,14 @@ export type UserCreateWithoutInventoryTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -2036,8 +2747,14 @@ export type UserUncheckedCreateWithoutInventoryTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2089,8 +2806,14 @@ export type UserUpdateWithoutInventoryTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -2126,11 +2849,581 @@ export type UserUncheckedUpdateWithoutInventoryTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserCreateWithoutLockedAccountingPeriodsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
+}
+
+export type UserUncheckedCreateWithoutLockedAccountingPeriodsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
+}
+
+export type UserCreateOrConnectWithoutLockedAccountingPeriodsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutLockedAccountingPeriodsInput, Prisma.UserUncheckedCreateWithoutLockedAccountingPeriodsInput>
+}
+
+export type UserUpsertWithoutLockedAccountingPeriodsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutLockedAccountingPeriodsInput, Prisma.UserUncheckedUpdateWithoutLockedAccountingPeriodsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutLockedAccountingPeriodsInput, Prisma.UserUncheckedCreateWithoutLockedAccountingPeriodsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutLockedAccountingPeriodsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutLockedAccountingPeriodsInput, Prisma.UserUncheckedUpdateWithoutLockedAccountingPeriodsInput>
+}
+
+export type UserUpdateWithoutLockedAccountingPeriodsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutLockedAccountingPeriodsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserCreateWithoutUploadedDocumentsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
+}
+
+export type UserUncheckedCreateWithoutUploadedDocumentsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
+}
+
+export type UserCreateOrConnectWithoutUploadedDocumentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutUploadedDocumentsInput, Prisma.UserUncheckedCreateWithoutUploadedDocumentsInput>
+}
+
+export type UserCreateWithoutSignedDocumentsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
+}
+
+export type UserUncheckedCreateWithoutSignedDocumentsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
+}
+
+export type UserCreateOrConnectWithoutSignedDocumentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSignedDocumentsInput, Prisma.UserUncheckedCreateWithoutSignedDocumentsInput>
+}
+
+export type UserUpsertWithoutUploadedDocumentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutUploadedDocumentsInput, Prisma.UserUncheckedUpdateWithoutUploadedDocumentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutUploadedDocumentsInput, Prisma.UserUncheckedCreateWithoutUploadedDocumentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutUploadedDocumentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutUploadedDocumentsInput, Prisma.UserUncheckedUpdateWithoutUploadedDocumentsInput>
+}
+
+export type UserUpdateWithoutUploadedDocumentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutUploadedDocumentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserUpsertWithoutSignedDocumentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSignedDocumentsInput, Prisma.UserUncheckedUpdateWithoutSignedDocumentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSignedDocumentsInput, Prisma.UserUncheckedCreateWithoutSignedDocumentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSignedDocumentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSignedDocumentsInput, Prisma.UserUncheckedUpdateWithoutSignedDocumentsInput>
+}
+
+export type UserUpdateWithoutSignedDocumentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSignedDocumentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -2163,8 +3456,14 @@ export type UserCreateWithoutMaterialSalesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -2200,8 +3499,14 @@ export type UserUncheckedCreateWithoutMaterialSalesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2253,8 +3558,14 @@ export type UserUpdateWithoutMaterialSalesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -2290,8 +3601,14 @@ export type UserUncheckedUpdateWithoutMaterialSalesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2327,8 +3644,14 @@ export type UserCreateWithoutRecordedDailyExpensesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -2364,8 +3687,14 @@ export type UserUncheckedCreateWithoutRecordedDailyExpensesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2417,8 +3746,14 @@ export type UserUpdateWithoutRecordedDailyExpensesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -2454,8 +3789,14 @@ export type UserUncheckedUpdateWithoutRecordedDailyExpensesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2491,8 +3832,14 @@ export type UserCreateWithoutWorkerLedgerEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -2528,8 +3875,14 @@ export type UserUncheckedCreateWithoutWorkerLedgerEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2581,8 +3934,14 @@ export type UserUpdateWithoutWorkerLedgerEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -2618,8 +3977,14 @@ export type UserUncheckedUpdateWithoutWorkerLedgerEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2655,8 +4020,14 @@ export type UserCreateWithoutCreatedDealsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
@@ -2692,8 +4063,14 @@ export type UserUncheckedCreateWithoutCreatedDealsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -2745,8 +4122,14 @@ export type UserUpdateWithoutCreatedDealsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
@@ -2782,8 +4165,14 @@ export type UserUncheckedUpdateWithoutCreatedDealsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -2819,8 +4208,14 @@ export type UserCreateWithoutPostedJournalBatchesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -2856,8 +4251,14 @@ export type UserUncheckedCreateWithoutPostedJournalBatchesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2909,8 +4310,14 @@ export type UserUpdateWithoutPostedJournalBatchesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -2946,8 +4353,14 @@ export type UserUncheckedUpdateWithoutPostedJournalBatchesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2983,8 +4396,14 @@ export type UserCreateWithoutWorkforceContractPaymentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -3020,8 +4439,14 @@ export type UserUncheckedCreateWithoutWorkforceContractPaymentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3073,8 +4498,14 @@ export type UserUpdateWithoutWorkforceContractPaymentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -3110,8 +4541,14 @@ export type UserUncheckedUpdateWithoutWorkforceContractPaymentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3147,8 +4584,14 @@ export type UserCreateWithoutWorkforceContractAdjustmentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -3184,8 +4627,14 @@ export type UserUncheckedCreateWithoutWorkforceContractAdjustmentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3237,8 +4686,14 @@ export type UserUpdateWithoutWorkforceContractAdjustmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -3274,8 +4729,14 @@ export type UserUncheckedUpdateWithoutWorkforceContractAdjustmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3311,8 +4772,14 @@ export type UserCreateWithoutCreatedPayrollsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -3348,8 +4815,14 @@ export type UserUncheckedCreateWithoutCreatedPayrollsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3390,8 +4863,14 @@ export type UserCreateWithoutApprovedPayrollsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
@@ -3427,8 +4906,14 @@ export type UserUncheckedCreateWithoutApprovedPayrollsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
   activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3480,8 +4965,14 @@ export type UserUpdateWithoutCreatedPayrollsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -3517,8 +5008,14 @@ export type UserUncheckedUpdateWithoutCreatedPayrollsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3565,8 +5062,14 @@ export type UserUpdateWithoutApprovedPayrollsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
@@ -3602,8 +5105,14 @@ export type UserUncheckedUpdateWithoutApprovedPayrollsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
   activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3626,6 +5135,11 @@ export type UserUncheckedUpdateWithoutApprovedPayrollsInput = {
 
 export type UserCountOutputType = {
   activityLogs: number
+  operationalAlertReads: number
+  assignedOperationalAlerts: number
+  lockedAccountingPeriods: number
+  uploadedDocuments: number
+  signedDocuments: number
   transactions: number
   projectTasks: number
   createdDeals: number
@@ -3644,6 +5158,11 @@ export type UserCountOutputType = {
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   activityLogs?: boolean | UserCountOutputTypeCountActivityLogsArgs
+  operationalAlertReads?: boolean | UserCountOutputTypeCountOperationalAlertReadsArgs
+  assignedOperationalAlerts?: boolean | UserCountOutputTypeCountAssignedOperationalAlertsArgs
+  lockedAccountingPeriods?: boolean | UserCountOutputTypeCountLockedAccountingPeriodsArgs
+  uploadedDocuments?: boolean | UserCountOutputTypeCountUploadedDocumentsArgs
+  signedDocuments?: boolean | UserCountOutputTypeCountSignedDocumentsArgs
   transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
   projectTasks?: boolean | UserCountOutputTypeCountProjectTasksArgs
   createdDeals?: boolean | UserCountOutputTypeCountCreatedDealsArgs
@@ -3675,6 +5194,41 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type UserCountOutputTypeCountActivityLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ActivityLogWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOperationalAlertReadsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OperationalAlertReadWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAssignedOperationalAlertsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OperationalAlertWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountLockedAccountingPeriodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AccountingPeriodWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountUploadedDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DocumentAttachmentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSignedDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DocumentAttachmentWhereInput
 }
 
 /**
@@ -3796,8 +5350,14 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  approvalLimit?: boolean
   staff?: boolean | Prisma.User$staffArgs<ExtArgs>
   activityLogs?: boolean | Prisma.User$activityLogsArgs<ExtArgs>
+  operationalAlertReads?: boolean | Prisma.User$operationalAlertReadsArgs<ExtArgs>
+  assignedOperationalAlerts?: boolean | Prisma.User$assignedOperationalAlertsArgs<ExtArgs>
+  lockedAccountingPeriods?: boolean | Prisma.User$lockedAccountingPeriodsArgs<ExtArgs>
+  uploadedDocuments?: boolean | Prisma.User$uploadedDocumentsArgs<ExtArgs>
+  signedDocuments?: boolean | Prisma.User$signedDocumentsArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   projectTasks?: boolean | Prisma.User$projectTasksArgs<ExtArgs>
   createdDeals?: boolean | Prisma.User$createdDealsArgs<ExtArgs>
@@ -3835,6 +5395,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  approvalLimit?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -3857,6 +5418,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  approvalLimit?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -3879,12 +5441,18 @@ export type UserSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  approvalLimit?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "name" | "role" | "avatarUrl" | "isActive" | "constructionAccess" | "realEstateAccess" | "materialManagementAccess" | "language" | "lastLoginAt" | "resetTokenHash" | "resetTokenExpiresAt" | "resetRequestedAt" | "passwordResetAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "name" | "role" | "avatarUrl" | "isActive" | "constructionAccess" | "realEstateAccess" | "materialManagementAccess" | "language" | "lastLoginAt" | "resetTokenHash" | "resetTokenExpiresAt" | "resetRequestedAt" | "passwordResetAt" | "createdAt" | "updatedAt" | "deletedAt" | "approvalLimit", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | Prisma.User$staffArgs<ExtArgs>
   activityLogs?: boolean | Prisma.User$activityLogsArgs<ExtArgs>
+  operationalAlertReads?: boolean | Prisma.User$operationalAlertReadsArgs<ExtArgs>
+  assignedOperationalAlerts?: boolean | Prisma.User$assignedOperationalAlertsArgs<ExtArgs>
+  lockedAccountingPeriods?: boolean | Prisma.User$lockedAccountingPeriodsArgs<ExtArgs>
+  uploadedDocuments?: boolean | Prisma.User$uploadedDocumentsArgs<ExtArgs>
+  signedDocuments?: boolean | Prisma.User$signedDocumentsArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   projectTasks?: boolean | Prisma.User$projectTasksArgs<ExtArgs>
   createdDeals?: boolean | Prisma.User$createdDealsArgs<ExtArgs>
@@ -3909,6 +5477,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     staff: Prisma.$StaffPayload<ExtArgs> | null
     activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
+    operationalAlertReads: Prisma.$OperationalAlertReadPayload<ExtArgs>[]
+    assignedOperationalAlerts: Prisma.$OperationalAlertPayload<ExtArgs>[]
+    lockedAccountingPeriods: Prisma.$AccountingPeriodPayload<ExtArgs>[]
+    uploadedDocuments: Prisma.$DocumentAttachmentPayload<ExtArgs>[]
+    signedDocuments: Prisma.$DocumentAttachmentPayload<ExtArgs>[]
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     projectTasks: Prisma.$ProjectTaskPayload<ExtArgs>[]
     createdDeals: Prisma.$DealPayload<ExtArgs>[]
@@ -3944,6 +5517,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
+    approvalLimit: runtime.Decimal | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -4340,6 +5914,11 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   staff<T extends Prisma.User$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$staffArgs<ExtArgs>>): Prisma.Prisma__StaffClient<runtime.Types.Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   activityLogs<T extends Prisma.User$activityLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  operationalAlertReads<T extends Prisma.User$operationalAlertReadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$operationalAlertReadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OperationalAlertReadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assignedOperationalAlerts<T extends Prisma.User$assignedOperationalAlertsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedOperationalAlertsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OperationalAlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  lockedAccountingPeriods<T extends Prisma.User$lockedAccountingPeriodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$lockedAccountingPeriodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountingPeriodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  uploadedDocuments<T extends Prisma.User$uploadedDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$uploadedDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  signedDocuments<T extends Prisma.User$signedDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$signedDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.User$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectTasks<T extends Prisma.User$projectTasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectTasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectTaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdDeals<T extends Prisma.User$createdDealsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdDealsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DealPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4402,6 +5981,7 @@ export interface UserFieldRefs {
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly approvalLimit: Prisma.FieldRef<"User", 'Decimal'>
 }
     
 
@@ -4835,6 +6415,126 @@ export type User$activityLogsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.ActivityLogScalarFieldEnum | Prisma.ActivityLogScalarFieldEnum[]
+}
+
+/**
+ * User.operationalAlertReads
+ */
+export type User$operationalAlertReadsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OperationalAlertRead
+   */
+  select?: Prisma.OperationalAlertReadSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OperationalAlertRead
+   */
+  omit?: Prisma.OperationalAlertReadOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OperationalAlertReadInclude<ExtArgs> | null
+  where?: Prisma.OperationalAlertReadWhereInput
+  orderBy?: Prisma.OperationalAlertReadOrderByWithRelationInput | Prisma.OperationalAlertReadOrderByWithRelationInput[]
+  cursor?: Prisma.OperationalAlertReadWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OperationalAlertReadScalarFieldEnum | Prisma.OperationalAlertReadScalarFieldEnum[]
+}
+
+/**
+ * User.assignedOperationalAlerts
+ */
+export type User$assignedOperationalAlertsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OperationalAlert
+   */
+  select?: Prisma.OperationalAlertSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OperationalAlert
+   */
+  omit?: Prisma.OperationalAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OperationalAlertInclude<ExtArgs> | null
+  where?: Prisma.OperationalAlertWhereInput
+  orderBy?: Prisma.OperationalAlertOrderByWithRelationInput | Prisma.OperationalAlertOrderByWithRelationInput[]
+  cursor?: Prisma.OperationalAlertWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OperationalAlertScalarFieldEnum | Prisma.OperationalAlertScalarFieldEnum[]
+}
+
+/**
+ * User.lockedAccountingPeriods
+ */
+export type User$lockedAccountingPeriodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AccountingPeriod
+   */
+  select?: Prisma.AccountingPeriodSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AccountingPeriod
+   */
+  omit?: Prisma.AccountingPeriodOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountingPeriodInclude<ExtArgs> | null
+  where?: Prisma.AccountingPeriodWhereInput
+  orderBy?: Prisma.AccountingPeriodOrderByWithRelationInput | Prisma.AccountingPeriodOrderByWithRelationInput[]
+  cursor?: Prisma.AccountingPeriodWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AccountingPeriodScalarFieldEnum | Prisma.AccountingPeriodScalarFieldEnum[]
+}
+
+/**
+ * User.uploadedDocuments
+ */
+export type User$uploadedDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DocumentAttachment
+   */
+  select?: Prisma.DocumentAttachmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DocumentAttachment
+   */
+  omit?: Prisma.DocumentAttachmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DocumentAttachmentInclude<ExtArgs> | null
+  where?: Prisma.DocumentAttachmentWhereInput
+  orderBy?: Prisma.DocumentAttachmentOrderByWithRelationInput | Prisma.DocumentAttachmentOrderByWithRelationInput[]
+  cursor?: Prisma.DocumentAttachmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DocumentAttachmentScalarFieldEnum | Prisma.DocumentAttachmentScalarFieldEnum[]
+}
+
+/**
+ * User.signedDocuments
+ */
+export type User$signedDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DocumentAttachment
+   */
+  select?: Prisma.DocumentAttachmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DocumentAttachment
+   */
+  omit?: Prisma.DocumentAttachmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DocumentAttachmentInclude<ExtArgs> | null
+  where?: Prisma.DocumentAttachmentWhereInput
+  orderBy?: Prisma.DocumentAttachmentOrderByWithRelationInput | Prisma.DocumentAttachmentOrderByWithRelationInput[]
+  cursor?: Prisma.DocumentAttachmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DocumentAttachmentScalarFieldEnum | Prisma.DocumentAttachmentScalarFieldEnum[]
 }
 
 /**

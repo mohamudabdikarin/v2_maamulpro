@@ -8,6 +8,8 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsNumber, Min } from 'class-validator';
 
 export class CreateRoleDto {
   @IsString()
@@ -35,4 +37,8 @@ export class SetDirectPermissionDto {
   @IsString() permissionId: string;
   @IsIn(['ALLOW', 'DENY']) effect: 'ALLOW' | 'DENY';
   @IsOptional() @IsString() @MaxLength(500) reason?: string;
+}
+
+export class SetApprovalLimitDto {
+  @Type(() => Number) @IsNumber() @Min(0) approvalLimit: number;
 }

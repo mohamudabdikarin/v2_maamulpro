@@ -16,6 +16,15 @@ export class PayrollService {
     private readonly mappings: AccountMappingsService,
   ) {}
 
+  private async assertApprovalLimit(tx: any, userId: string, amount: number) {
+    const approver = await tx.user.findUnique({ where: { id: userId }, select: { role: true, approvalLimit: true } });
+    if (!approver) throw new BadRequestException('Approver account was not found');
+    if (['COMPANY_OWNER', 'SUPER_ADMIN'].includes(approver.role)) return;
+    if (approver.approvalLimit != null && amount > Number(approver.approvalLimit)) {
+      throw new BadRequestException(`Payroll total exceeds your approval limit of ${Number(approver.approvalLimit).toFixed(2)}`);
+    }
+  }
+
   private async safePost(fn: () => Promise<unknown>) {
     try { await fn(); } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -190,6 +199,27 @@ export class PayrollService {
     });
   }
 
+  async generateMonthlyDraft(tenantDb: any, userId: string, date = new Date()) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const existing = await tenantDb.payroll.findFirst({ where: { year, month, deletedAt: null }, select: { id: true } });
+    if (existing) return { generated: false, reason: 'period_exists', payrollId: existing.id };
+    const staff = await this.getEligibleStaff(tenantDb);
+    if (!staff.length) return { generated: false, reason: 'no_eligible_staff' };
+    const payroll = await this.createPayroll(tenantDb, {
+      name: `${date.toLocaleString('en', { month: 'long' })} ${year} Payroll`, year, month,
+      payPeriod: `${year}-${String(month).padStart(2, '0')}`,
+      items: staff.map((employee: any) => ({
+        staffId: employee.id,
+        employeeName: `${employee.firstName} ${employee.lastName}`,
+        employeePosition: employee.position || undefined,
+        employeeDepartment: employee.department,
+        baseSalary: Number(employee.salary), bonuses: 0, deductions: 0, tax: 0,
+      })),
+    }, userId);
+    return { generated: true, payrollId: payroll.id };
+  }
+
   async updatePayroll(tenantDb: any, id: string, data: SavePayrollDto) {
     const payroll = await this.getPayrollById(tenantDb, id);
     if (!['DRAFT', 'REJECTED'].includes(payroll.status)) {
@@ -251,6 +281,7 @@ export class PayrollService {
       reopen: 'DRAFT',
     }[data.action];
     return tenantDb.$transaction(async (tx: any) => {
+      if (data.action === 'approve') await this.assertApprovalLimit(tx, userId, Number(payroll.totalNetSalary || payroll.totalGrossSalary));
       await this.applyStatusToItems(
         tx,
         payroll.items,
@@ -323,6 +354,8 @@ export class PayrollService {
       if (payroll.status !== 'DRAFT' && payroll.status !== 'PENDING_APPROVAL') {
         throw new BadRequestException(`Payroll status is '${payroll.status}' and cannot be approved`);
       }
+
+      await this.assertApprovalLimit(tx, userId, Number(payroll.totalNetSalary || payroll.totalGrossSalary));
 
       await this.applyStatusToItems(tx, payroll.items, 'APPROVED', payroll.year, payroll.month, true);
 

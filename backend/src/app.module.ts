@@ -24,6 +24,8 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { RbacModule } from './modules/rbac/rbac.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { EmailModule } from './common/email/email.module';
+import { OperationsModule } from './modules/operations/operations.module';
+import { RequestMonitoringInterceptor } from './common/interceptors/request-monitoring.interceptor';
 
 @Module({
   imports: [
@@ -45,11 +47,13 @@ import { EmailModule } from './common/email/email.module';
     SettingsModule,
     RbacModule,
     UploadsModule,
+    OperationsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_INTERCEPTOR, useClass: ActivityLogInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: RequestMonitoringInterceptor },
   ],
 })
 export class AppModule implements NestModule {

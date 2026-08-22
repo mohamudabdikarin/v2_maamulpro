@@ -22,12 +22,9 @@ const RentalHubPage = () => {
     const [generating, setGenerating] = useState(false);
     const [invoiceMonth, setInvoiceMonth] = useState<string | null>(null);
 
-    const load = () => Promise.all([
-        api<unknown>('/api/real-estate/tenants'),
-        hasPermission('properties.read') ? api<unknown>('/api/real-estate/properties') : api<unknown>('/api/real-estate/properties/options'),
-        api<unknown>('/api/real-estate/rental-contracts'),
-        api<unknown>('/api/real-estate/rent-payments'),
-    ]).then(([a, b, c, d]) => setData({ tenants: unwrapRows(a), properties: unwrapRows(b), contracts: unwrapRows(c), payments: unwrapRows(d) })).catch((reason) => setError(reason.message));
+    const load = () => api<State>('/api/real-estate/rentals/workspace')
+        .then((workspace) => setData({ tenants: unwrapRows(workspace.tenants), properties: unwrapRows(workspace.properties), contracts: unwrapRows(workspace.contracts), payments: unwrapRows(workspace.payments) }))
+        .catch((reason) => setError(reason.message));
     useEffect(() => { load(); }, []);
 
     const openGenerateInvoices = () => { setError(''); setMessage(''); setInvoiceMonth(currentMonthValue()); };

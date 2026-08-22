@@ -1,0 +1,14 @@
+import { useEffect, useState } from 'react';
+import { api } from '../../lib/api';
+import { shortDate } from './PageKit';
+
+type DocumentRow = { id: string; filename: string; url: string; size: number; signedAt?: string; uploadedBy?: { name: string }; signedBy?: { name: string } };
+
+export const DocumentAttachments = ({ entityType, entityId, canUpload = false, canSign = false }: { entityType: string; entityId: string; canUpload?: boolean; canSign?: boolean }) => {
+    const [rows, setRows] = useState<DocumentRow[]>([]); const [busy, setBusy] = useState(false); const [error, setError] = useState('');
+    const load = () => api<DocumentRow[]>(`/api/uploads/documents?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`).then(setRows).catch((reason) => setError(reason.message));
+    useEffect(() => { load(); }, [entityType, entityId]);
+    const upload = async (file?: File) => { if (!file) return; setBusy(true); setError(''); const data = new FormData(); data.append('file', file); try { await api(`/api/uploads/documents?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`, { method: 'POST', body: data }); await load(); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Upload failed'); } finally { setBusy(false); } };
+    const sign = async (id: string) => { setBusy(true); try { await api('/api/uploads/documents/sign', { method: 'POST', body: JSON.stringify({ id }) }); await load(); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Signing failed'); } finally { setBusy(false); } };
+    return <div className="panel"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold">Documents & signatures</h2><p className="text-xs text-white-dark">PDF, Word, or Excel evidence up to 10 MB.</p></div>{canUpload && <label className={`btn btn-sm btn-outline-primary ${busy ? 'pointer-events-none opacity-60' : ''}`}>Upload<input className="hidden" type="file" accept=".pdf,.docx,.xlsx" onChange={(event) => upload(event.target.files?.[0])} /></label>}</div>{error && <p className="mb-3 text-sm text-danger">{error}</p>}{!rows.length ? <p className="text-sm text-white-dark">No documents attached.</p> : <div className="space-y-2">{rows.map((row) => <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-white-light p-3 dark:border-[#191e3a]" key={row.id}><div><a className="font-semibold text-primary hover:underline" href={row.url} target="_blank" rel="noreferrer">{row.filename}</a><p className="text-xs text-white-dark">{Math.ceil(row.size / 1024)} KB · {row.uploadedBy?.name || 'User'}{row.signedAt ? ` · Signed ${shortDate(row.signedAt)} by ${row.signedBy?.name || 'User'}` : ''}</p></div>{canSign && !row.signedAt && <button className="btn btn-sm btn-outline-success" disabled={busy} onClick={() => sign(row.id)}>Sign</button>}</div>)}</div>}</div>;
+};

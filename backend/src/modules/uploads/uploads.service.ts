@@ -9,9 +9,50 @@ import { randomUUID } from 'crypto';
 
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const ALLOWED_FOLDERS = new Set(['avatars', 'staff', 'projects', 'properties', 'materials', 'branding']);
+const ALLOWED_DOCUMENT_TYPES = new Set(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+const DOCUMENT_ENTITIES = new Set(['workforce_contract', 'rental_contract', 'payroll', 'journal_batch']);
 
 @Injectable()
 export class UploadsService {
+  async uploadDocument(tenantDb: any, file: any, entityType: string, entityId: string, companyId: string, userId: string) {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) throw new ServiceUnavailableException('Persistent blob storage is not configured');
+    if (!file) throw new BadRequestException('Document file is required');
+    if (!DOCUMENT_ENTITIES.has(entityType)) throw new BadRequestException('Unsupported document entity');
+    const modelName = ({ workforce_contract: 'workforceContract', rental_contract: 'rentalContract', payroll: 'payroll', journal_batch: 'journalBatch' } as Record<string, string>)[entityType];
+    const entity = await tenantDb[modelName].findFirst({ where: { id: entityId, deletedAt: null }, select: { id: true } });
+    if (!entity) throw new NotFoundException('Document parent record was not found');
+    if (!ALLOWED_DOCUMENT_TYPES.has(file.mimetype)) throw new BadRequestException('Only PDF, DOCX and XLSX documents are allowed');
+    if (file.size > 10 * 1024 * 1024) throw new BadRequestException('Document must be 10 MB or smaller');
+    const valid = file.mimetype === 'application/pdf'
+      ? file.buffer.subarray(0, 5).toString('ascii') === '%PDF-'
+      : file.buffer.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+    if (!valid) throw new BadRequestException('Document content does not match its file type');
+    const extension = file.mimetype === 'application/pdf' ? 'pdf' : file.mimetype.includes('wordprocessing') ? 'docx' : 'xlsx';
+    const pathname = `${companyId}/documents/${entityType}/${entityId}/${Date.now()}-${randomUUID()}.${extension}`;
+    const blob = await put(pathname, file.buffer, { access: 'public', addRandomSuffix: false, token, contentType: file.mimetype });
+    return tenantDb.documentAttachment.create({
+      data: { entityType, entityId, filename: file.originalname || `document.${extension}`, url: blob.url, contentType: file.mimetype, size: file.size, uploadedById: userId },
+      include: { uploadedBy: { select: { name: true } }, signedBy: { select: { name: true } } },
+    });
+  }
+
+  listDocuments(tenantDb: any, entityType: string, entityId: string) {
+    if (!DOCUMENT_ENTITIES.has(entityType)) throw new BadRequestException('Unsupported document entity');
+    return tenantDb.documentAttachment.findMany({
+      where: { entityType, entityId },
+      include: { uploadedBy: { select: { name: true } }, signedBy: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async signDocument(tenantDb: any, id: string, userId: string) {
+    const document = await tenantDb.documentAttachment.findUnique({ where: { id } });
+    if (!document) throw new NotFoundException('Document was not found');
+    if (document.signedAt) throw new BadRequestException('Document is already signed');
+    return tenantDb.documentAttachment.update({ where: { id }, data: { signedAt: new Date(), signedById: userId } });
+  }
+
   async uploadImage(file: any, folder: string | undefined, companyId?: string) {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     if (!token) throw new ServiceUnavailableException('Persistent blob storage is not configured');

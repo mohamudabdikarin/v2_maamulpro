@@ -95,6 +95,16 @@ export type Transaction = Prisma.TransactionModel
  */
 export type ActivityLog = Prisma.ActivityLogModel
 /**
+ * Model OperationalAlert
+ * 
+ */
+export type OperationalAlert = Prisma.OperationalAlertModel
+/**
+ * Model OperationalAlertRead
+ * 
+ */
+export type OperationalAlertRead = Prisma.OperationalAlertReadModel
+/**
  * Model Project
  * 
  */
@@ -119,6 +129,16 @@ export type InventoryTransaction = Prisma.InventoryTransactionModel
  * 
  */
 export type ReportSchedule = Prisma.ReportScheduleModel
+/**
+ * Model AccountingPeriod
+ * 
+ */
+export type AccountingPeriod = Prisma.AccountingPeriodModel
+/**
+ * Model DocumentAttachment
+ * 
+ */
+export type DocumentAttachment = Prisma.DocumentAttachmentModel
 /**
  * Model Tenant
  * 

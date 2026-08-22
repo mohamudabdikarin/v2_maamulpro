@@ -8,6 +8,9 @@ import { ResendEmailService } from '../../common/email/resend-email.service';
 import { SubscriptionLifecycleService } from '../../common/subscriptions/subscription-lifecycle.service';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { syncPermissionsToDb } from '../../common/database/rbac-sync';
+import { OperationalAlertsService } from '../settings/operational-alerts.service';
+import { RealEstateService } from '../real-estate/real-estate.service';
+import { PayrollService } from '../payroll/payroll.service';
 
 @Injectable()
 export class ScheduledJobsService implements OnApplicationBootstrap {
@@ -15,6 +18,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
 
   private reportDeliveryRunning = false;
   private rbacSyncRunning = false;
+  private alertsSyncRunning = false;
 
   constructor(
     private readonly centralPrisma: CentralPrismaService,
@@ -23,6 +27,9 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
     private readonly email: ResendEmailService,
     private readonly subscriptionLifecycle: SubscriptionLifecycleService,
     private readonly subscriptionEntitlements: SubscriptionEntitlementService,
+    private readonly operationalAlerts: OperationalAlertsService,
+    private readonly realEstate: RealEstateService,
+    private readonly payroll: PayrollService,
   ) {}
 
   private get central(): any {
@@ -93,6 +100,33 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
+  async reconcileOperationalAlerts() {
+    if (this.alertsSyncRunning) return;
+    this.alertsSyncRunning = true;
+    let synchronized = 0;
+    let failed = 0;
+    try {
+      const companies = await this.central.company.findMany({
+        where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' } },
+        select: { id: true, name: true, dbUrl: true },
+      });
+      for (const company of companies) {
+        try {
+          const db = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+          await this.operationalAlerts.reconcileTenant(db as any);
+          synchronized++;
+        } catch (error: any) {
+          failed++;
+          this.logger.error(`Operational alert reconciliation failed for '${company.name}' (${company.id}): ${error.message}`);
+        }
+      }
+      this.logger.log(`Operational alerts reconciled: ${synchronized} succeeded, ${failed} failed`);
+    } finally {
+      this.alertsSyncRunning = false;
+    }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
   async processDueReportSchedules() {
     if (this.reportDeliveryRunning) {
       this.logger.warn('Skipping report delivery because the previous run is still active');
@@ -125,13 +159,13 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
             try {
               const filters = this.parseReportFilters(schedule.filters);
               const result = await this.reports.runReport(db, schedule.reportId, filters);
-              const csv = this.reportCsv(result);
+              const csv = this.reports.reportCsv(result);
               const recipients = (schedule.recipients || company.adminEmail)
                 .split(',')
                 .map((value: string) => value.trim())
                 .filter(Boolean);
               if (!recipients.length) throw new Error('No report recipients are configured');
-              await this.email.send({
+              const delivery = await this.email.send({
                 to: recipients,
                 subject: `${company.name}: ${result.report.title}`,
                 text: `${result.report.title} is attached as a CSV file.`,
@@ -142,7 +176,11 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
                 }],
               });
               const nextRunAt = this.nextReportRun(now, schedule.frequency);
-              await db.reportSchedule.update({ where: { id: schedule.id }, data: { nextRunAt } });
+              if (!delivery.sent) throw new Error('Email provider did not confirm delivery');
+              await db.reportSchedule.update({
+                where: { id: schedule.id },
+                data: { nextRunAt, lastRunAt: now, lastSuccessAt: now, lastFailureAt: null, lastError: null, lastDeliveryId: delivery.id || null },
+              });
               const actor = await db.user.findFirst({
                 where: { deletedAt: null, isActive: true },
                 orderBy: { createdAt: 'asc' },
@@ -163,6 +201,10 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
               }
               this.logger.log(`Sent report '${schedule.name}' for '${company.name}'`);
             } catch (error: any) {
+              await db.reportSchedule.update({
+                where: { id: schedule.id },
+                data: { lastRunAt: now, lastFailureAt: now, lastError: String(error.message || error).slice(0, 2000) },
+              }).catch(() => undefined);
               this.logger.error(`Report schedule '${schedule.id}' failed for '${company.name}': ${error.message}`);
             }
           }
@@ -172,6 +214,58 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
       }
     } finally {
       this.reportDeliveryRunning = false;
+    }
+  }
+
+  @Cron('0 0 8 * * *')
+  async processOperationalAlertDigests() {
+    if (!this.email.isConfigured()) return;
+    const companies = await this.central.company.findMany({
+      where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' } },
+      select: { id: true, name: true, adminEmail: true, dbUrl: true },
+    });
+    for (const company of companies) {
+      try {
+        const db: any = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+        await this.operationalAlerts.reconcileTenant(db);
+        const alerts = await this.operationalAlerts.getDigestAlerts(db);
+        if (!alerts.length || !company.adminEmail) continue;
+        const critical = alerts.filter((alert: any) => alert.severity === 'CRITICAL').length;
+        const lines = alerts.slice(0, 50).map((alert: any) => `- [${alert.severity}] ${alert.title}${alert.details ? `: ${alert.details}` : ''}`);
+        const delivery = await this.email.send({
+          to: [company.adminEmail],
+          subject: `${company.name}: ${alerts.length} active operational alert${alerts.length === 1 ? '' : 's'}`,
+          text: `${critical} critical alert${critical === 1 ? '' : 's'}\n\n${lines.join('\n')}`,
+        });
+        if (delivery.sent) await db.operationalAlert.updateMany({
+          where: { id: { in: alerts.map((alert: any) => alert.id) } },
+          data: { lastEmailedAt: new Date() },
+        });
+      } catch (error: any) {
+        this.logger.error(`Operational alert digest failed for '${company.name}': ${error.message}`);
+      }
+    }
+  }
+
+  @Cron('0 20 2 * * *')
+  async generateRecurringMonthlyRecords() {
+    const companies = await this.central.company.findMany({
+      where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' } },
+      select: { id: true, name: true, dbUrl: true },
+    });
+    for (const company of companies) {
+      try {
+        const db: any = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
+        const configs = await db.systemConfig.findMany({ where: { key: { in: ['automatic_rent_invoices', 'automatic_payroll_drafts'] } } });
+        const values = Object.fromEntries(configs.map((row: any) => [row.key, row.value]));
+        if (values.automatic_rent_invoices !== 'false') await this.realEstate.generateMonthlyRentInvoices(db);
+        if (values.automatic_payroll_drafts === 'true') {
+          const owner = await db.user.findFirst({ where: { deletedAt: null, isActive: true, role: 'COMPANY_OWNER' }, select: { id: true } });
+          if (owner) await this.payroll.generateMonthlyDraft(db, owner.id);
+        }
+      } catch (error: any) {
+        this.logger.error(`Recurring monthly record generation failed for '${company.name}': ${error.message}`);
+      }
     }
   }
 
@@ -195,26 +289,6 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
     if (frequency === 'MONTHLY') next.setMonth(next.getMonth() + 1);
     if (frequency === 'YEARLY') next.setFullYear(next.getFullYear() + 1);
     return next;
-  }
-
-  private reportCsv(result: { report: { title: string }; summary: any; rows: any[] }) {
-    const columns = Object.keys(result.rows[0] || {});
-    const lines: string[][] = [
-      [result.report.title],
-      [],
-      ['Metric', 'Value'],
-      ...Object.entries(result.summary).map(([key, value]) => [key, String(value)]),
-      [],
-      columns,
-      ...result.rows.map((row) => columns.map((column) => this.csvValue(row[column]))),
-    ];
-    return lines.map((line) => line.map((value) => `"${value.replace(/"/g, '""')}"`).join(',')).join('\r\n');
-  }
-
-  private csvValue(value: any) {
-    let output = value == null ? '' : typeof value === 'object' ? JSON.stringify(value) : String(value);
-    if (/^[=+\-@]/.test(output)) output = `'${output}`;
-    return output;
   }
 
   private escapeHtml(value: string) {

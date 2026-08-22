@@ -31,6 +31,93 @@ const REPORTS = [
 @Injectable()
 export class ReportsService {
 
+  async compareReport(
+    db: any,
+    reportId: string,
+    query: { startDate?: string; endDate?: string; compareStartDate?: string; compareEndDate?: string; entityId?: string; projectId?: string },
+  ) {
+    const current = await this.runReport(db, reportId, query);
+    if (!query.compareStartDate && !query.compareEndDate) return current;
+    const previous = await this.runReport(db, reportId, {
+      ...query,
+      startDate: query.compareStartDate,
+      endDate: query.compareEndDate,
+    });
+    const summaryDelta = Object.fromEntries(Object.keys({ ...current.summary, ...previous.summary }).map((key) => [
+      key,
+      Number(current.summary[key] || 0) - Number(previous.summary[key] || 0),
+    ]));
+    return {
+      ...current,
+      comparison: {
+        startDate: query.compareStartDate || null,
+        endDate: query.compareEndDate || null,
+        summary: previous.summary,
+        summaryDelta,
+        rowCount: previous.rows.length,
+      },
+    };
+  }
+
+  async exportReport(
+    db: any,
+    reportId: string,
+    format: 'csv' | 'xls' | 'pdf',
+    query: { startDate?: string; endDate?: string; entityId?: string; projectId?: string },
+  ) {
+    const result = await this.runReport(db, reportId, query);
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (format === 'csv') return { filename: `${reportId}-${stamp}.csv`, contentType: 'text/csv; charset=utf-8', content: Buffer.from(this.reportCsv(result), 'utf8') };
+    if (format === 'xls') return { filename: `${reportId}-${stamp}.xls`, contentType: 'application/vnd.ms-excel; charset=utf-8', content: Buffer.from(this.reportSpreadsheetXml(result), 'utf8') };
+    return { filename: `${reportId}-${stamp}.pdf`, contentType: 'application/pdf', content: this.reportPdf(result) };
+  }
+
+  reportCsv(result: { report: { title: string }; summary: any; rows: any[] }) {
+    const columns = Object.keys(result.rows[0] || {});
+    const lines: string[][] = [
+      [result.report.title], [], ['Metric', 'Value'],
+      ...Object.entries(result.summary).map(([key, value]) => [key, this.exportValue(value)]),
+      [], columns,
+      ...result.rows.map((row) => columns.map((column) => this.exportValue(row[column]))),
+    ];
+    return lines.map((line) => line.map((value) => `"${value.replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  }
+
+  private reportSpreadsheetXml(result: { report: { title: string }; summary: any; rows: any[] }) {
+    const columns = Object.keys(result.rows[0] || {});
+    const row = (values: any[]) => `<Row>${values.map((value) => `<Cell><Data ss:Type="String">${this.xmlEscape(this.exportValue(value))}</Data></Cell>`).join('')}</Row>`;
+    return `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Report"><Table>${row([result.report.title])}${row([])}${row(['Metric', 'Value'])}${Object.entries(result.summary).map(([key, value]) => row([key, value])).join('')}${row([])}${row(columns)}${result.rows.map((item) => row(columns.map((column) => item[column]))).join('')}</Table></Worksheet></Workbook>`;
+  }
+
+  private reportPdf(result: { report: { title: string }; summary: any; rows: any[] }) {
+    const lines = [result.report.title, '', ...Object.entries(result.summary).map(([key, value]) => `${key}: ${this.exportValue(value)}`), '', ...result.rows.slice(0, 35).map((row) => Object.values(row).slice(0, 5).map((value) => this.exportValue(value)).join(' | '))];
+    const escaped = lines.map((line) => line.replace(/[^\x20-\x7E]/g, '?').replace(/([\\()])/g, '\\$1'));
+    const content = `BT /F1 10 Tf 40 760 Td 14 TL ${escaped.map((line, index) => `${index ? 'T* ' : ''}(${line.slice(0, 110)}) Tj`).join(' ')} ET`;
+    const objects = [
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+      `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`,
+    ];
+    let pdf = '%PDF-1.4\n';
+    const offsets = [0];
+    objects.forEach((object, index) => { offsets.push(Buffer.byteLength(pdf)); pdf += `${index + 1} 0 obj\n${object}\nendobj\n`; });
+    const xref = Buffer.byteLength(pdf);
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.slice(1).map((offset) => `${String(offset).padStart(10, '0')} 00000 n `).join('\n')}\ntrailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return Buffer.from(pdf, 'binary');
+  }
+
+  private exportValue(value: any) {
+    let output = value == null ? '' : typeof value === 'object' ? JSON.stringify(value) : String(value);
+    if (/^[=+\-@]/.test(output)) output = `'${output}`;
+    return output;
+  }
+
+  private xmlEscape(value: string) {
+    return value.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[character] || character);
+  }
+
   async getFinancialReport(tenantDb: any, startDate?: string, endDate?: string) {
     if (!tenantDb) return { income: 0, expense: 0, netProfit: 0, transactions: [] };
 

@@ -62,11 +62,15 @@ export const ModelName = {
   Category: 'Category',
   Transaction: 'Transaction',
   ActivityLog: 'ActivityLog',
+  OperationalAlert: 'OperationalAlert',
+  OperationalAlertRead: 'OperationalAlertRead',
   Project: 'Project',
   ProjectTask: 'ProjectTask',
   Material: 'Material',
   InventoryTransaction: 'InventoryTransaction',
   ReportSchedule: 'ReportSchedule',
+  AccountingPeriod: 'AccountingPeriod',
+  DocumentAttachment: 'DocumentAttachment',
   Tenant: 'Tenant',
   RentalContract: 'RentalContract',
   RentPayment: 'RentPayment',
@@ -142,7 +146,8 @@ export const UserScalarFieldEnum = {
   passwordResetAt: 'passwordResetAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
+  deletedAt: 'deletedAt',
+  approvalLimit: 'approvalLimit'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -291,6 +296,38 @@ export const ActivityLogScalarFieldEnum = {
 export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
 
 
+export const OperationalAlertScalarFieldEnum = {
+  id: 'id',
+  sourceKey: 'sourceKey',
+  type: 'type',
+  severity: 'severity',
+  title: 'title',
+  details: 'details',
+  targetPath: 'targetPath',
+  requiredPermission: 'requiredPermission',
+  assigneeId: 'assigneeId',
+  activeAt: 'activeAt',
+  resolvedAt: 'resolvedAt',
+  escalatedAt: 'escalatedAt',
+  lastEmailedAt: 'lastEmailedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OperationalAlertScalarFieldEnum = (typeof OperationalAlertScalarFieldEnum)[keyof typeof OperationalAlertScalarFieldEnum]
+
+
+export const OperationalAlertReadScalarFieldEnum = {
+  id: 'id',
+  alertId: 'alertId',
+  userId: 'userId',
+  readAt: 'readAt',
+  dismissedAt: 'dismissedAt'
+} as const
+
+export type OperationalAlertReadScalarFieldEnum = (typeof OperationalAlertReadScalarFieldEnum)[keyof typeof OperationalAlertReadScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -378,12 +415,49 @@ export const ReportScheduleScalarFieldEnum = {
   filters: 'filters',
   isActive: 'isActive',
   nextRunAt: 'nextRunAt',
+  lastRunAt: 'lastRunAt',
+  lastSuccessAt: 'lastSuccessAt',
+  lastFailureAt: 'lastFailureAt',
+  lastError: 'lastError',
+  lastDeliveryId: 'lastDeliveryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
 } as const
 
 export type ReportScheduleScalarFieldEnum = (typeof ReportScheduleScalarFieldEnum)[keyof typeof ReportScheduleScalarFieldEnum]
+
+
+export const AccountingPeriodScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  status: 'status',
+  lockedAt: 'lockedAt',
+  lockedById: 'lockedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountingPeriodScalarFieldEnum = (typeof AccountingPeriodScalarFieldEnum)[keyof typeof AccountingPeriodScalarFieldEnum]
+
+
+export const DocumentAttachmentScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  filename: 'filename',
+  url: 'url',
+  contentType: 'contentType',
+  size: 'size',
+  uploadedById: 'uploadedById',
+  signedAt: 'signedAt',
+  signedById: 'signedById',
+  createdAt: 'createdAt'
+} as const
+
+export type DocumentAttachmentScalarFieldEnum = (typeof DocumentAttachmentScalarFieldEnum)[keyof typeof DocumentAttachmentScalarFieldEnum]
 
 
 export const TenantScalarFieldEnum = {

@@ -22,7 +22,11 @@
     "start:prod": "node dist/main.js",
     "test:contracts": "node --test test/*.test.mjs",
     "test:e2e:db": "node scripts/run-database-e2e.mjs",
+    "test:e2e:db:external": "node scripts/run-database-e2e.mjs",
     "test:e2e:api": "node -r dotenv/config scripts/probe-live-api.mjs",
+    "test:load": "node scripts/probe-load.mjs",
+    "schemas:sync:live": "node -r dotenv/config scripts/sync-live-tenant-schemas.mjs dotenv_config_path=.env",
+    "test:e2e:enhancements": "node -r dotenv/config scripts/probe-enhancements.mjs dotenv_config_path=.env",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
   "dependencies": {

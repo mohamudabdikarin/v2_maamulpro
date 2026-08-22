@@ -22,6 +22,7 @@ const PayslipsPage = lazy(() => import('../pages/PayslipsPage'));
 const AccountsPage = lazy(() => import('../pages/AccountsPage'));
 const JournalEntriesPage = lazy(() => import('../pages/JournalEntriesPage'));
 const FinancialReportsPage = lazy(() => import('../pages/FinancialReportsPage'));
+const AccountingPeriodsPage = lazy(() => import('../pages/AccountingPeriodsPage'));
 const AuditsPage = lazy(() => import('../pages/AuditsPage'));
 const CrudRoutePage = lazy(() => import('../pages/CrudRoutePage'));
 const EntityDetailPage = lazy(() => import('../pages/EntityDetailPage'));
@@ -88,6 +89,7 @@ const routes = [
     { path: '/app/financials/accounts', element: <AccountsPage />, layout: 'blank', permission: 'accounting.read' },
     { path: '/app/financials/journals', element: <JournalEntriesPage />, layout: 'blank', permission: 'accounting.read' },
     { path: '/app/financials/financial-reports', element: <FinancialReportsPage />, layout: 'blank', permission: 'accounting.read' },
+    { path: '/app/financials/periods', element: <AccountingPeriodsPage />, layout: 'blank', permission: 'accounting.read' },
     ...reportRoutes('/app/financials/reports', 'reports.read', 'core'),
     { path: '/app/financials/profit-loss', element: <CoreReportsPage key="core-profit" basePath="/app/financials/reports" workspace="core" initialReportId="core-profit-summary" />, layout: 'blank', permission: 'financials.read' },
     { path: '/app/financials/transaction-detail', element: <CoreReportsPage key="core-detail" basePath="/app/financials/reports" workspace="core" initialReportId="core-transaction-detail" />, layout: 'blank', permission: 'financials.read' },

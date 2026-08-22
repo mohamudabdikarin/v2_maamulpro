@@ -35,6 +35,7 @@ const companyGroups: Group[] = [
         { label: 'Chart of accounts', to: '/app/financials/accounts', icon: <BookOpen size={16} className={subIconClass} />, permission: 'accounting.read' },
         { label: 'Journal entries', to: '/app/financials/journals', icon: <BookOpenCheck size={16} className={subIconClass} />, permission: 'accounting.read' },
         { label: 'Financial reports', to: '/app/financials/financial-reports', icon: <TrendingUp size={16} className={subIconClass} />, permission: 'accounting.read' },
+        { label: 'Accounting periods', to: '/app/financials/periods', icon: <Calendar size={16} className={subIconClass} />, permission: 'accounting.read' },
         { label: 'Payroll', to: '/app/payroll', feature: 'payroll', icon: <Receipt size={16} className={subIconClass} />, permission: 'payroll.read' },
         { label: 'Payslips', to: '/app/payroll/payslips', feature: 'payroll', icon: <FileText size={16} className={subIconClass} />, permission: 'payroll.read' },
     ] },

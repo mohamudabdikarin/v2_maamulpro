@@ -9,7 +9,7 @@ import { usePermissions } from '../hooks/usePermissions';
 type Permission = { id: string; key: string; label: string; module: string; workspace?: string };
 type Role = { id: string; key: string; name: string; description?: string; isSystem: boolean; isActive: boolean; rolePermissions: { permission: Permission }[]; _count?: { userRoles: number } };
 type StaffUser = { id: string; firstName: string; lastName: string; user?: { id: string; email: string } };
-type UserAccess = { id: string; name: string; email: string; role?: string; rbacUserRoles: { role: Role }[]; rbacUserPermissions: { effect: string; reason?: string; permission: Permission }[] };
+type UserAccess = { id: string; name: string; email: string; role?: string; approvalLimit?: number | null; rbacUserRoles: { role: Role }[]; rbacUserPermissions: { effect: string; reason?: string; permission: Permission }[] };
 
 type Tab = 'roles' | 'users';
 
@@ -188,6 +188,14 @@ const RbacPage = () => {
         } catch (reason) {
             toast.error(reason instanceof Error ? reason.message : 'Unable to update system role');
         }
+    };
+
+    const saveApprovalLimit = async () => {
+        if (!access) return;
+        try {
+            const updated = await api<UserAccess>(`/api/rbac/users/${access.id}/approval-limit`, { method: 'PATCH', body: JSON.stringify({ approvalLimit: Number(access.approvalLimit || 0) }) });
+            setAccess(updated); toast.success('Payroll approval limit updated.');
+        } catch (reason) { toast.error(reason instanceof Error ? reason.message : 'Unable to update approval limit'); }
     };
 
     const addDirect = async () => {
@@ -392,6 +400,7 @@ const RbacPage = () => {
                                         );
                                     })}
                                 </div>
+                                <div className="border-t border-white-light pt-4 dark:border-[#191e3a]"><label className="text-xs font-semibold uppercase tracking-wide text-white-dark">Payroll approval limit</label><div className="mt-2 flex gap-2"><input className="form-input" type="number" min="0" step="0.01" value={access.approvalLimit == null ? '' : Number(access.approvalLimit)} onChange={(event) => setAccess({ ...access, approvalLimit: event.target.value ? Number(event.target.value) : null })} placeholder="Unlimited" disabled={!canAssign} /><button className="btn btn-outline-primary" onClick={saveApprovalLimit} disabled={!canAssign}>Save limit</button></div><p className="mt-1 text-xs text-white-dark">Leave blank or use 0 for unlimited. Company owners are not limited.</p></div>
                             </div>
 
                             {/* Direct overrides */}

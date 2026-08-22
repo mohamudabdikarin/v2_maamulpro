@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Res, StreamableFile, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { GetTenantDb } from '../../common/decorators/tenant-context.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
@@ -86,11 +87,36 @@ export class ReportsController {
     @Query('endDate') endDate?: string,
     @Query('entityId') entityId?: string,
     @Query('projectId') projectId?: string,
+    @Query('compareStartDate') compareStartDate?: string,
+    @Query('compareEndDate') compareEndDate?: string,
   ) {
     const report = this.reportsService.getRegistry().find((row) => row.id === reportId);
     if (!report) throw new ForbiddenException('Report not found');
     requireReportPermission(user, report.workspace);
-    return this.reportsService.runReport(db, reportId, { startDate, endDate, entityId, projectId });
+    return this.reportsService.compareReport(db, reportId, { startDate, endDate, entityId, projectId, compareStartDate, compareEndDate });
+  }
+
+  @Get('export/:reportId')
+  @RequireAnyPermission('reports.read', 'reports.construction.read', 'reports.real_estate.read', 'reports.material.read')
+  async exportReport(
+    @GetTenantDb() db: any,
+    @CurrentUser() user: any,
+    @Param('reportId') reportId: string,
+    @Query('format') format = 'csv',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('entityId') entityId?: string,
+    @Query('projectId') projectId?: string,
+    @Res({ passthrough: true }) response?: Response,
+  ) {
+    const report = this.reportsService.getRegistry().find((row) => row.id === reportId);
+    if (!report) throw new ForbiddenException('Report not found');
+    requireReportPermission(user, report.workspace);
+    if (!['csv', 'xls', 'pdf'].includes(format)) throw new BadRequestException('Format must be csv, xls, or pdf');
+    const file = await this.reportsService.exportReport(db, reportId, format as 'csv' | 'xls' | 'pdf', { startDate, endDate, entityId, projectId });
+    response?.setHeader('Content-Type', file.contentType);
+    response?.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+    return new StreamableFile(file.content);
   }
 
   @Get('projects')

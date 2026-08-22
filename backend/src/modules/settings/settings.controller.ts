@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { RequireRoles } from '../../common/decorators/roles.decorator';
@@ -80,15 +80,28 @@ export class SettingsController {
     return this.settings.clearActivityLogs(db);
   }
 
+  @Get('search')
+  searchRecords(@GetTenantDb() db: any, @CurrentUser() user: any, @Query('q') query = '') {
+    return this.settings.searchRecords(db, query, user);
+  }
+
   @Get('notifications')
-  @RequirePermissions('activity_logs.read')
-  getNotifications(@GetTenantDb() db: any, @CurrentUser('id') userId: string) {
-    return this.settings.getNotifications(db, userId);
+  getNotifications(@GetTenantDb() db: any, @CurrentUser() user: any) {
+    return this.settings.getNotifications(db, user?.id, user);
   }
 
   @Post('notifications/read')
-  @RequirePermissions('activity_logs.read')
-  markNotificationsRead(@GetTenantDb() db: any, @CurrentUser('id') userId: string) {
-    return this.settings.markNotificationsRead(db, userId);
+  markNotificationsRead(@GetTenantDb() db: any, @CurrentUser() user: any) {
+    return this.settings.markNotificationsRead(db, user?.id, user);
+  }
+
+  @Post('notifications/:id/read')
+  markNotificationRead(@GetTenantDb() db: any, @CurrentUser() user: any, @Param('id') id: string) {
+    return this.settings.markNotificationRead(db, id, user?.id, user);
+  }
+
+  @Post('notifications/:id/dismiss')
+  dismissNotification(@GetTenantDb() db: any, @CurrentUser() user: any, @Param('id') id: string) {
+    return this.settings.dismissNotification(db, id, user?.id, user);
   }
 }

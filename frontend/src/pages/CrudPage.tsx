@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../lib/api';
@@ -70,6 +70,7 @@ const printableValue = (value: any): string => {
 
 const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, createPermission, updatePermission, deletePermission, transitions = [], initialMode, recordId, returnTo, printable = false, initialValues, standalone = false, createTo, editTo }: CrudPageProps) => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { hasPermission, hasAnyPermission } = usePermissions();
     const allowed = (perm?: string | string[]) => !perm || (Array.isArray(perm) ? hasAnyPermission(perm) : hasPermission(perm));
     const noun = title.replace(/^(Add|Edit|New|Record|Create)\s+/i, '');
@@ -93,11 +94,19 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const [confirmationReason, setConfirmationReason] = useState('');
     const [confirming, setConfirming] = useState(false);
     const [inlineCreate, setInlineCreate] = useState<{ field: CrudField; form: Record<string, any>; errors: Record<string, string>; saving: boolean; error: string } | null>(null);
+    const focusedRecord = searchParams.get('record');
+    const openedFocusedRecord = useRef('');
     const load = () => {
         setLoading(true);
         return api<unknown>(endpoint).then((result) => setRows(unwrap(result))).catch((reason) => setError(reason.message)).finally(() => setLoading(false));
     };
     useEffect(() => { if (!standalone) load(); }, [endpoint, standalone]);
+    useEffect(() => {
+        if (standalone || !focusedRecord) { openedFocusedRecord.current = ''; return; }
+        if (openedFocusedRecord.current === focusedRecord) return;
+        openedFocusedRecord.current = focusedRecord;
+        api<Record<string, any>>(`${endpoint}/${focusedRecord}`).then(setViewing).catch((reason) => setError(reason instanceof Error ? reason.message : 'Unable to open record'));
+    }, [endpoint, focusedRecord, standalone]);
     const loadLookupOptions = async (field: CrudField) => {
         const rows = unwrap(await api<unknown>(field.lookup!.endpoint));
         const options = rows.map((row) => ({ value: String(row[field.lookup!.valueKey || 'id']), label: lookupLabel(row, field.lookup!.labelKeys) }));
@@ -222,6 +231,13 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         finally { setSaving(false); }
     };
     const remove = (row: Record<string, any>) => { setConfirmationReason(''); setConfirmation({ row }); };
+    const closeViewing = () => {
+        setViewing(null);
+        if (!focusedRecord) return;
+        const next = new URLSearchParams(searchParams);
+        next.delete('record');
+        setSearchParams(next, { replace: true });
+    };
     const transition = (row: Record<string, any>, item: NonNullable<CrudPageProps['transitions']>[number]) => { setConfirmationReason(''); setConfirmation({ row, transition: item }); };
     const confirmAction = async () => {
         if (!confirmation) return;
@@ -290,7 +306,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                     <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{displayCell(column, row[column])}</td>)}<td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && allowed(updatePermission) && (editTo ? <Link className="btn btn-sm btn-outline-primary" to={editTo(String(row.id))}>Edit</Link> : <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>)}{allowed(updatePermission) && transitions.filter((item) => (!item.when || item.when.includes(row.status)) && allowed(item.permission)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && allowed(deletePermission) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
                 </table>}
         </div>
-        <Modal open={Boolean(viewing)} onClose={() => setViewing(null)} title={`${title} details`} wide>
+        <Modal open={Boolean(viewing)} onClose={closeViewing} title={`${title} details`} wide>
             {viewing && <div className="space-y-6">{Object.entries(viewing).filter(([key]) => !isSystemIdKey(key) && !hiddenKeys.has(key)).map(([key, value]) => <div key={key}>
                 <p className="text-xs font-bold uppercase tracking-wide text-white-dark">{titleize(key)}</p>
                 {Array.isArray(value) ? (!value.length ? <p className="mt-1">No items</p> : <div className="mt-2 overflow-x-auto rounded-md border border-white-light dark:border-dark"><table className="table-hover"><thead><tr>{visibleTableColumns(value[0], [], 6).map((child) => <th key={child}>{titleize(child)}</th>)}</tr></thead><tbody>{value.map((item, index) => <tr key={item.id || index}>{visibleTableColumns(value[0], [], 6).map((child) => <td key={child}>{displayCell(child, item[child])}</td>)}</tr>)}</tbody></table></div>)

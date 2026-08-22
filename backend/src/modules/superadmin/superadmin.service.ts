@@ -41,6 +41,9 @@ const tenantUrl = (subdomain: string) => {
 
 @Injectable()
 export class SuperAdminService {
+  private platformMetricsCache?: { expiresAt: number; value: any };
+  private platformMetricsInFlight?: Promise<any>;
+
   constructor(
     private readonly centralPrisma: CentralPrismaService,
     private readonly tenantManager: TenantConnectionManager,
@@ -885,6 +888,21 @@ export class SuperAdminService {
   // -----------------------------------------------------------
 
   async getPlatformFinancialSummary() {
+    if (this.platformMetricsCache && this.platformMetricsCache.expiresAt > Date.now()) {
+      return this.platformMetricsCache.value;
+    }
+    if (this.platformMetricsInFlight) return this.platformMetricsInFlight;
+    this.platformMetricsInFlight = this.calculatePlatformFinancialSummary();
+    try {
+      const value = await this.platformMetricsInFlight;
+      this.platformMetricsCache = { value, expiresAt: Date.now() + 15_000 };
+      return value;
+    } finally {
+      this.platformMetricsInFlight = undefined;
+    }
+  }
+
+  private async calculatePlatformFinancialSummary() {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);

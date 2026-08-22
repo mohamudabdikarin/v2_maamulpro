@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsBoolean,
   IsIn,
   IsOptional,
   IsString,
@@ -18,6 +19,8 @@ export class UpdateCompanySettingsDto {
   @IsOptional() @IsString() @MaxLength(40) companyPhone?: string;
   @IsOptional() @IsString() @MaxLength(500) companyAddress?: string;
   @IsOptional() @IsString() @MaxLength(2000) companyDescription?: string;
+  @IsOptional() @IsBoolean() automaticRentInvoices?: boolean;
+  @IsOptional() @IsBoolean() automaticPayrollDrafts?: boolean;
 }
 
 export class UpdateProfileDto {

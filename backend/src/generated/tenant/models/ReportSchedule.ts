@@ -33,6 +33,11 @@ export type ReportScheduleMinAggregateOutputType = {
   filters: string | null
   isActive: boolean | null
   nextRunAt: Date | null
+  lastRunAt: Date | null
+  lastSuccessAt: Date | null
+  lastFailureAt: Date | null
+  lastError: string | null
+  lastDeliveryId: string | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -47,6 +52,11 @@ export type ReportScheduleMaxAggregateOutputType = {
   filters: string | null
   isActive: boolean | null
   nextRunAt: Date | null
+  lastRunAt: Date | null
+  lastSuccessAt: Date | null
+  lastFailureAt: Date | null
+  lastError: string | null
+  lastDeliveryId: string | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -61,6 +71,11 @@ export type ReportScheduleCountAggregateOutputType = {
   filters: number
   isActive: number
   nextRunAt: number
+  lastRunAt: number
+  lastSuccessAt: number
+  lastFailureAt: number
+  lastError: number
+  lastDeliveryId: number
   createdAt: number
   updatedAt: number
   deletedAt: number
@@ -77,6 +92,11 @@ export type ReportScheduleMinAggregateInputType = {
   filters?: true
   isActive?: true
   nextRunAt?: true
+  lastRunAt?: true
+  lastSuccessAt?: true
+  lastFailureAt?: true
+  lastError?: true
+  lastDeliveryId?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -91,6 +111,11 @@ export type ReportScheduleMaxAggregateInputType = {
   filters?: true
   isActive?: true
   nextRunAt?: true
+  lastRunAt?: true
+  lastSuccessAt?: true
+  lastFailureAt?: true
+  lastError?: true
+  lastDeliveryId?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -105,6 +130,11 @@ export type ReportScheduleCountAggregateInputType = {
   filters?: true
   isActive?: true
   nextRunAt?: true
+  lastRunAt?: true
+  lastSuccessAt?: true
+  lastFailureAt?: true
+  lastError?: true
+  lastDeliveryId?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -192,6 +222,11 @@ export type ReportScheduleGroupByOutputType = {
   filters: string | null
   isActive: boolean
   nextRunAt: Date | null
+  lastRunAt: Date | null
+  lastSuccessAt: Date | null
+  lastFailureAt: Date | null
+  lastError: string | null
+  lastDeliveryId: string | null
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -227,6 +262,11 @@ export type ReportScheduleWhereInput = {
   filters?: Prisma.StringNullableFilter<"ReportSchedule"> | string | null
   isActive?: Prisma.BoolFilter<"ReportSchedule"> | boolean
   nextRunAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
+  lastRunAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
+  lastSuccessAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
+  lastFailureAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
+  lastError?: Prisma.StringNullableFilter<"ReportSchedule"> | string | null
+  lastDeliveryId?: Prisma.StringNullableFilter<"ReportSchedule"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ReportSchedule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ReportSchedule"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
@@ -241,6 +281,11 @@ export type ReportScheduleOrderByWithRelationInput = {
   filters?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nextRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastSuccessAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastFailureAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastError?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastDeliveryId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -258,6 +303,11 @@ export type ReportScheduleWhereUniqueInput = Prisma.AtLeast<{
   filters?: Prisma.StringNullableFilter<"ReportSchedule"> | string | null
   isActive?: Prisma.BoolFilter<"ReportSchedule"> | boolean
   nextRunAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
+  lastRunAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
+  lastSuccessAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
+  lastFailureAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
+  lastError?: Prisma.StringNullableFilter<"ReportSchedule"> | string | null
+  lastDeliveryId?: Prisma.StringNullableFilter<"ReportSchedule"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ReportSchedule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ReportSchedule"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"ReportSchedule"> | Date | string | null
@@ -272,6 +322,11 @@ export type ReportScheduleOrderByWithAggregationInput = {
   filters?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nextRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastSuccessAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastFailureAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastError?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastDeliveryId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -292,6 +347,11 @@ export type ReportScheduleScalarWhereWithAggregatesInput = {
   filters?: Prisma.StringNullableWithAggregatesFilter<"ReportSchedule"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"ReportSchedule"> | boolean
   nextRunAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ReportSchedule"> | Date | string | null
+  lastRunAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ReportSchedule"> | Date | string | null
+  lastSuccessAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ReportSchedule"> | Date | string | null
+  lastFailureAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ReportSchedule"> | Date | string | null
+  lastError?: Prisma.StringNullableWithAggregatesFilter<"ReportSchedule"> | string | null
+  lastDeliveryId?: Prisma.StringNullableWithAggregatesFilter<"ReportSchedule"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ReportSchedule"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ReportSchedule"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ReportSchedule"> | Date | string | null
@@ -306,6 +366,11 @@ export type ReportScheduleCreateInput = {
   filters?: string | null
   isActive?: boolean
   nextRunAt?: Date | string | null
+  lastRunAt?: Date | string | null
+  lastSuccessAt?: Date | string | null
+  lastFailureAt?: Date | string | null
+  lastError?: string | null
+  lastDeliveryId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -320,6 +385,11 @@ export type ReportScheduleUncheckedCreateInput = {
   filters?: string | null
   isActive?: boolean
   nextRunAt?: Date | string | null
+  lastRunAt?: Date | string | null
+  lastSuccessAt?: Date | string | null
+  lastFailureAt?: Date | string | null
+  lastError?: string | null
+  lastDeliveryId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -334,6 +404,11 @@ export type ReportScheduleUpdateInput = {
   filters?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSuccessAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFailureAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastDeliveryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -348,6 +423,11 @@ export type ReportScheduleUncheckedUpdateInput = {
   filters?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSuccessAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFailureAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastDeliveryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -362,6 +442,11 @@ export type ReportScheduleCreateManyInput = {
   filters?: string | null
   isActive?: boolean
   nextRunAt?: Date | string | null
+  lastRunAt?: Date | string | null
+  lastSuccessAt?: Date | string | null
+  lastFailureAt?: Date | string | null
+  lastError?: string | null
+  lastDeliveryId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -376,6 +461,11 @@ export type ReportScheduleUpdateManyMutationInput = {
   filters?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSuccessAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFailureAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastDeliveryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -390,6 +480,11 @@ export type ReportScheduleUncheckedUpdateManyInput = {
   filters?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nextRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSuccessAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFailureAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastDeliveryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -404,6 +499,11 @@ export type ReportScheduleCountOrderByAggregateInput = {
   filters?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nextRunAt?: Prisma.SortOrder
+  lastRunAt?: Prisma.SortOrder
+  lastSuccessAt?: Prisma.SortOrder
+  lastFailureAt?: Prisma.SortOrder
+  lastError?: Prisma.SortOrder
+  lastDeliveryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -418,6 +518,11 @@ export type ReportScheduleMaxOrderByAggregateInput = {
   filters?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nextRunAt?: Prisma.SortOrder
+  lastRunAt?: Prisma.SortOrder
+  lastSuccessAt?: Prisma.SortOrder
+  lastFailureAt?: Prisma.SortOrder
+  lastError?: Prisma.SortOrder
+  lastDeliveryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -432,6 +537,11 @@ export type ReportScheduleMinOrderByAggregateInput = {
   filters?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nextRunAt?: Prisma.SortOrder
+  lastRunAt?: Prisma.SortOrder
+  lastSuccessAt?: Prisma.SortOrder
+  lastFailureAt?: Prisma.SortOrder
+  lastError?: Prisma.SortOrder
+  lastDeliveryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -452,6 +562,11 @@ export type ReportScheduleSelect<ExtArgs extends runtime.Types.Extensions.Intern
   filters?: boolean
   isActive?: boolean
   nextRunAt?: boolean
+  lastRunAt?: boolean
+  lastSuccessAt?: boolean
+  lastFailureAt?: boolean
+  lastError?: boolean
+  lastDeliveryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -466,6 +581,11 @@ export type ReportScheduleSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   filters?: boolean
   isActive?: boolean
   nextRunAt?: boolean
+  lastRunAt?: boolean
+  lastSuccessAt?: boolean
+  lastFailureAt?: boolean
+  lastError?: boolean
+  lastDeliveryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -480,6 +600,11 @@ export type ReportScheduleSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   filters?: boolean
   isActive?: boolean
   nextRunAt?: boolean
+  lastRunAt?: boolean
+  lastSuccessAt?: boolean
+  lastFailureAt?: boolean
+  lastError?: boolean
+  lastDeliveryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -494,12 +619,17 @@ export type ReportScheduleSelectScalar = {
   filters?: boolean
   isActive?: boolean
   nextRunAt?: boolean
+  lastRunAt?: boolean
+  lastSuccessAt?: boolean
+  lastFailureAt?: boolean
+  lastError?: boolean
+  lastDeliveryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
 }
 
-export type ReportScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reportId" | "name" | "frequency" | "recipients" | "filters" | "isActive" | "nextRunAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["reportSchedule"]>
+export type ReportScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reportId" | "name" | "frequency" | "recipients" | "filters" | "isActive" | "nextRunAt" | "lastRunAt" | "lastSuccessAt" | "lastFailureAt" | "lastError" | "lastDeliveryId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["reportSchedule"]>
 
 export type $ReportSchedulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ReportSchedule"
@@ -513,6 +643,11 @@ export type $ReportSchedulePayload<ExtArgs extends runtime.Types.Extensions.Inte
     filters: string | null
     isActive: boolean
     nextRunAt: Date | null
+    lastRunAt: Date | null
+    lastSuccessAt: Date | null
+    lastFailureAt: Date | null
+    lastError: string | null
+    lastDeliveryId: string | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -947,6 +1082,11 @@ export interface ReportScheduleFieldRefs {
   readonly filters: Prisma.FieldRef<"ReportSchedule", 'String'>
   readonly isActive: Prisma.FieldRef<"ReportSchedule", 'Boolean'>
   readonly nextRunAt: Prisma.FieldRef<"ReportSchedule", 'DateTime'>
+  readonly lastRunAt: Prisma.FieldRef<"ReportSchedule", 'DateTime'>
+  readonly lastSuccessAt: Prisma.FieldRef<"ReportSchedule", 'DateTime'>
+  readonly lastFailureAt: Prisma.FieldRef<"ReportSchedule", 'DateTime'>
+  readonly lastError: Prisma.FieldRef<"ReportSchedule", 'String'>
+  readonly lastDeliveryId: Prisma.FieldRef<"ReportSchedule", 'String'>
   readonly createdAt: Prisma.FieldRef<"ReportSchedule", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ReportSchedule", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"ReportSchedule", 'DateTime'>

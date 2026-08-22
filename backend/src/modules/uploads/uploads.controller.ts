@@ -3,6 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { Readable } from 'node:stream';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { GetTenantDb } from '../../common/decorators/tenant-context.decorator';
 import { RequireAnyPermission } from '../../common/decorators/permissions.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import { DeleteUploadDto } from './dto/delete-upload.dto';
@@ -24,6 +25,31 @@ const UPLOAD_WRITE_PERMISSIONS = [
 @Controller('api/uploads')
 export class UploadsController {
   constructor(private readonly uploads: UploadsService) {}
+
+  @Get('documents')
+  @RequireAnyPermission('workforce_contracts.read', 'rentals.read', 'payroll.read', 'accounting.read')
+  listDocuments(@GetTenantDb() db: any, @Query('entityType') entityType: string, @Query('entityId') entityId: string) {
+    return this.uploads.listDocuments(db, entityType, entityId);
+  }
+
+  @Post('documents')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024, files: 1 } }))
+  @RequireAnyPermission('workforce_contracts.update', 'rentals.update', 'payroll.manage', 'accounting.post')
+  uploadDocument(
+    @GetTenantDb() db: any,
+    @UploadedFile() file: any,
+    @Query('entityType') entityType: string,
+    @Query('entityId') entityId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.uploads.uploadDocument(db, file, entityType, entityId, user.companyId, user.id);
+  }
+
+  @Post('documents/sign')
+  @RequireAnyPermission('workforce_contracts.update', 'rentals.update', 'payroll.approve', 'accounting.approve')
+  signDocument(@GetTenantDb() db: any, @Body('id') id: string, @CurrentUser('id') userId: string) {
+    return this.uploads.signDocument(db, id, userId);
+  }
 
   @Post('images')
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024, files: 1 } }))

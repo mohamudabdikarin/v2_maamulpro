@@ -154,7 +154,7 @@ export async function apiBlob(path: string): Promise<Blob> {
     const response = await fetch(requestUrl(path), { headers });
     if (!response.ok) {
         if (response.status === 401) sessionStore.clear();
-        throw new Error(`Image request failed (${response.status})`);
+        throw new Error(`File request failed (${response.status})`);
     }
     return response.blob();
 }

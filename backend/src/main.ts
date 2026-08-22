@@ -13,6 +13,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 async function bootstrap() {
   const logger = new Logger('NestBootstrap');
   const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
 
   // Enable CORS for frontend connection
   const configuredOrigins = new Set((process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5173')

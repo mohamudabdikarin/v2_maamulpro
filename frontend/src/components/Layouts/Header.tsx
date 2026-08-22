@@ -15,6 +15,9 @@ import IconSearch from '../Icon/IconSearch';
 import { usePermissions } from '../../hooks/usePermissions';
 
 type PlatformNotification = { id: string; title: string; details: string; createdAt: string; category: string; companyId?: string };
+type TenantAlert = { id: string; severity: 'WARNING' | 'CRITICAL'; title: string; details?: string; targetPath?: string; activeAt: string; isUnread: boolean };
+type TenantNotificationFeed = { alerts: TenantAlert[]; unreadAlertCount: number };
+type RecordSearchResult = { id: string; label: string; description: string; section: string; targetPath: string };
 type NavigationDestination = { label: string; section: string; to: string; permissions?: string[]; feature?: 'construction' | 'realEstate' | 'materials' | 'payroll' | 'advancedReports'; workspace?: 'construction' | 'real_estate' | 'material_management'; keywords?: string; platform?: boolean };
 
 const navigationDestinations: NavigationDestination[] = [
@@ -74,8 +77,11 @@ const Header = () => {
     const { session, user, hasPermission, hasAnyPermission } = usePermissions();
     const isSuperAdmin = Boolean(user?.isSuperAdmin);
     const [notifications, setNotifications] = useState<PlatformNotification[]>([]);
+    const [tenantNotifications, setTenantNotifications] = useState<TenantNotificationFeed>({ alerts: [], unreadAlertCount: 0 });
     const [navigationQuery, setNavigationQuery] = useState('');
     const [navigationOpen, setNavigationOpen] = useState(false);
+    const [recordMatches, setRecordMatches] = useState<RecordSearchResult[]>([]);
+    const [recordSearchLoading, setRecordSearchLoading] = useState(false);
     const navigationInput = useRef<HTMLInputElement>(null);
 
     const availableDestinations = useMemo(() => navigationDestinations.filter((destination) => {
@@ -89,6 +95,24 @@ const Header = () => {
         if (!query) return [];
         return availableDestinations.filter((destination) => `${destination.label} ${destination.section} ${destination.keywords || ''}`.toLowerCase().includes(query)).slice(0, 8);
     }, [availableDestinations, navigationQuery]);
+
+    useEffect(() => {
+        const query = navigationQuery.trim();
+        if (isSuperAdmin || query.length < 2) {
+            setRecordMatches([]);
+            setRecordSearchLoading(false);
+            return;
+        }
+        let active = true;
+        setRecordSearchLoading(true);
+        const timeout = window.setTimeout(() => {
+            api<RecordSearchResult[]>(`/api/settings/search?q=${encodeURIComponent(query)}`)
+                .then((rows) => { if (active) setRecordMatches(rows); })
+                .catch(() => { if (active) setRecordMatches([]); })
+                .finally(() => { if (active) setRecordSearchLoading(false); });
+        }, 220);
+        return () => { active = false; window.clearTimeout(timeout); };
+    }, [isSuperAdmin, navigationQuery]);
 
     useEffect(() => {
         const focusNavigation = (event: KeyboardEvent) => {
@@ -118,6 +142,24 @@ const Header = () => {
         };
     }, [isSuperAdmin]);
 
+    useEffect(() => {
+        if (isSuperAdmin) return;
+        let active = true;
+        const loadNotifications = () => {
+            api<TenantNotificationFeed>('/api/settings/notifications')
+                .then((result) => { if (active) setTenantNotifications(result); })
+                .catch(() => { if (active) setTenantNotifications({ alerts: [], unreadAlertCount: 0 }); });
+        };
+        loadNotifications();
+        const interval = window.setInterval(loadNotifications, 60_000);
+        window.addEventListener('maamulpro:tenant-notifications', loadNotifications);
+        return () => {
+            active = false;
+            window.clearInterval(interval);
+            window.removeEventListener('maamulpro:tenant-notifications', loadNotifications);
+        };
+    }, [isSuperAdmin]);
+
     const logout = async () => {
         try {
             await api('/api/auth/logout', { method: 'POST' });
@@ -135,6 +177,7 @@ const Header = () => {
     const submitNavigation = (event: FormEvent) => {
         event.preventDefault();
         if (navigationMatches[0]) openDestination(navigationMatches[0].to);
+        else if (recordMatches[0]) openDestination(recordMatches[0].targetPath);
     };
 
     return (
@@ -149,13 +192,29 @@ const Header = () => {
                         <input ref={navigationInput} className="form-input h-9 w-full rounded-full py-1 pl-9 pr-12 text-sm" value={navigationQuery} onChange={(event) => { setNavigationQuery(event.target.value); setNavigationOpen(true); }} onFocus={() => setNavigationOpen(true)} onKeyDown={(event) => { if (event.key === 'Escape') { setNavigationOpen(false); event.currentTarget.blur(); } }} placeholder="Search pages…" aria-label="Search pages" />
                         <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-white-light px-1 text-[10px] text-white-dark md:inline">Ctrl K</span>
                         {navigationOpen && navigationQuery.trim() && <div className="absolute left-0 top-[calc(100%+0.5rem)] z-50 w-[min(32rem,calc(100vw-2.5rem))] overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-black/5 dark:bg-[#1b2e4b]">
-                            {navigationMatches.length ? navigationMatches.map((destination) => <button className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-[#152136]" key={destination.to} onMouseDown={(event) => event.preventDefault()} onClick={() => openDestination(destination.to)} type="button"><span className="font-semibold">{destination.label}</span><span className="text-xs text-white-dark">{destination.section}</span></button>) : <p className="p-4 text-sm text-white-dark">No accessible page matches “{navigationQuery}”.</p>}
+                            {navigationMatches.length > 0 && <><p className="border-b border-white-light px-4 py-2 text-xs font-bold uppercase tracking-wide text-white-dark dark:border-[#191e3a]">Pages</p>{navigationMatches.map((destination) => <button className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-[#152136]" key={destination.to} onMouseDown={(event) => event.preventDefault()} onClick={() => openDestination(destination.to)} type="button"><span className="font-semibold">{destination.label}</span><span className="text-xs text-white-dark">{destination.section}</span></button>)}</>}
+                            {!isSuperAdmin && <><p className="border-y border-white-light px-4 py-2 text-xs font-bold uppercase tracking-wide text-white-dark dark:border-[#191e3a]">Records</p>{recordSearchLoading ? <p className="px-4 py-3 text-sm text-white-dark">Searching records…</p> : recordMatches.length ? recordMatches.map((record) => <button className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-[#152136]" key={`${record.section}:${record.id}`} onMouseDown={(event) => event.preventDefault()} onClick={() => openDestination(record.targetPath)} type="button"><span><strong className="block">{record.label}</strong><small className="text-white-dark">{record.description}</small></span><span className="text-xs text-white-dark">{record.section}</span></button>) : <p className="px-4 py-3 text-sm text-white-dark">No accessible records match “{navigationQuery}”.</p>}</>}
+                            {isSuperAdmin && !navigationMatches.length && <p className="p-4 text-sm text-white-dark">No accessible page matches “{navigationQuery}”.</p>}
                         </div>}
                     </form>
                     <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
                         <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-dark-light/10" onClick={() => dispatch(toggleTheme(themeConfig.theme === 'light' ? 'dark' : 'light'))} aria-label="Toggle color theme">
                             {themeConfig.theme === 'light' ? <IconMoon /> : <IconSun />}
                         </button>
+                        {!isSuperAdmin && <Dropdown
+                            placement="bottom-end"
+                            btnClassName="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-dark-light/10"
+                            button={<><IconBellBing />{tenantNotifications.unreadAlertCount > 0 && <span className="absolute right-0 top-0 grid min-h-4 min-w-4 place-items-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">{tenantNotifications.unreadAlertCount > 9 ? '9+' : tenantNotifications.unreadAlertCount}</span>}</>}
+                        >
+                            <div className="mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-black/5 dark:bg-[#1b2e4b]">
+                                <div className="flex items-center justify-between border-b border-white-light px-4 py-3 dark:border-[#191e3a]"><p className="font-bold">Operational alerts</p><Link className="text-xs font-semibold text-primary" to="/app/notifications">View all</Link></div>
+                                <div className="max-h-80 overflow-y-auto">
+                                    {tenantNotifications.alerts.length ? tenantNotifications.alerts.slice(0, 5).map((alert) => <Link className={`block border-b border-white-light px-4 py-3 last:border-0 hover:bg-gray-50 dark:border-[#191e3a] dark:hover:bg-[#152136] ${alert.isUnread ? 'bg-primary-light/40' : ''}`} key={alert.id} to={alert.targetPath || '/app/notifications'}>
+                                        <div className="flex items-center justify-between gap-2"><p className="text-sm font-semibold">{alert.title}</p><span className={`badge ${alert.severity === 'CRITICAL' ? 'bg-danger' : 'bg-warning'}`}>{alert.severity}</span></div>{alert.details && <p className="mt-1 text-xs text-white-dark">{alert.details}</p>}<time className="mt-1 block text-[11px] text-white-dark">{new Date(alert.activeAt).toLocaleString()}</time>
+                                    </Link>) : <p className="p-6 text-center text-sm text-white-dark">No active operational alerts.</p>}
+                                </div>
+                            </div>
+                        </Dropdown>}
                         {isSuperAdmin && <Dropdown
                             placement="bottom-end"
                             btnClassName="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-dark-light/10"

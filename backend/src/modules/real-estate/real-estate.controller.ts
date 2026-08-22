@@ -156,6 +156,18 @@ export class RealEstateController {
     return this.service.updateRentalContract(db, id, body);
   }
 
+  @Get('rentals/workspace')
+  @RequirePermissions('rentals.read')
+  async getRentalWorkspace(@GetTenantDb() db: any) {
+    const [tenants, properties, contracts, payments] = await Promise.all([
+      this.service.getTenants(db),
+      this.service.getPropertyOptions(db),
+      this.service.getRentalContracts(db),
+      this.service.getRentPayments(db),
+    ]);
+    return { tenants, properties, contracts, payments };
+  }
+
   @Post('rental-contracts/:id/status')
   @RequirePermissions('rentals.update')
   transitionRentalContract(
