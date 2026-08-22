@@ -1,6 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
-  ClientDto,
   DealDto,
   PropertyDto,
   RentalContractDto,
@@ -99,50 +98,6 @@ export class RealEstateService {
     return { deleted: true };
   }
 
-  getClients(tenantDb: any, search?: string) {
-    const where: any = { deletedAt: null };
-    if (search) where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } },
-      { phone: { contains: search, mode: 'insensitive' } },
-    ];
-    return tenantDb.client.findMany({
-      where,
-      include: { _count: { select: { deals: true } } },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async getClient(tenantDb: any, id: string) {
-    const client = await tenantDb.client.findFirst({
-      where: { id, deletedAt: null },
-      include: { deals: { where: { deletedAt: null }, include: { property: true } } },
-    });
-    if (!client) throw new NotFoundException('Client not found');
-    return client;
-  }
-
-  createClient(tenantDb: any, data: ClientDto) {
-    return tenantDb.client.create({ data });
-  }
-
-  async updateClient(tenantDb: any, id: string, data: ClientDto) {
-    const result = await tenantDb.client.updateMany({ where: { id, deletedAt: null }, data });
-    if (!result.count) throw new NotFoundException('Client not found');
-    return tenantDb.client.findUnique({ where: { id } });
-  }
-
-  async deleteClient(tenantDb: any, id: string) {
-    const deals = await tenantDb.deal.count({ where: { clientId: id, deletedAt: null } });
-    if (deals) throw new ConflictException('Client has active deals');
-    const result = await tenantDb.client.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date() },
-    });
-    if (!result.count) throw new NotFoundException('Client not found');
-    return { deleted: true };
-  }
-
   getDeals(
     tenantDb: any,
     query?: { propertyId?: string; clientId?: string; paymentStatus?: string },
@@ -171,7 +126,7 @@ export class RealEstateService {
     this.validateDealAmounts(data);
     return tenantDb.$transaction(async (tx: any) => {
       await this.claimAvailableProperty(tx, data.propertyId);
-      const client = await tx.client.findFirst({ where: { id: data.clientId, deletedAt: null } });
+      const client = await tx.tenant.findFirst({ where: { id: data.clientId, deletedAt: null } });
       if (!client) throw new NotFoundException('Client not found');
       const paidAmount = Number(data.paidAmount || 0);
       const paymentStatus = this.dealPaymentStatus(Number(data.totalAmount), paidAmount, data.paymentStatus);
@@ -259,6 +214,8 @@ export class RealEstateService {
       where: { tenantId: id, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] } },
     });
     if (active) throw new ConflictException('Tenant has an active rental contract');
+    const deals = await tenantDb.deal.count({ where: { clientId: id, deletedAt: null } });
+    if (deals) throw new ConflictException('Client has active deals');
     const result = await tenantDb.tenant.updateMany({
       where: { id, deletedAt: null },
       data: { deletedAt: new Date() },

@@ -15,6 +15,14 @@ export const propertyFields: CrudField[] = [
     { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Ku sharax xaaladda, adeegyada, iyo muuqaalada hantida.' },
 ];
 
+// Compact essentials for inline creation (no image, no long description); the property record can be enriched later on its detail page.
+const propertyQuickFields: CrudField[] = [
+    { name: 'title', label: 'Title', required: true, placeholder: 'Guri 4-qol ah oo Hodan ku yaal' },
+    { name: 'type', label: 'Type', type: 'select', required: true, options: options(['HOUSE', 'APARTMENT', 'LAND', 'COMMERCIAL']) },
+    { name: 'price', label: 'Price', type: 'number', required: true, placeholder: '85000' },
+    { name: 'address', label: 'Address', placeholder: 'Waddada Maka Al-Mukarama, Muqdisho' },
+];
+
 export const clientFields: CrudField[] = [
     { name: 'name', label: 'Name', required: true, placeholder: 'Aamina Maxamed' },
     { name: 'email', label: 'Email', type: 'email', placeholder: 'aamina@tusaale.so' },
@@ -23,8 +31,8 @@ export const clientFields: CrudField[] = [
 ];
 
 export const dealFields: CrudField[] = [
-    { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'] } },
-    { name: 'clientId', label: 'Client', required: true, lookup: { endpoint: '/api/real-estate/clients', labelKeys: ['name'] } },
+    { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'], create: { fields: propertyQuickFields } } },
+    { name: 'clientId', label: 'Client', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'], create: { fields: clientFields } } },
     { name: 'type', label: 'Type', type: 'select', required: true, options: options(['SALE', 'RENTAL']) },
     { name: 'paymentStatus', label: 'Payment status', type: 'select', options: options(['PAID', 'PARTIAL', 'PENDING', 'OVERDUE', 'REFUNDED']) },
     { name: 'totalAmount', label: 'Total amount', type: 'number', required: true, placeholder: '85000' },
@@ -42,8 +50,8 @@ export const tenantFields: CrudField[] = [
 ];
 
 export const rentalContractFields: CrudField[] = [
-    { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'] } },
-    { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'] } },
+    { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'], create: { fields: tenantFields } } },
+    { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'], create: { fields: propertyQuickFields } } },
     { name: 'monthlyRent', label: 'Monthly rent', type: 'number', required: true },
     { name: 'startDate', label: 'Start date', type: 'date', required: true },
     { name: 'endDate', label: 'End date', type: 'date', required: true },

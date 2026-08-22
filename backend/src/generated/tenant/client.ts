@@ -200,11 +200,6 @@ export type WorkerLedgerEntry = Prisma.WorkerLedgerEntryModel
  */
 export type Property = Prisma.PropertyModel
 /**
- * Model Client
- * 
- */
-export type Client = Prisma.ClientModel
-/**
  * Model Deal
  * 
  */

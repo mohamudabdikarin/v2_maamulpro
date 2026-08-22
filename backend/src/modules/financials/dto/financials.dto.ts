@@ -16,6 +16,7 @@ export class TransactionQueryDto extends PaginationQueryDto {
   @IsOptional() @IsString() categoryId?: string;
   @IsOptional() @IsString() projectId?: string;
   @IsOptional() @IsString() propertyId?: string;
+  @IsOptional() @IsString() materialId?: string;
   @IsOptional() @Type(() => Date) @IsDate() startDate?: Date;
   @IsOptional() @Type(() => Date) @IsDate() endDate?: Date;
 }
@@ -29,6 +30,7 @@ export class CreateTransactionDto {
   @IsOptional() @IsString() projectId?: string;
   @IsOptional() @IsString() propertyId?: string;
   @IsOptional() @IsString() dealId?: string;
+  @IsOptional() @IsString() materialId?: string;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
 }
@@ -42,6 +44,7 @@ export class UpdateTransactionDto {
   @IsOptional() @IsString() projectId?: string;
   @IsOptional() @IsString() propertyId?: string;
   @IsOptional() @IsString() dealId?: string;
+  @IsOptional() @IsString() materialId?: string;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
   @Type(() => Number) @IsNumber() @Min(0) version: number;

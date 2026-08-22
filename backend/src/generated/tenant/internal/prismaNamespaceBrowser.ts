@@ -83,7 +83,6 @@ export const ModelName = {
   DailyOperationalExpense: 'DailyOperationalExpense',
   WorkerLedgerEntry: 'WorkerLedgerEntry',
   Property: 'Property',
-  Client: 'Client',
   Deal: 'Deal',
   Account: 'Account',
   JournalBatch: 'JournalBatch',
@@ -263,6 +262,7 @@ export const TransactionScalarFieldEnum = {
   projectId: 'projectId',
   propertyId: 'propertyId',
   dealId: 'dealId',
+  materialId: 'materialId',
   notes: 'notes',
   version: 'version',
   journalBatchId: 'journalBatchId',
@@ -630,20 +630,6 @@ export const PropertyScalarFieldEnum = {
 } as const
 
 export type PropertyScalarFieldEnum = (typeof PropertyScalarFieldEnum)[keyof typeof PropertyScalarFieldEnum]
-
-
-export const ClientScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  phone: 'phone',
-  notes: 'notes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type ClientScalarFieldEnum = (typeof ClientScalarFieldEnum)[keyof typeof ClientScalarFieldEnum]
 
 
 export const DealScalarFieldEnum = {

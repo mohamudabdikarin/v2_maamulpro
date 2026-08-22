@@ -28,8 +28,8 @@ export const taskFields: CrudField[] = [
 export const expenseFields: CrudField[] = [
     { name: 'amount', label: 'Amount', type: 'number', required: true, placeholder: '1500' },
     { name: 'description', label: 'Description', required: true, placeholder: 'Iibsiga sibidhka goobta' },
-    { name: 'category', label: 'Category', type: 'select', options: options(['LABOR', 'MATERIALS', 'EQUIPMENT', 'TRANSPORT', 'UTILITIES', 'FOOD', 'OTHER']) },
+    { name: 'category', label: 'Category', type: 'select', options: options(['UNSKILLED_LABOR', 'LABOR', 'MATERIALS', 'EQUIPMENT', 'TRANSPORT', 'UTILITIES', 'FOOD', 'SUPPORT_COSTS', 'OTHER']) },
     { name: 'date', label: 'Date', type: 'date' },
     { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects', labelKeys: ['name'] } },
-    { name: 'staffId', label: 'Staff member', lookup: { endpoint: '/api/staff', labelKeys: ['firstName', 'lastName'] } },
+    { name: 'staffId', label: 'Staff member', lookup: { endpoint: '/api/staff', labelKeys: ['firstName', 'lastName'] }, hideWhen: (form) => form.category === 'UNSKILLED_LABOR' },
 ];

@@ -15,13 +15,6 @@ export class PropertyDto {
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
-export class ClientDto {
-  @IsString() @MaxLength(160) name: string;
-  @IsOptional() @IsEmail() email?: string;
-  @IsOptional() @IsString() @MaxLength(50) phone?: string;
-  @IsOptional() @IsString() @MaxLength(2000) notes?: string;
-}
-
 export class DealDto {
   @IsString() propertyId: string;
   @IsString() clientId: string;

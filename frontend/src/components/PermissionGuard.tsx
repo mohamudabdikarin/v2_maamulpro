@@ -4,7 +4,7 @@ import { Session, sessionStore } from '../lib/api';
 
 const OWNER_ROLES = ['SUPER_ADMIN', 'COMPANY_OWNER'];
 
-type Props = PropsWithChildren<{ permission?: string }>;
+type Props = PropsWithChildren<{ permission?: string | string[] }>;
 
 const PermissionGuard = ({ permission, children }: Props) => {
     const [session, setSession] = useState<Session | null>(() => sessionStore.get());
@@ -23,7 +23,8 @@ const PermissionGuard = ({ permission, children }: Props) => {
     if (user.isSuperAdmin || user.isImpersonating || OWNER_ROLES.includes(user.role)) return <>{children}</>;
 
     const granted = new Set(user.permissions || []);
-    if (granted.has(permission)) return <>{children}</>;
+    const satisfied = Array.isArray(permission) ? permission.some((p) => granted.has(p)) : granted.has(permission);
+    if (satisfied) return <>{children}</>;
 
     return <Navigate to="/app/no-access" replace />;
 };

@@ -15,6 +15,15 @@ export const PasswordInput = ({ className = '', startAdornment, ...props }: Pass
     </div>;
 };
 
+type CurrencyInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>;
+
+export const isCurrencyName = (name: string) => /(total|amount|price|cost|balance|budget|rent|salary|bonus|deduction|tax|fee|paid|due)/i.test(name);
+
+export const CurrencyInput = ({ className = '', ...props }: CurrencyInputProps) => <div className="relative">
+    <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-white-dark">$</span>
+    <input {...props} type="number" className={`${className} ps-7`} />
+</div>;
+
 export const humanize = (value: string) => value.replace(/[_-]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\b\w/g, (letter) => letter.toUpperCase());
 export const money = (value: unknown, currency = 'USD') => new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(Number(value || 0));
 export const shortDate = (value: unknown) => value ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(String(value))) : '—';

@@ -324,6 +324,7 @@ export type MaterialWhereInput = {
   purchaseItems?: Prisma.PurchaseOrderItemListRelationFilter
   saleItems?: Prisma.MaterialSaleItemListRelationFilter
   transportationItems?: Prisma.TransportationItemListRelationFilter
+  ledgerTransactions?: Prisma.TransactionListRelationFilter
 }
 
 export type MaterialOrderByWithRelationInput = {
@@ -347,6 +348,7 @@ export type MaterialOrderByWithRelationInput = {
   purchaseItems?: Prisma.PurchaseOrderItemOrderByRelationAggregateInput
   saleItems?: Prisma.MaterialSaleItemOrderByRelationAggregateInput
   transportationItems?: Prisma.TransportationItemOrderByRelationAggregateInput
+  ledgerTransactions?: Prisma.TransactionOrderByRelationAggregateInput
 }
 
 export type MaterialWhereUniqueInput = Prisma.AtLeast<{
@@ -373,6 +375,7 @@ export type MaterialWhereUniqueInput = Prisma.AtLeast<{
   purchaseItems?: Prisma.PurchaseOrderItemListRelationFilter
   saleItems?: Prisma.MaterialSaleItemListRelationFilter
   transportationItems?: Prisma.TransportationItemListRelationFilter
+  ledgerTransactions?: Prisma.TransactionListRelationFilter
 }, "id">
 
 export type MaterialOrderByWithAggregationInput = {
@@ -442,6 +445,7 @@ export type MaterialCreateInput = {
   purchaseItems?: Prisma.PurchaseOrderItemCreateNestedManyWithoutMaterialInput
   saleItems?: Prisma.MaterialSaleItemCreateNestedManyWithoutMaterialInput
   transportationItems?: Prisma.TransportationItemCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateInput = {
@@ -465,6 +469,7 @@ export type MaterialUncheckedCreateInput = {
   purchaseItems?: Prisma.PurchaseOrderItemUncheckedCreateNestedManyWithoutMaterialInput
   saleItems?: Prisma.MaterialSaleItemUncheckedCreateNestedManyWithoutMaterialInput
   transportationItems?: Prisma.TransportationItemUncheckedCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUpdateInput = {
@@ -488,6 +493,7 @@ export type MaterialUpdateInput = {
   purchaseItems?: Prisma.PurchaseOrderItemUpdateManyWithoutMaterialNestedInput
   saleItems?: Prisma.MaterialSaleItemUpdateManyWithoutMaterialNestedInput
   transportationItems?: Prisma.TransportationItemUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateInput = {
@@ -511,6 +517,7 @@ export type MaterialUncheckedUpdateInput = {
   purchaseItems?: Prisma.PurchaseOrderItemUncheckedUpdateManyWithoutMaterialNestedInput
   saleItems?: Prisma.MaterialSaleItemUncheckedUpdateManyWithoutMaterialNestedInput
   transportationItems?: Prisma.TransportationItemUncheckedUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialCreateManyInput = {
@@ -568,6 +575,11 @@ export type MaterialUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type MaterialNullableScalarRelationFilter = {
+  is?: Prisma.MaterialWhereInput | null
+  isNot?: Prisma.MaterialWhereInput | null
 }
 
 export type MaterialCountOrderByAggregateInput = {
@@ -648,6 +660,22 @@ export type MaterialScalarRelationFilter = {
   isNot?: Prisma.MaterialWhereInput
 }
 
+export type MaterialCreateNestedOneWithoutLedgerTransactionsInput = {
+  create?: Prisma.XOR<Prisma.MaterialCreateWithoutLedgerTransactionsInput, Prisma.MaterialUncheckedCreateWithoutLedgerTransactionsInput>
+  connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutLedgerTransactionsInput
+  connect?: Prisma.MaterialWhereUniqueInput
+}
+
+export type MaterialUpdateOneWithoutLedgerTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.MaterialCreateWithoutLedgerTransactionsInput, Prisma.MaterialUncheckedCreateWithoutLedgerTransactionsInput>
+  connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutLedgerTransactionsInput
+  upsert?: Prisma.MaterialUpsertWithoutLedgerTransactionsInput
+  disconnect?: Prisma.MaterialWhereInput | boolean
+  delete?: Prisma.MaterialWhereInput | boolean
+  connect?: Prisma.MaterialWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MaterialUpdateToOneWithWhereWithoutLedgerTransactionsInput, Prisma.MaterialUpdateWithoutLedgerTransactionsInput>, Prisma.MaterialUncheckedUpdateWithoutLedgerTransactionsInput>
+}
+
 export type EnumUnitTypeFieldUpdateOperationsInput = {
   set?: $Enums.UnitType
 }
@@ -712,6 +740,114 @@ export type MaterialUpdateOneRequiredWithoutTransportationItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MaterialUpdateToOneWithWhereWithoutTransportationItemsInput, Prisma.MaterialUpdateWithoutTransportationItemsInput>, Prisma.MaterialUncheckedUpdateWithoutTransportationItemsInput>
 }
 
+export type MaterialCreateWithoutLedgerTransactionsInput = {
+  id?: string
+  name: string
+  category?: string | null
+  materialType?: string | null
+  photoUrl?: string | null
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  unit: $Enums.UnitType
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  salePrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  warehouse?: string | null
+  lowStockThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.MaterialProductStatus
+  version?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  transactions?: Prisma.InventoryTransactionCreateNestedManyWithoutMaterialInput
+  purchaseItems?: Prisma.PurchaseOrderItemCreateNestedManyWithoutMaterialInput
+  saleItems?: Prisma.MaterialSaleItemCreateNestedManyWithoutMaterialInput
+  transportationItems?: Prisma.TransportationItemCreateNestedManyWithoutMaterialInput
+}
+
+export type MaterialUncheckedCreateWithoutLedgerTransactionsInput = {
+  id?: string
+  name: string
+  category?: string | null
+  materialType?: string | null
+  photoUrl?: string | null
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  unit: $Enums.UnitType
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  salePrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  warehouse?: string | null
+  lowStockThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.MaterialProductStatus
+  version?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  transactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutMaterialInput
+  purchaseItems?: Prisma.PurchaseOrderItemUncheckedCreateNestedManyWithoutMaterialInput
+  saleItems?: Prisma.MaterialSaleItemUncheckedCreateNestedManyWithoutMaterialInput
+  transportationItems?: Prisma.TransportationItemUncheckedCreateNestedManyWithoutMaterialInput
+}
+
+export type MaterialCreateOrConnectWithoutLedgerTransactionsInput = {
+  where: Prisma.MaterialWhereUniqueInput
+  create: Prisma.XOR<Prisma.MaterialCreateWithoutLedgerTransactionsInput, Prisma.MaterialUncheckedCreateWithoutLedgerTransactionsInput>
+}
+
+export type MaterialUpsertWithoutLedgerTransactionsInput = {
+  update: Prisma.XOR<Prisma.MaterialUpdateWithoutLedgerTransactionsInput, Prisma.MaterialUncheckedUpdateWithoutLedgerTransactionsInput>
+  create: Prisma.XOR<Prisma.MaterialCreateWithoutLedgerTransactionsInput, Prisma.MaterialUncheckedCreateWithoutLedgerTransactionsInput>
+  where?: Prisma.MaterialWhereInput
+}
+
+export type MaterialUpdateToOneWithWhereWithoutLedgerTransactionsInput = {
+  where?: Prisma.MaterialWhereInput
+  data: Prisma.XOR<Prisma.MaterialUpdateWithoutLedgerTransactionsInput, Prisma.MaterialUncheckedUpdateWithoutLedgerTransactionsInput>
+}
+
+export type MaterialUpdateWithoutLedgerTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  unit?: Prisma.EnumUnitTypeFieldUpdateOperationsInput | $Enums.UnitType
+  unitCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  salePrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lowStockThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumMaterialProductStatusFieldUpdateOperationsInput | $Enums.MaterialProductStatus
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  transactions?: Prisma.InventoryTransactionUpdateManyWithoutMaterialNestedInput
+  purchaseItems?: Prisma.PurchaseOrderItemUpdateManyWithoutMaterialNestedInput
+  saleItems?: Prisma.MaterialSaleItemUpdateManyWithoutMaterialNestedInput
+  transportationItems?: Prisma.TransportationItemUpdateManyWithoutMaterialNestedInput
+}
+
+export type MaterialUncheckedUpdateWithoutLedgerTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  unit?: Prisma.EnumUnitTypeFieldUpdateOperationsInput | $Enums.UnitType
+  unitCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  salePrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lowStockThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumMaterialProductStatusFieldUpdateOperationsInput | $Enums.MaterialProductStatus
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  transactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutMaterialNestedInput
+  purchaseItems?: Prisma.PurchaseOrderItemUncheckedUpdateManyWithoutMaterialNestedInput
+  saleItems?: Prisma.MaterialSaleItemUncheckedUpdateManyWithoutMaterialNestedInput
+  transportationItems?: Prisma.TransportationItemUncheckedUpdateManyWithoutMaterialNestedInput
+}
+
 export type MaterialCreateWithoutTransactionsInput = {
   id?: string
   name: string
@@ -732,6 +868,7 @@ export type MaterialCreateWithoutTransactionsInput = {
   purchaseItems?: Prisma.PurchaseOrderItemCreateNestedManyWithoutMaterialInput
   saleItems?: Prisma.MaterialSaleItemCreateNestedManyWithoutMaterialInput
   transportationItems?: Prisma.TransportationItemCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateWithoutTransactionsInput = {
@@ -754,6 +891,7 @@ export type MaterialUncheckedCreateWithoutTransactionsInput = {
   purchaseItems?: Prisma.PurchaseOrderItemUncheckedCreateNestedManyWithoutMaterialInput
   saleItems?: Prisma.MaterialSaleItemUncheckedCreateNestedManyWithoutMaterialInput
   transportationItems?: Prisma.TransportationItemUncheckedCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialCreateOrConnectWithoutTransactionsInput = {
@@ -792,6 +930,7 @@ export type MaterialUpdateWithoutTransactionsInput = {
   purchaseItems?: Prisma.PurchaseOrderItemUpdateManyWithoutMaterialNestedInput
   saleItems?: Prisma.MaterialSaleItemUpdateManyWithoutMaterialNestedInput
   transportationItems?: Prisma.TransportationItemUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateWithoutTransactionsInput = {
@@ -814,6 +953,7 @@ export type MaterialUncheckedUpdateWithoutTransactionsInput = {
   purchaseItems?: Prisma.PurchaseOrderItemUncheckedUpdateManyWithoutMaterialNestedInput
   saleItems?: Prisma.MaterialSaleItemUncheckedUpdateManyWithoutMaterialNestedInput
   transportationItems?: Prisma.TransportationItemUncheckedUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialCreateWithoutPurchaseItemsInput = {
@@ -836,6 +976,7 @@ export type MaterialCreateWithoutPurchaseItemsInput = {
   transactions?: Prisma.InventoryTransactionCreateNestedManyWithoutMaterialInput
   saleItems?: Prisma.MaterialSaleItemCreateNestedManyWithoutMaterialInput
   transportationItems?: Prisma.TransportationItemCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateWithoutPurchaseItemsInput = {
@@ -858,6 +999,7 @@ export type MaterialUncheckedCreateWithoutPurchaseItemsInput = {
   transactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutMaterialInput
   saleItems?: Prisma.MaterialSaleItemUncheckedCreateNestedManyWithoutMaterialInput
   transportationItems?: Prisma.TransportationItemUncheckedCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialCreateOrConnectWithoutPurchaseItemsInput = {
@@ -896,6 +1038,7 @@ export type MaterialUpdateWithoutPurchaseItemsInput = {
   transactions?: Prisma.InventoryTransactionUpdateManyWithoutMaterialNestedInput
   saleItems?: Prisma.MaterialSaleItemUpdateManyWithoutMaterialNestedInput
   transportationItems?: Prisma.TransportationItemUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateWithoutPurchaseItemsInput = {
@@ -918,6 +1061,7 @@ export type MaterialUncheckedUpdateWithoutPurchaseItemsInput = {
   transactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutMaterialNestedInput
   saleItems?: Prisma.MaterialSaleItemUncheckedUpdateManyWithoutMaterialNestedInput
   transportationItems?: Prisma.TransportationItemUncheckedUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialCreateWithoutSaleItemsInput = {
@@ -940,6 +1084,7 @@ export type MaterialCreateWithoutSaleItemsInput = {
   transactions?: Prisma.InventoryTransactionCreateNestedManyWithoutMaterialInput
   purchaseItems?: Prisma.PurchaseOrderItemCreateNestedManyWithoutMaterialInput
   transportationItems?: Prisma.TransportationItemCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateWithoutSaleItemsInput = {
@@ -962,6 +1107,7 @@ export type MaterialUncheckedCreateWithoutSaleItemsInput = {
   transactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutMaterialInput
   purchaseItems?: Prisma.PurchaseOrderItemUncheckedCreateNestedManyWithoutMaterialInput
   transportationItems?: Prisma.TransportationItemUncheckedCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialCreateOrConnectWithoutSaleItemsInput = {
@@ -1000,6 +1146,7 @@ export type MaterialUpdateWithoutSaleItemsInput = {
   transactions?: Prisma.InventoryTransactionUpdateManyWithoutMaterialNestedInput
   purchaseItems?: Prisma.PurchaseOrderItemUpdateManyWithoutMaterialNestedInput
   transportationItems?: Prisma.TransportationItemUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateWithoutSaleItemsInput = {
@@ -1022,6 +1169,7 @@ export type MaterialUncheckedUpdateWithoutSaleItemsInput = {
   transactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutMaterialNestedInput
   purchaseItems?: Prisma.PurchaseOrderItemUncheckedUpdateManyWithoutMaterialNestedInput
   transportationItems?: Prisma.TransportationItemUncheckedUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialCreateWithoutTransportationItemsInput = {
@@ -1044,6 +1192,7 @@ export type MaterialCreateWithoutTransportationItemsInput = {
   transactions?: Prisma.InventoryTransactionCreateNestedManyWithoutMaterialInput
   purchaseItems?: Prisma.PurchaseOrderItemCreateNestedManyWithoutMaterialInput
   saleItems?: Prisma.MaterialSaleItemCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateWithoutTransportationItemsInput = {
@@ -1066,6 +1215,7 @@ export type MaterialUncheckedCreateWithoutTransportationItemsInput = {
   transactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutMaterialInput
   purchaseItems?: Prisma.PurchaseOrderItemUncheckedCreateNestedManyWithoutMaterialInput
   saleItems?: Prisma.MaterialSaleItemUncheckedCreateNestedManyWithoutMaterialInput
+  ledgerTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialCreateOrConnectWithoutTransportationItemsInput = {
@@ -1104,6 +1254,7 @@ export type MaterialUpdateWithoutTransportationItemsInput = {
   transactions?: Prisma.InventoryTransactionUpdateManyWithoutMaterialNestedInput
   purchaseItems?: Prisma.PurchaseOrderItemUpdateManyWithoutMaterialNestedInput
   saleItems?: Prisma.MaterialSaleItemUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateWithoutTransportationItemsInput = {
@@ -1126,6 +1277,7 @@ export type MaterialUncheckedUpdateWithoutTransportationItemsInput = {
   transactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutMaterialNestedInput
   purchaseItems?: Prisma.PurchaseOrderItemUncheckedUpdateManyWithoutMaterialNestedInput
   saleItems?: Prisma.MaterialSaleItemUncheckedUpdateManyWithoutMaterialNestedInput
+  ledgerTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 
@@ -1138,6 +1290,7 @@ export type MaterialCountOutputType = {
   purchaseItems: number
   saleItems: number
   transportationItems: number
+  ledgerTransactions: number
 }
 
 export type MaterialCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1145,6 +1298,7 @@ export type MaterialCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   purchaseItems?: boolean | MaterialCountOutputTypeCountPurchaseItemsArgs
   saleItems?: boolean | MaterialCountOutputTypeCountSaleItemsArgs
   transportationItems?: boolean | MaterialCountOutputTypeCountTransportationItemsArgs
+  ledgerTransactions?: boolean | MaterialCountOutputTypeCountLedgerTransactionsArgs
 }
 
 /**
@@ -1185,6 +1339,13 @@ export type MaterialCountOutputTypeCountTransportationItemsArgs<ExtArgs extends 
   where?: Prisma.TransportationItemWhereInput
 }
 
+/**
+ * MaterialCountOutputType without action
+ */
+export type MaterialCountOutputTypeCountLedgerTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
+
 
 export type MaterialSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1207,6 +1368,7 @@ export type MaterialSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   purchaseItems?: boolean | Prisma.Material$purchaseItemsArgs<ExtArgs>
   saleItems?: boolean | Prisma.Material$saleItemsArgs<ExtArgs>
   transportationItems?: boolean | Prisma.Material$transportationItemsArgs<ExtArgs>
+  ledgerTransactions?: boolean | Prisma.Material$ledgerTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.MaterialCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["material"]>
 
@@ -1273,6 +1435,7 @@ export type MaterialInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   purchaseItems?: boolean | Prisma.Material$purchaseItemsArgs<ExtArgs>
   saleItems?: boolean | Prisma.Material$saleItemsArgs<ExtArgs>
   transportationItems?: boolean | Prisma.Material$transportationItemsArgs<ExtArgs>
+  ledgerTransactions?: boolean | Prisma.Material$ledgerTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.MaterialCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MaterialIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1285,6 +1448,7 @@ export type $MaterialPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     purchaseItems: Prisma.$PurchaseOrderItemPayload<ExtArgs>[]
     saleItems: Prisma.$MaterialSaleItemPayload<ExtArgs>[]
     transportationItems: Prisma.$TransportationItemPayload<ExtArgs>[]
+    ledgerTransactions: Prisma.$TransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1701,6 +1865,7 @@ export interface Prisma__MaterialClient<T, Null = never, ExtArgs extends runtime
   purchaseItems<T extends Prisma.Material$purchaseItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$purchaseItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PurchaseOrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   saleItems<T extends Prisma.Material$saleItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$saleItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialSaleItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transportationItems<T extends Prisma.Material$transportationItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$transportationItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransportationItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ledgerTransactions<T extends Prisma.Material$ledgerTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$ledgerTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2232,6 +2397,30 @@ export type Material$transportationItemsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.TransportationItemScalarFieldEnum | Prisma.TransportationItemScalarFieldEnum[]
+}
+
+/**
+ * Material.ledgerTransactions
+ */
+export type Material$ledgerTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
 }
 
 /**

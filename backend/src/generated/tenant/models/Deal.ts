@@ -297,7 +297,7 @@ export type DealWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Deal"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Deal"> | Date | string | null
   property?: Prisma.XOR<Prisma.PropertyScalarRelationFilter, Prisma.PropertyWhereInput>
-  client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
+  client?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   transactions?: Prisma.TransactionListRelationFilter
 }
@@ -318,7 +318,7 @@ export type DealOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   property?: Prisma.PropertyOrderByWithRelationInput
-  client?: Prisma.ClientOrderByWithRelationInput
+  client?: Prisma.TenantOrderByWithRelationInput
   createdBy?: Prisma.UserOrderByWithRelationInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
 }
@@ -342,7 +342,7 @@ export type DealWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Deal"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Deal"> | Date | string | null
   property?: Prisma.XOR<Prisma.PropertyScalarRelationFilter, Prisma.PropertyWhereInput>
-  client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
+  client?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   transactions?: Prisma.TransactionListRelationFilter
 }, "id">
@@ -402,7 +402,7 @@ export type DealCreateInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   property: Prisma.PropertyCreateNestedOneWithoutDealsInput
-  client: Prisma.ClientCreateNestedOneWithoutDealsInput
+  client: Prisma.TenantCreateNestedOneWithoutDealsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedDealsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutDealInput
 }
@@ -438,7 +438,7 @@ export type DealUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   property?: Prisma.PropertyUpdateOneRequiredWithoutDealsNestedInput
-  client?: Prisma.ClientUpdateOneRequiredWithoutDealsNestedInput
+  client?: Prisma.TenantUpdateOneRequiredWithoutDealsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedDealsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutDealNestedInput
 }
@@ -645,48 +645,6 @@ export type DealUpdateOneWithoutTransactionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DealUpdateToOneWithWhereWithoutTransactionsInput, Prisma.DealUpdateWithoutTransactionsInput>, Prisma.DealUncheckedUpdateWithoutTransactionsInput>
 }
 
-export type DealCreateNestedManyWithoutPropertyInput = {
-  create?: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput> | Prisma.DealCreateWithoutPropertyInput[] | Prisma.DealUncheckedCreateWithoutPropertyInput[]
-  connectOrCreate?: Prisma.DealCreateOrConnectWithoutPropertyInput | Prisma.DealCreateOrConnectWithoutPropertyInput[]
-  createMany?: Prisma.DealCreateManyPropertyInputEnvelope
-  connect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-}
-
-export type DealUncheckedCreateNestedManyWithoutPropertyInput = {
-  create?: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput> | Prisma.DealCreateWithoutPropertyInput[] | Prisma.DealUncheckedCreateWithoutPropertyInput[]
-  connectOrCreate?: Prisma.DealCreateOrConnectWithoutPropertyInput | Prisma.DealCreateOrConnectWithoutPropertyInput[]
-  createMany?: Prisma.DealCreateManyPropertyInputEnvelope
-  connect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-}
-
-export type DealUpdateManyWithoutPropertyNestedInput = {
-  create?: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput> | Prisma.DealCreateWithoutPropertyInput[] | Prisma.DealUncheckedCreateWithoutPropertyInput[]
-  connectOrCreate?: Prisma.DealCreateOrConnectWithoutPropertyInput | Prisma.DealCreateOrConnectWithoutPropertyInput[]
-  upsert?: Prisma.DealUpsertWithWhereUniqueWithoutPropertyInput | Prisma.DealUpsertWithWhereUniqueWithoutPropertyInput[]
-  createMany?: Prisma.DealCreateManyPropertyInputEnvelope
-  set?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-  disconnect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-  delete?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-  connect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-  update?: Prisma.DealUpdateWithWhereUniqueWithoutPropertyInput | Prisma.DealUpdateWithWhereUniqueWithoutPropertyInput[]
-  updateMany?: Prisma.DealUpdateManyWithWhereWithoutPropertyInput | Prisma.DealUpdateManyWithWhereWithoutPropertyInput[]
-  deleteMany?: Prisma.DealScalarWhereInput | Prisma.DealScalarWhereInput[]
-}
-
-export type DealUncheckedUpdateManyWithoutPropertyNestedInput = {
-  create?: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput> | Prisma.DealCreateWithoutPropertyInput[] | Prisma.DealUncheckedCreateWithoutPropertyInput[]
-  connectOrCreate?: Prisma.DealCreateOrConnectWithoutPropertyInput | Prisma.DealCreateOrConnectWithoutPropertyInput[]
-  upsert?: Prisma.DealUpsertWithWhereUniqueWithoutPropertyInput | Prisma.DealUpsertWithWhereUniqueWithoutPropertyInput[]
-  createMany?: Prisma.DealCreateManyPropertyInputEnvelope
-  set?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-  disconnect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-  delete?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-  connect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
-  update?: Prisma.DealUpdateWithWhereUniqueWithoutPropertyInput | Prisma.DealUpdateWithWhereUniqueWithoutPropertyInput[]
-  updateMany?: Prisma.DealUpdateManyWithWhereWithoutPropertyInput | Prisma.DealUpdateManyWithWhereWithoutPropertyInput[]
-  deleteMany?: Prisma.DealScalarWhereInput | Prisma.DealScalarWhereInput[]
-}
-
 export type DealCreateNestedManyWithoutClientInput = {
   create?: Prisma.XOR<Prisma.DealCreateWithoutClientInput, Prisma.DealUncheckedCreateWithoutClientInput> | Prisma.DealCreateWithoutClientInput[] | Prisma.DealUncheckedCreateWithoutClientInput[]
   connectOrCreate?: Prisma.DealCreateOrConnectWithoutClientInput | Prisma.DealCreateOrConnectWithoutClientInput[]
@@ -729,6 +687,48 @@ export type DealUncheckedUpdateManyWithoutClientNestedInput = {
   deleteMany?: Prisma.DealScalarWhereInput | Prisma.DealScalarWhereInput[]
 }
 
+export type DealCreateNestedManyWithoutPropertyInput = {
+  create?: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput> | Prisma.DealCreateWithoutPropertyInput[] | Prisma.DealUncheckedCreateWithoutPropertyInput[]
+  connectOrCreate?: Prisma.DealCreateOrConnectWithoutPropertyInput | Prisma.DealCreateOrConnectWithoutPropertyInput[]
+  createMany?: Prisma.DealCreateManyPropertyInputEnvelope
+  connect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+}
+
+export type DealUncheckedCreateNestedManyWithoutPropertyInput = {
+  create?: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput> | Prisma.DealCreateWithoutPropertyInput[] | Prisma.DealUncheckedCreateWithoutPropertyInput[]
+  connectOrCreate?: Prisma.DealCreateOrConnectWithoutPropertyInput | Prisma.DealCreateOrConnectWithoutPropertyInput[]
+  createMany?: Prisma.DealCreateManyPropertyInputEnvelope
+  connect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+}
+
+export type DealUpdateManyWithoutPropertyNestedInput = {
+  create?: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput> | Prisma.DealCreateWithoutPropertyInput[] | Prisma.DealUncheckedCreateWithoutPropertyInput[]
+  connectOrCreate?: Prisma.DealCreateOrConnectWithoutPropertyInput | Prisma.DealCreateOrConnectWithoutPropertyInput[]
+  upsert?: Prisma.DealUpsertWithWhereUniqueWithoutPropertyInput | Prisma.DealUpsertWithWhereUniqueWithoutPropertyInput[]
+  createMany?: Prisma.DealCreateManyPropertyInputEnvelope
+  set?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+  disconnect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+  delete?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+  connect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+  update?: Prisma.DealUpdateWithWhereUniqueWithoutPropertyInput | Prisma.DealUpdateWithWhereUniqueWithoutPropertyInput[]
+  updateMany?: Prisma.DealUpdateManyWithWhereWithoutPropertyInput | Prisma.DealUpdateManyWithWhereWithoutPropertyInput[]
+  deleteMany?: Prisma.DealScalarWhereInput | Prisma.DealScalarWhereInput[]
+}
+
+export type DealUncheckedUpdateManyWithoutPropertyNestedInput = {
+  create?: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput> | Prisma.DealCreateWithoutPropertyInput[] | Prisma.DealUncheckedCreateWithoutPropertyInput[]
+  connectOrCreate?: Prisma.DealCreateOrConnectWithoutPropertyInput | Prisma.DealCreateOrConnectWithoutPropertyInput[]
+  upsert?: Prisma.DealUpsertWithWhereUniqueWithoutPropertyInput | Prisma.DealUpsertWithWhereUniqueWithoutPropertyInput[]
+  createMany?: Prisma.DealCreateManyPropertyInputEnvelope
+  set?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+  disconnect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+  delete?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+  connect?: Prisma.DealWhereUniqueInput | Prisma.DealWhereUniqueInput[]
+  update?: Prisma.DealUpdateWithWhereUniqueWithoutPropertyInput | Prisma.DealUpdateWithWhereUniqueWithoutPropertyInput[]
+  updateMany?: Prisma.DealUpdateManyWithWhereWithoutPropertyInput | Prisma.DealUpdateManyWithWhereWithoutPropertyInput[]
+  deleteMany?: Prisma.DealScalarWhereInput | Prisma.DealScalarWhereInput[]
+}
+
 export type EnumDealTypeFieldUpdateOperationsInput = {
   set?: $Enums.DealType
 }
@@ -750,7 +750,7 @@ export type DealCreateWithoutCreatedByInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   property: Prisma.PropertyCreateNestedOneWithoutDealsInput
-  client: Prisma.ClientCreateNestedOneWithoutDealsInput
+  client: Prisma.TenantCreateNestedOneWithoutDealsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutDealInput
 }
 
@@ -830,7 +830,7 @@ export type DealCreateWithoutTransactionsInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   property: Prisma.PropertyCreateNestedOneWithoutDealsInput
-  client: Prisma.ClientCreateNestedOneWithoutDealsInput
+  client: Prisma.TenantCreateNestedOneWithoutDealsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedDealsInput
 }
 
@@ -880,7 +880,7 @@ export type DealUpdateWithoutTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   property?: Prisma.PropertyUpdateOneRequiredWithoutDealsNestedInput
-  client?: Prisma.ClientUpdateOneRequiredWithoutDealsNestedInput
+  client?: Prisma.TenantUpdateOneRequiredWithoutDealsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedDealsNestedInput
 }
 
@@ -899,66 +899,6 @@ export type DealUncheckedUpdateWithoutTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-}
-
-export type DealCreateWithoutPropertyInput = {
-  id?: string
-  type: $Enums.DealType
-  paymentStatus?: $Enums.DealPaymentStatus
-  totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  paidAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  notes?: string | null
-  version?: number
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  client: Prisma.ClientCreateNestedOneWithoutDealsInput
-  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedDealsInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutDealInput
-}
-
-export type DealUncheckedCreateWithoutPropertyInput = {
-  id?: string
-  clientId: string
-  createdById?: string | null
-  type: $Enums.DealType
-  paymentStatus?: $Enums.DealPaymentStatus
-  totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  paidAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  notes?: string | null
-  version?: number
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDealInput
-}
-
-export type DealCreateOrConnectWithoutPropertyInput = {
-  where: Prisma.DealWhereUniqueInput
-  create: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput>
-}
-
-export type DealCreateManyPropertyInputEnvelope = {
-  data: Prisma.DealCreateManyPropertyInput | Prisma.DealCreateManyPropertyInput[]
-  skipDuplicates?: boolean
-}
-
-export type DealUpsertWithWhereUniqueWithoutPropertyInput = {
-  where: Prisma.DealWhereUniqueInput
-  update: Prisma.XOR<Prisma.DealUpdateWithoutPropertyInput, Prisma.DealUncheckedUpdateWithoutPropertyInput>
-  create: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput>
-}
-
-export type DealUpdateWithWhereUniqueWithoutPropertyInput = {
-  where: Prisma.DealWhereUniqueInput
-  data: Prisma.XOR<Prisma.DealUpdateWithoutPropertyInput, Prisma.DealUncheckedUpdateWithoutPropertyInput>
-}
-
-export type DealUpdateManyWithWhereWithoutPropertyInput = {
-  where: Prisma.DealScalarWhereInput
-  data: Prisma.XOR<Prisma.DealUpdateManyMutationInput, Prisma.DealUncheckedUpdateManyWithoutPropertyInput>
 }
 
 export type DealCreateWithoutClientInput = {
@@ -1021,6 +961,66 @@ export type DealUpdateManyWithWhereWithoutClientInput = {
   data: Prisma.XOR<Prisma.DealUpdateManyMutationInput, Prisma.DealUncheckedUpdateManyWithoutClientInput>
 }
 
+export type DealCreateWithoutPropertyInput = {
+  id?: string
+  type: $Enums.DealType
+  paymentStatus?: $Enums.DealPaymentStatus
+  totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  paidAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: string | null
+  version?: number
+  closedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  client: Prisma.TenantCreateNestedOneWithoutDealsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedDealsInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutDealInput
+}
+
+export type DealUncheckedCreateWithoutPropertyInput = {
+  id?: string
+  clientId: string
+  createdById?: string | null
+  type: $Enums.DealType
+  paymentStatus?: $Enums.DealPaymentStatus
+  totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  paidAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: string | null
+  version?: number
+  closedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDealInput
+}
+
+export type DealCreateOrConnectWithoutPropertyInput = {
+  where: Prisma.DealWhereUniqueInput
+  create: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput>
+}
+
+export type DealCreateManyPropertyInputEnvelope = {
+  data: Prisma.DealCreateManyPropertyInput | Prisma.DealCreateManyPropertyInput[]
+  skipDuplicates?: boolean
+}
+
+export type DealUpsertWithWhereUniqueWithoutPropertyInput = {
+  where: Prisma.DealWhereUniqueInput
+  update: Prisma.XOR<Prisma.DealUpdateWithoutPropertyInput, Prisma.DealUncheckedUpdateWithoutPropertyInput>
+  create: Prisma.XOR<Prisma.DealCreateWithoutPropertyInput, Prisma.DealUncheckedCreateWithoutPropertyInput>
+}
+
+export type DealUpdateWithWhereUniqueWithoutPropertyInput = {
+  where: Prisma.DealWhereUniqueInput
+  data: Prisma.XOR<Prisma.DealUpdateWithoutPropertyInput, Prisma.DealUncheckedUpdateWithoutPropertyInput>
+}
+
+export type DealUpdateManyWithWhereWithoutPropertyInput = {
+  where: Prisma.DealScalarWhereInput
+  data: Prisma.XOR<Prisma.DealUpdateManyMutationInput, Prisma.DealUncheckedUpdateManyWithoutPropertyInput>
+}
+
 export type DealCreateManyCreatedByInput = {
   id?: string
   propertyId: string
@@ -1050,7 +1050,7 @@ export type DealUpdateWithoutCreatedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   property?: Prisma.PropertyUpdateOneRequiredWithoutDealsNestedInput
-  client?: Prisma.ClientUpdateOneRequiredWithoutDealsNestedInput
+  client?: Prisma.TenantUpdateOneRequiredWithoutDealsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutDealNestedInput
 }
 
@@ -1075,72 +1075,6 @@ export type DealUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   propertyId?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumDealTypeFieldUpdateOperationsInput | $Enums.DealType
-  paymentStatus?: Prisma.EnumDealPaymentStatusFieldUpdateOperationsInput | $Enums.DealPaymentStatus
-  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  paidAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-}
-
-export type DealCreateManyPropertyInput = {
-  id?: string
-  clientId: string
-  createdById?: string | null
-  type: $Enums.DealType
-  paymentStatus?: $Enums.DealPaymentStatus
-  totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  paidAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  notes?: string | null
-  version?: number
-  closedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-}
-
-export type DealUpdateWithoutPropertyInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumDealTypeFieldUpdateOperationsInput | $Enums.DealType
-  paymentStatus?: Prisma.EnumDealPaymentStatusFieldUpdateOperationsInput | $Enums.DealPaymentStatus
-  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  paidAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  client?: Prisma.ClientUpdateOneRequiredWithoutDealsNestedInput
-  createdBy?: Prisma.UserUpdateOneWithoutCreatedDealsNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutDealNestedInput
-}
-
-export type DealUncheckedUpdateWithoutPropertyInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  clientId?: Prisma.StringFieldUpdateOperationsInput | string
-  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  type?: Prisma.EnumDealTypeFieldUpdateOperationsInput | $Enums.DealType
-  paymentStatus?: Prisma.EnumDealPaymentStatusFieldUpdateOperationsInput | $Enums.DealPaymentStatus
-  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  paidAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutDealNestedInput
-}
-
-export type DealUncheckedUpdateManyWithoutPropertyInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  clientId?: Prisma.StringFieldUpdateOperationsInput | string
-  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumDealTypeFieldUpdateOperationsInput | $Enums.DealType
   paymentStatus?: Prisma.EnumDealPaymentStatusFieldUpdateOperationsInput | $Enums.DealPaymentStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1219,6 +1153,72 @@ export type DealUncheckedUpdateManyWithoutClientInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
+export type DealCreateManyPropertyInput = {
+  id?: string
+  clientId: string
+  createdById?: string | null
+  type: $Enums.DealType
+  paymentStatus?: $Enums.DealPaymentStatus
+  totalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  paidAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: string | null
+  version?: number
+  closedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type DealUpdateWithoutPropertyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumDealTypeFieldUpdateOperationsInput | $Enums.DealType
+  paymentStatus?: Prisma.EnumDealPaymentStatusFieldUpdateOperationsInput | $Enums.DealPaymentStatus
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  paidAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  client?: Prisma.TenantUpdateOneRequiredWithoutDealsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedDealsNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutDealNestedInput
+}
+
+export type DealUncheckedUpdateWithoutPropertyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumDealTypeFieldUpdateOperationsInput | $Enums.DealType
+  paymentStatus?: Prisma.EnumDealPaymentStatusFieldUpdateOperationsInput | $Enums.DealPaymentStatus
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  paidAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutDealNestedInput
+}
+
+export type DealUncheckedUpdateManyWithoutPropertyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumDealTypeFieldUpdateOperationsInput | $Enums.DealType
+  paymentStatus?: Prisma.EnumDealPaymentStatusFieldUpdateOperationsInput | $Enums.DealPaymentStatus
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  paidAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
 
 /**
  * Count Type DealCountOutputType
@@ -1266,7 +1266,7 @@ export type DealSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   deletedAt?: boolean
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
-  client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
+  client?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Deal$createdByArgs<ExtArgs>
   transactions?: boolean | Prisma.Deal$transactionsArgs<ExtArgs>
   _count?: boolean | Prisma.DealCountOutputTypeDefaultArgs<ExtArgs>
@@ -1288,7 +1288,7 @@ export type DealSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   updatedAt?: boolean
   deletedAt?: boolean
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
-  client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
+  client?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Deal$createdByArgs<ExtArgs>
 }, ExtArgs["result"]["deal"]>
 
@@ -1308,7 +1308,7 @@ export type DealSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   updatedAt?: boolean
   deletedAt?: boolean
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
-  client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
+  client?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Deal$createdByArgs<ExtArgs>
 }, ExtArgs["result"]["deal"]>
 
@@ -1332,19 +1332,19 @@ export type DealSelectScalar = {
 export type DealOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "propertyId" | "clientId" | "createdById" | "type" | "paymentStatus" | "totalAmount" | "paidAmount" | "notes" | "version" | "closedAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["deal"]>
 export type DealInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
-  client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
+  client?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Deal$createdByArgs<ExtArgs>
   transactions?: boolean | Prisma.Deal$transactionsArgs<ExtArgs>
   _count?: boolean | Prisma.DealCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DealIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
-  client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
+  client?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Deal$createdByArgs<ExtArgs>
 }
 export type DealIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
-  client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
+  client?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Deal$createdByArgs<ExtArgs>
 }
 
@@ -1352,7 +1352,7 @@ export type $DealPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Deal"
   objects: {
     property: Prisma.$PropertyPayload<ExtArgs>
-    client: Prisma.$ClientPayload<ExtArgs>
+    client: Prisma.$TenantPayload<ExtArgs>
     createdBy: Prisma.$UserPayload<ExtArgs> | null
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
   }
@@ -1766,7 +1766,7 @@ readonly fields: DealFieldRefs;
 export interface Prisma__DealClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   property<T extends Prisma.PropertyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PropertyDefaultArgs<ExtArgs>>): Prisma.Prisma__PropertyClient<runtime.Types.Result.GetResult<Prisma.$PropertyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  client<T extends Prisma.ClientDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientDefaultArgs<ExtArgs>>): Prisma.Prisma__ClientClient<runtime.Types.Result.GetResult<Prisma.$ClientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  client<T extends Prisma.TenantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TenantDefaultArgs<ExtArgs>>): Prisma.Prisma__TenantClient<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   createdBy<T extends Prisma.Deal$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Deal$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   transactions<T extends Prisma.Deal$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Deal$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**

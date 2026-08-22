@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 16;
+export const CURRENT_TENANT_SCHEMA_VERSION = 18;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -250,6 +250,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "project_id"   TEXT,
     "property_id"  TEXT,
     "deal_id"      TEXT,
+    "material_id"  TEXT,
     "notes"        TEXT,
     "created_at"   TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at"   TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1458,6 +1459,33 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
      ('DEFAULT_INCOME',              '4400','Fallback income account when nothing more specific applies'),
      ('DEFAULT_EXPENSE',             '5900','Fallback expense account when nothing more specific applies')
    ON CONFLICT ("key") DO NOTHING`,
+
+  // Merge real-estate "clients" into "tenants" (Tenant is a strict superset of
+  // Client's columns). Deals now reference tenants directly; the old clients
+  // table is left in place, untouched, for a later cleanup once verified.
+  `INSERT INTO "tenants" ("id", "name", "email", "phone", "notes", "created_at", "updated_at", "deleted_at")
+   SELECT "id", "name", "email", "phone", "notes", "created_at", "updated_at", "deleted_at"
+   FROM "clients"
+   ON CONFLICT ("id") DO NOTHING`,
+
+  `ALTER TABLE "deals" DROP CONSTRAINT IF EXISTS "deals_client_id_fkey"`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "deals" ADD CONSTRAINT "deals_client_id_fkey"
+      FOREIGN KEY ("client_id") REFERENCES "tenants"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  // ── Transactions: manual linking to a material (v18) ────────────
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD COLUMN "material_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_material_id_fkey"
+      FOREIGN KEY ("material_id") REFERENCES "materials"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "transactions_material_id_idx" ON "transactions"("material_id")`,
 ];
 
 /**

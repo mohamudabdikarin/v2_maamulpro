@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
-import { EmptyState, ErrorAlert, LoadingState, PageHeader, StatGrid, formatTableValue, humanize, money, visibleTableColumns } from '../components/maamulpro/PageKit';
+import { EmptyState, ErrorAlert, LoadingState, PageHeader, StatGrid, formatReference, formatTableValue, humanize, money, visibleTableColumns } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 
 type ReportWorkspace = 'core' | 'payroll';
@@ -114,7 +114,7 @@ const CoreReportsPage = ({ basePath = '/app/financials/reports', workspace = 'co
                                 <tbody>{rows.slice(0, 200).map((row, index) => (
                                     <tr key={row.id || index}>{columns.map((column) => {
                                         const value = row[column];
-                                        return <td key={column} className={moneyKey(column) && typeof value === 'number' ? 'text-right font-semibold' : ''}>{formatTableValue(column, value)}</td>;
+                                        return <td key={column} className={moneyKey(column) && typeof value === 'number' ? 'text-right font-semibold' : ''}>{column === 'reference' ? formatReference(value, row.transactionId) : formatTableValue(column, value)}</td>;
                                     })}</tr>
                                 ))}</tbody>
                             </table>

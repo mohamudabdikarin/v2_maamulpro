@@ -578,7 +578,7 @@ export class MaterialManagementService {
     const category = await this.category(tx, 'Procurement', '#ef4444');
     await tx.transaction.upsert({
       where: { referenceId },
-      create: { referenceId, type: 'EXPENSE', status: 'CLEARED', description: `Procurement expense for purchase order ${order.orderNo} (order ${order.id})`, amount: order.totalCost, date: order.receivedAt || new Date(), categoryId: category.id },
+      create: { referenceId, type: 'EXPENSE', status: 'CLEARED', description: `Procurement expense for purchase order ${order.orderNo}`, amount: order.totalCost, date: order.receivedAt || new Date(), categoryId: category.id },
       update: { amount: order.totalCost, date: order.receivedAt || new Date(), deletedAt: null, version: { increment: 1 } },
     });
     // Post the replacement batch first, then retract the prior batch only.
@@ -662,7 +662,7 @@ export class MaterialManagementService {
     const category = await this.category(tx, 'Transportation', '#ef4444');
     await tx.transaction.upsert({
       where: { referenceId },
-      create: { referenceId, type: 'EXPENSE', status: 'CLEARED', description: `Transportation expense for delivery ${record.deliveryNo} (record ${record.id})`, amount: record.cost, date: record.deliveryDate || new Date(), categoryId: category.id },
+      create: { referenceId, type: 'EXPENSE', status: 'CLEARED', description: `Transportation expense for delivery ${record.deliveryNo}`, amount: record.cost, date: record.deliveryDate || new Date(), categoryId: category.id },
       update: { amount: record.cost, date: record.deliveryDate || new Date(), deletedAt: null, version: { increment: 1 } },
     });
     // Post the replacement batch first, then retract the prior batch only.

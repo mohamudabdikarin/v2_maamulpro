@@ -34,7 +34,7 @@ const RealEstateOverviewPage = lazy(() => import('../pages/RealEstateOverviewPag
 const PropertiesPage = lazy(() => import('../pages/PropertiesPage'));
 const RentalHubPage = lazy(() => import('../pages/RentalHubPage'));
 const PropertySalesPage = lazy(() => import('../pages/PropertySalesPage'));
-import { clientFields, dealFields, propertyFields, rentalContractFields, rentPaymentFields } from '../pages/realEstateConfig';
+import { dealFields, propertyFields, rentalContractFields, rentPaymentFields } from '../pages/realEstateConfig';
 
 const MaterialsOverviewPage = lazy(() => import('../pages/MaterialsOverviewPage'));
 const MaterialsInventoryPage = lazy(() => import('../pages/MaterialsInventoryPage'));
@@ -145,52 +145,26 @@ const routes = [
     { path: '/app/real-estate/properties/new', element: <CrudRoutePage title="Add property" description="Create a complete property listing with valuation, specifications and imagery." endpoint="/api/real-estate/properties" fields={propertyFields} initialMode="create" returnTo="/app/real-estate/properties" />, layout: 'blank', permission: 'properties.create' },
     { path: '/app/real-estate/properties/:id/edit', element: <CrudRoutePage title="Edit property" description="Update the listing, valuation, availability and property imagery." endpoint="/api/real-estate/properties" fields={propertyFields} initialMode="edit" returnTo="/app/real-estate/properties" />, layout: 'blank', permission: 'properties.update' },
     { path: '/app/real-estate/properties/:id', element: <EntityDetailPage titleKey="title" endpoint="/api/real-estate/properties" backTo="/app/real-estate/properties" editTo={(id) => `/app/real-estate/properties/${id}/edit`} editPermission="properties.update" imageKey="imageUrl" statusKey="status" primaryFields={['type', 'description', 'address', 'price', 'area', 'bedrooms', 'bathrooms']} moneyKeys={['price', 'totalAmount', 'paidAmount', 'monthlyRent', 'amount']} dateKeys={['closedAt', 'startDate', 'endDate', 'date']} sections={[{ key: 'deals', title: 'Property deals' }, { key: 'rentalContracts', title: 'Rental contracts' }, { key: 'tenants', title: 'Tenants' }, { key: 'transactions', title: 'Financial transactions' }]} />, layout: 'blank', permission: 'properties.read' },
-    { path: '/app/real-estate/clients', element: <CrudPage title="Real Estate Clients" description="Buyer, seller and investor contact directory." endpoint="/api/real-estate/clients" createPermission="clients.create" updatePermission="clients.update" deletePermission="clients.delete" fields={[
-        { name: 'name', label: 'Name', required: true }, { name: 'email', label: 'Email', type: 'email' },
-        { name: 'phone', label: 'Phone' }, { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank', permission: 'clients.read' },
-    { path: '/app/real-estate/clients/new', element: <CrudRoutePage title="New real estate client" description="Add a buyer, seller, landlord or investor contact." endpoint="/api/real-estate/clients" fields={clientFields} initialMode="create" returnTo="/app/real-estate/clients" />, layout: 'blank', permission: 'clients.create' },
-    { path: '/app/real-estate/clients/:id/edit', element: <CrudRoutePage title="Edit client" description="Update client contact details and notes." endpoint="/api/real-estate/clients" fields={clientFields} initialMode="edit" returnTo="/app/real-estate/clients" />, layout: 'blank', permission: 'clients.update' },
-    { path: '/app/real-estate/clients/:id', element: <EntityDetailPage titleKey="name" endpoint="/api/real-estate/clients" backTo="/app/real-estate/clients" editTo={(id) => `/app/real-estate/clients/${id}/edit`} editPermission="clients.update" primaryFields={['email', 'phone', 'notes']} moneyKeys={['totalAmount', 'paidAmount']} dateKeys={['closedAt']} sections={[{ key: 'deals', title: 'Client deals' }]} />, layout: 'blank', permission: 'clients.read' },
-    { path: '/app/real-estate/deals', element: <CrudPage title="Property Deals" description="Sales and rentals with synchronized payment and financial-ledger state." endpoint="/api/real-estate/deals" createPermission="deals.create" updatePermission="deals.update" deletePermission="deals.delete" fields={[
-        { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'] } }, { name: 'clientId', label: 'Client', required: true, lookup: { endpoint: '/api/real-estate/clients', labelKeys: ['name'] } },
-        { name: 'type', label: 'Type', type: 'select', required: true, options: ['SALE', 'RENTAL'].map((value) => ({ value, label: value })) },
-        { name: 'paymentStatus', label: 'Payment status', type: 'select', options: ['PAID', 'PARTIAL', 'PENDING', 'OVERDUE', 'REFUNDED'].map((value) => ({ value, label: value })) },
-        { name: 'totalAmount', label: 'Total amount', type: 'number', required: true }, { name: 'paidAmount', label: 'Paid amount', type: 'number' },
-        { name: 'closedAt', label: 'Closed date', type: 'date' }, { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank', permission: 'deals.read' },
+    { path: '/app/real-estate/deals', element: <CrudPage title="Property Deals" description="Sales and rentals with synchronized payment and financial-ledger state." endpoint="/api/real-estate/deals" createPermission="deals.create" updatePermission="deals.update" deletePermission="deals.delete" fields={dealFields} />, layout: 'blank', permission: 'deals.read' },
     { path: '/app/real-estate/deals/new', element: <CrudRoutePage title="New property deal" description="Create a sale or rental deal and initialize settlement tracking." endpoint="/api/real-estate/deals" fields={dealFields} initialMode="create" returnTo="/app/real-estate/deals" />, layout: 'blank', permission: 'deals.create' },
     { path: '/app/real-estate/deals/:id/edit', element: <CrudRoutePage title="Edit property deal" description="Update value, settlement, payment state and closing notes." endpoint="/api/real-estate/deals" fields={dealFields} initialMode="edit" returnTo="/app/real-estate/deals" />, layout: 'blank', permission: 'deals.update' },
     { path: '/app/real-estate/deals/:id', element: <EntityDetailPage titleKey="type" endpoint="/api/real-estate/deals" backTo="/app/real-estate/deals" editTo={(id) => `/app/real-estate/deals/${id}/edit`} editPermission="deals.update" statusKey="paymentStatus" primaryFields={['totalAmount', 'paidAmount', 'closedAt', 'notes']} moneyKeys={['totalAmount', 'paidAmount', 'amount']} dateKeys={['closedAt', 'date']} sections={[{ key: 'transactions', title: 'Financial transactions' }]} />, layout: 'blank', permission: 'deals.read' },
     { path: '/app/real-estate/sales', element: <PropertySalesPage />, layout: 'blank', permission: 'deals.read' },
     { path: '/app/real-estate/rentals', element: <RentalHubPage />, layout: 'blank', permission: 'rentals.read' },
-    { path: '/app/real-estate/tenants', element: <CrudPage title="Tenants" description="Tenant identity, contact and assigned property records." endpoint="/api/real-estate/tenants" createPermission="rentals.create" updatePermission="rentals.update" deletePermission="rentals.delete" fields={[
+    { path: '/app/real-estate/clients', element: <CrudPage title="Clients" description="Buyer, seller, investor and tenant contact directory, shared by deals and rental contracts." endpoint="/api/real-estate/tenants" createPermission={['clients.create', 'rentals.create']} updatePermission={['clients.update', 'rentals.update']} deletePermission={['clients.delete', 'rentals.delete']} fields={[
         { name: 'name', label: 'Name', required: true }, { name: 'email', label: 'Email', type: 'email' }, { name: 'phone', label: 'Phone' },
         { name: 'nationalIdPassport', label: 'National ID / Passport' }, { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank', permission: 'rentals.read' },
-    { path: '/app/real-estate/rental-contracts', element: <CrudPage title="Rental Contracts" description="Lease periods, rent values, renewals and contract status." endpoint="/api/real-estate/rental-contracts" createPermission="rentals.create" updatePermission="rentals.update" deletePermission="rentals.delete" fields={[
-        { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'] } }, { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties', labelKeys: ['title'] } },
-        { name: 'monthlyRent', label: 'Monthly rent', type: 'number', required: true }, { name: 'startDate', label: 'Start date', type: 'date', required: true },
-        { name: 'endDate', label: 'End date', type: 'date', required: true }, { name: 'renewalDate', label: 'Renewal date', type: 'date' },
-        { name: 'status', label: 'Status', type: 'select', options: ['ACTIVE', 'EXPIRED', 'RENEWAL_DUE', 'TERMINATED'].map((value) => ({ value, label: value.replace(/_/g, ' ') })) },
-        { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank', permission: 'rentals.read' },
+    ]} />, layout: 'blank', permission: ['clients.read', 'rentals.read'] },
+    { path: '/app/real-estate/rental-contracts', element: <CrudPage title="Rental Contracts" description="Lease periods, rent values, renewals and contract status." endpoint="/api/real-estate/rental-contracts" createPermission="rentals.create" updatePermission="rentals.update" deletePermission="rentals.delete" fields={rentalContractFields} />, layout: 'blank', permission: 'rentals.read' },
     { path: '/app/real-estate/rental-contracts/new', element: <CrudRoutePage title="New rental contract" description="Create a lease agreement linking a tenant to a property with rent terms." endpoint="/api/real-estate/rental-contracts" fields={rentalContractFields} initialMode="create" returnTo="/app/real-estate/rentals" />, layout: 'blank', permission: 'rentals.create' },
     { path: '/app/real-estate/rental-contracts/:id/edit', element: <CrudRoutePage title="Edit rental contract" description="Update lease terms, status and renewal dates." endpoint="/api/real-estate/rental-contracts" fields={rentalContractFields} initialMode="edit" returnTo="/app/real-estate/rental-contracts" />, layout: 'blank', permission: 'rentals.update' },
     { path: '/app/real-estate/rent-payments', element: <CrudPage title="Rent Payments" description="Rent due, collections, receipts and overdue status synchronized to financials." endpoint="/api/real-estate/rent-payments" createPermission="rentals.create" updatePermission="rentals.update" deletePermission="rentals.delete" transitions={[
         { action: 'paid', label: 'Mark paid', tone: 'success', path: 'status', body: { status: 'PAID' }, when: ['UNPAID', 'LATE', 'PARTIAL'] },
         { action: 'partial', label: 'Mark partial', tone: 'warning', path: 'status', body: { status: 'PARTIAL' }, when: ['UNPAID', 'LATE'] },
         { action: 'late', label: 'Mark late', tone: 'danger', path: 'status', body: { status: 'LATE' }, when: ['UNPAID', 'PARTIAL'] },
-    ]} fields={[
-        { name: 'contractId', label: 'Rental contract', lookup: { endpoint: '/api/real-estate/rental-contracts', labelKeys: ['tenant.name', 'property.title', 'startDate'], populate: { tenantId: 'tenantId', monthlyRent: 'amountDue' } } },
-        { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants', labelKeys: ['name'] } },
-        { name: 'dueDate', label: 'Due date', type: 'date', required: true }, { name: 'paidDate', label: 'Paid date', type: 'date' },
-        { name: 'amountDue', label: 'Amount due', type: 'number', required: true }, { name: 'amountPaid', label: 'Amount paid', type: 'number' },
-        { name: 'status', label: 'Status', type: 'select', options: ['PAID', 'UNPAID', 'LATE', 'PARTIAL'].map((value) => ({ value, label: value })) },
-        { name: 'receiptNo', label: 'Receipt number' }, { name: 'notes', label: 'Notes', type: 'textarea' },
-    ]} />, layout: 'blank', permission: 'rentals.read' },
+    ]} fields={rentPaymentFields} />, layout: 'blank', permission: 'rentals.read' },
     { path: '/app/real-estate/rent-payments/new', element: <CrudRoutePage title="Record rent payment" description="Log a tenant payment against a lease contract." endpoint="/api/real-estate/rent-payments" fields={rentPaymentFields} initialMode="create" returnTo="/app/real-estate/rentals" />, layout: 'blank', permission: 'rentals.create' },
-    { path: '/app/real-estate/rent-payments/:id/edit', element: <CrudRoutePage title="Edit rent payment" description="Correct amounts, dates or receipt details." endpoint="/api/real-estate/rent-payments" fields={rentPaymentFields} initialMode="edit" returnTo="/app/real-estate/rent-payments" />, layout: 'blank', permission: 'rentals.update' },
+    { path: '/app/real-estate/rent-payments/:id/edit', element: <CrudRoutePage title="Edit rent payment" description="Correct amounts, dates or receipt details." endpoint="/api/real-estate/rent-payments" fields={rentPaymentFields} initialMode="edit" returnTo="/app/real-estate/rentals" />, layout: 'blank', permission: 'rentals.update' },
 
     ...reportRoutes('/app/real-estate/reports', 'reports.real_estate.read', 'real_estate'),
     { path: '/app/materials', element: <MaterialsOverviewPage />, layout: 'blank', permission: 'workspace.material_management.read' },

@@ -18,8 +18,8 @@ import IconMenuElements from '../Icon/Menu/IconMenuElements';
 import IconMenuForms from '../Icon/Menu/IconMenuForms';
 
 type Feature = 'construction' | 'realEstate' | 'materials' | 'payroll' | 'advancedReports';
-type Item = { label: string; to: string; icon?: ReactNode; feature?: Feature; permission?: string };
-type Group = { label: string; icon: ReactNode; items: Item[]; feature?: Feature; permission?: string };
+type Item = { label: string; to: string; icon?: ReactNode; feature?: Feature; permission?: string | string[] };
+type Group = { label: string; icon: ReactNode; items: Item[]; feature?: Feature; permission?: string | string[] };
 
 const subIconClass = 'shrink-0 text-gray-400 group-hover/sub:!text-primary';
 const iconClass = '!text-primary shrink-0';
@@ -51,10 +51,9 @@ const companyGroups: Group[] = [
     { label: 'Real estate', feature: 'realEstate', icon: <IconMenuElements className={iconClass} />, permission: 'workspace.real_estate.read', items: [
         { label: 'Overview', to: '/app/real-estate/overview', icon: <LayoutDashboard size={16} className={subIconClass} />, permission: 'workspace.real_estate.read' },
         { label: 'Properties', to: '/app/real-estate/properties', icon: <Building2 size={16} className={subIconClass} />, permission: 'properties.read' },
-        { label: 'Clients', to: '/app/real-estate/clients', icon: <UserCheck size={16} className={subIconClass} />, permission: 'clients.read' },
+        { label: 'Clients', to: '/app/real-estate/clients', icon: <UserCheck size={16} className={subIconClass} />, permission: ['clients.read', 'rentals.read'] },
         { label: 'Deals', to: '/app/real-estate/deals', icon: <Handshake size={16} className={subIconClass} />, permission: 'deals.read' },
         { label: 'Rentals', to: '/app/real-estate/rentals', icon: <KeyRound size={16} className={subIconClass} />, permission: 'rentals.read' },
-        { label: 'Tenants', to: '/app/real-estate/tenants', icon: <User size={16} className={subIconClass} />, permission: 'rentals.read' },
         { label: 'Rent payments', to: '/app/real-estate/rent-payments', icon: <Wallet size={16} className={subIconClass} />, permission: 'rentals.read' },
         { label: 'Reports', to: '/app/real-estate/reports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.real_estate.read' },
     ] },
@@ -103,7 +102,7 @@ const Sidebar = () => {
     const isPlatform = Boolean(session?.user.isSuperAdmin);
     const userPermissions = useMemo(() => new Set(session?.user.permissions || []), [session]);
     const isOwner = isPlatform || Boolean(session?.user.isImpersonating) || ['COMPANY_OWNER', 'SUPER_ADMIN'].includes(session?.user.role || '');
-    const hasPerm = (perm?: string) => !perm || isOwner || userPermissions.has(perm);
+    const hasPerm = (perm?: string | string[]) => !perm || isOwner || (Array.isArray(perm) ? perm.some((p) => userPermissions.has(p)) : userPermissions.has(perm));
 
     const groups = useMemo(() => {
         if (isPlatform) return platformGroups;

@@ -1,10 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { RequireAnyPermission, RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { GetTenantContext, GetTenantDb } from '../../common/decorators/tenant-context.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import {
-  ClientDto,
   DealDto,
   PropertyDto,
   RentalContractDto,
@@ -58,35 +57,6 @@ export class RealEstateController {
     return this.service.deleteProperty(db, id);
   }
 
-  @Get('clients')
-  @RequirePermissions('clients.read')
-  getClients(@GetTenantDb() db: any, @Query('search') search?: string) {
-    return this.service.getClients(db, search);
-  }
-
-  @Post('clients')
-  @RequirePermissions('clients.create')
-  createClient(@GetTenantDb() db: any, @Body() body: ClientDto) {
-    return this.service.createClient(db, body);
-  }
-
-  @Get('clients/:id')
-  @RequirePermissions('clients.read')
-  getClient(@GetTenantDb() db: any, @Param('id') id: string) {
-    return this.service.getClient(db, id);
-  }
-
-  @Patch('clients/:id')
-  @RequirePermissions('clients.update')
-  updateClient(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: ClientDto) {
-    return this.service.updateClient(db, id, body);
-  }
-
-  @Delete('clients/:id')
-  @RequirePermissions('clients.delete')
-  deleteClient(@GetTenantDb() db: any, @Param('id') id: string) {
-    return this.service.deleteClient(db, id);
-  }
 
   @Get('deals')
   @RequirePermissions('deals.read')
@@ -128,25 +98,25 @@ export class RealEstateController {
   }
 
   @Get('tenants')
-  @RequirePermissions('rentals.read')
+  @RequireAnyPermission('clients.read', 'rentals.read')
   getTenants(@GetTenantDb() db: any) {
     return this.service.getTenants(db);
   }
 
   @Post('tenants')
-  @RequirePermissions('rentals.create')
+  @RequireAnyPermission('clients.create', 'rentals.create')
   createTenant(@GetTenantDb() db: any, @Body() body: TenantDto) {
     return this.service.createTenant(db, body);
   }
 
   @Patch('tenants/:id')
-  @RequirePermissions('rentals.update')
+  @RequireAnyPermission('clients.update', 'rentals.update')
   updateTenant(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: TenantDto) {
     return this.service.updateTenant(db, id, body);
   }
 
   @Delete('tenants/:id')
-  @RequirePermissions('rentals.delete')
+  @RequireAnyPermission('clients.delete', 'rentals.delete')
   deleteTenant(@GetTenantDb() db: any, @Param('id') id: string) {
     return this.service.deleteTenant(db, id);
   }

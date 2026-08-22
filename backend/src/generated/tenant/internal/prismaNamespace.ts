@@ -429,7 +429,6 @@ export const ModelName = {
   DailyOperationalExpense: 'DailyOperationalExpense',
   WorkerLedgerEntry: 'WorkerLedgerEntry',
   Property: 'Property',
-  Client: 'Client',
   Deal: 'Deal',
   Account: 'Account',
   JournalBatch: 'JournalBatch',
@@ -456,7 +455,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "project" | "projectTask" | "material" | "inventoryTransaction" | "reportSchedule" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "client" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
+    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "project" | "projectTask" | "material" | "inventoryTransaction" | "reportSchedule" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2828,80 +2827,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Client: {
-      payload: Prisma.$ClientPayload<ExtArgs>
-      fields: Prisma.ClientFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.ClientFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.ClientFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>
-        }
-        findFirst: {
-          args: Prisma.ClientFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.ClientFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>
-        }
-        findMany: {
-          args: Prisma.ClientFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>[]
-        }
-        create: {
-          args: Prisma.ClientCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>
-        }
-        createMany: {
-          args: Prisma.ClientCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.ClientCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>[]
-        }
-        delete: {
-          args: Prisma.ClientDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>
-        }
-        update: {
-          args: Prisma.ClientUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>
-        }
-        deleteMany: {
-          args: Prisma.ClientDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.ClientUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.ClientUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>[]
-        }
-        upsert: {
-          args: Prisma.ClientUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientPayload>
-        }
-        aggregate: {
-          args: Prisma.ClientAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateClient>
-        }
-        groupBy: {
-          args: Prisma.ClientGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ClientGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.ClientCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ClientCountAggregateOutputType> | number
-        }
-      }
-    }
     Deal: {
       payload: Prisma.$DealPayload<ExtArgs>
       fields: Prisma.DealFieldRefs
@@ -3905,6 +3830,7 @@ export const TransactionScalarFieldEnum = {
   projectId: 'projectId',
   propertyId: 'propertyId',
   dealId: 'dealId',
+  materialId: 'materialId',
   notes: 'notes',
   version: 'version',
   journalBatchId: 'journalBatchId',
@@ -4272,20 +4198,6 @@ export const PropertyScalarFieldEnum = {
 } as const
 
 export type PropertyScalarFieldEnum = (typeof PropertyScalarFieldEnum)[keyof typeof PropertyScalarFieldEnum]
-
-
-export const ClientScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  phone: 'phone',
-  notes: 'notes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type ClientScalarFieldEnum = (typeof ClientScalarFieldEnum)[keyof typeof ClientScalarFieldEnum]
 
 
 export const DealScalarFieldEnum = {
@@ -5105,7 +5017,6 @@ export type GlobalOmitConfig = {
   dailyOperationalExpense?: Prisma.DailyOperationalExpenseOmit
   workerLedgerEntry?: Prisma.WorkerLedgerEntryOmit
   property?: Prisma.PropertyOmit
-  client?: Prisma.ClientOmit
   deal?: Prisma.DealOmit
   account?: Prisma.AccountOmit
   journalBatch?: Prisma.JournalBatchOmit

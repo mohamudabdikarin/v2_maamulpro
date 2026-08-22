@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Edit3, PauseCircle, RefreshCw, Search } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
-import { EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
+import { CurrencyInput, EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 
 type Company = any;
@@ -166,7 +166,7 @@ const SuperAdminBillingPage = () => {
         <Modal title={approveCompany?.subscriptionStatus === 'PENDING' ? 'Approve subscription' : 'Reactivate subscription'} open={Boolean(approveCompany)} onClose={() => setApproveCompany(null)}>
             {approveCompany && <form className="space-y-4" onSubmit={(event) => submitConfiguration(event, approveCompany, () => setApproveCompany(null))}>
                 <p className="text-sm text-white-dark">Configure subscription details and grant platform access to {approveCompany.name}.</p>
-                <label className="block"><span className="font-semibold">Amount ($)</span><input className="form-input mt-1" type="number" min="0" step="0.01" required value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
+                <label className="block"><span className="font-semibold">Amount</span><CurrencyInput className="form-input mt-1" min="0" step="0.01" required value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
                 <label className="block"><span className="font-semibold">Term duration (months)</span><input className="form-input mt-1" type="number" min="1" required value={form.termDurationMonths} onChange={(event) => setForm({ ...form, termDurationMonths: event.target.value })} /></label>
                 <label className="flex cursor-pointer items-center justify-between rounded-md border border-white-light p-3 dark:border-dark"><span><strong className="block">Auto-renew</strong><small className="text-white-dark">Extend the billing term automatically</small></span><input className="form-checkbox" type="checkbox" checked={form.autoRecur} onChange={(event) => setForm({ ...form, autoRecur: event.target.checked })} /></label>
                 <label className="block"><span className="font-semibold">Notes</span><textarea className="form-textarea mt-1" rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>
@@ -177,7 +177,7 @@ const SuperAdminBillingPage = () => {
         <Modal title="Edit subscription" open={Boolean(editCompany)} onClose={() => setEditCompany(null)}>
             {editCompany && <form className="space-y-4" onSubmit={(event) => submitConfiguration(event, editCompany, () => setEditCompany(null))}>
                 <p className="text-sm text-white-dark">Update direct subscription details for {editCompany.name} without changing tenant modules.</p>
-                <label className="block"><span className="font-semibold">Amount ($)</span><input className="form-input mt-1" type="number" min="0" step="0.01" required value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
+                <label className="block"><span className="font-semibold">Amount</span><CurrencyInput className="form-input mt-1" min="0" step="0.01" required value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
                 <label className="block"><span className="font-semibold">Term duration (months)</span><input className="form-input mt-1" type="number" min="1" required value={form.termDurationMonths} onChange={(event) => setForm({ ...form, termDurationMonths: event.target.value })} /></label>
                 <label className="flex cursor-pointer items-center justify-between rounded-md border border-white-light p-3 dark:border-dark"><span><strong className="block">Auto-renew</strong></span><input className="form-checkbox" type="checkbox" checked={form.autoRecur} onChange={(event) => setForm({ ...form, autoRecur: event.target.checked })} /></label>
                 <label className="block"><span className="font-semibold">Notes</span><textarea className="form-textarea mt-1" rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>

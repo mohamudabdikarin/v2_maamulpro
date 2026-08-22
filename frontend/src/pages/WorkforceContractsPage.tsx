@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
-import { Field, FormActions, Modal } from '../components/maamulpro/PageKit';
+import { CurrencyInput, Field, FormActions, Modal } from '../components/maamulpro/PageKit';
 import { api } from '../lib/api';
 import { usePermissions } from '../hooks/usePermissions';
 
@@ -55,6 +55,10 @@ const WorkforceContractsPage = () => {
     const [adjustment, setAdjustment] = useState({ amount: '', reason: '' });
     const [error, setError] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<Contract | null>(null);
+    const [detailOpen, setDetailOpen] = useState(false);
+    const [assignOpen, setAssignOpen] = useState(false);
+    const [paymentOpen, setPaymentOpen] = useState(false);
+    const [adjustOpen, setAdjustOpen] = useState(false);
 
     const load = async () => {
         try {
@@ -122,7 +126,7 @@ const WorkforceContractsPage = () => {
     const assignWorker = async (event: FormEvent) => {
         event.preventDefault();
         if (!selected) return;
-        try { await api(`/api/construction/contracts/${selected.id}/workers`, { method: 'POST', body: JSON.stringify(worker) }); setWorker({ staffId: '', role: '', notes: '' }); await load(); }
+        try { await api(`/api/construction/contracts/${selected.id}/workers`, { method: 'POST', body: JSON.stringify(worker) }); setWorker({ staffId: '', role: '', notes: '' }); setAssignOpen(false); await load(); }
         catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to assign worker'); }
     };
     const removeWorker = async (staffId: string) => {
@@ -136,6 +140,7 @@ const WorkforceContractsPage = () => {
         try {
             await api(`/api/construction/contracts/${selected.id}/payments`, { method: 'POST', body: JSON.stringify({ ...payment, amount: Number(payment.amount), date: payment.date || undefined }) });
             setPayment({ staffId: '', amount: '', date: '', description: '', notes: '' });
+            setPaymentOpen(false);
             await load();
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to record payment'); }
     };
@@ -145,6 +150,7 @@ const WorkforceContractsPage = () => {
         try {
             await api(`/api/construction/contracts/${selected.id}/adjustments`, { method: 'POST', body: JSON.stringify({ amount: Number(adjustment.amount), reason: adjustment.reason }) });
             setAdjustment({ amount: '', reason: '' });
+            setAdjustOpen(false);
             await load();
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to adjust budget'); }
     };
@@ -154,25 +160,28 @@ const WorkforceContractsPage = () => {
         {error && <div className="mb-5 rounded-md bg-danger-light p-4 text-danger">{error}</div>}
         <div className="panel overflow-x-auto p-0">
             <table className="table-hover w-full"><thead><tr><th>Contract</th><th>Project</th><th>Status</th><th>Budget</th><th>Paid</th><th>Workers</th><th>Actions</th></tr></thead>
-                <tbody>{contracts.map((row) => <tr key={row.id} className={selectedId === row.id ? 'bg-primary-light' : ''}><td><button className="font-semibold text-primary" onClick={() => setSelectedId(row.id)}>{row.title}</button></td><td>{row.project?.name}</td><td><span className="badge bg-primary">{row.status}</span></td><td>${Number(row.originalBudget).toLocaleString()}</td><td>${Number(row.totalPaid).toLocaleString()}</td><td>{row.workerAssignments.filter((entry) => !entry.removedAt).length}</td><td><div className="flex flex-wrap gap-2">{canUpdate && <><button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(row)}>Edit</button>{allowedTransitions[row.status]?.map((status) => <button className="btn btn-sm btn-outline-info" key={status} onClick={() => transition(row, status)}>{status}</button>)}</>}{canDelete && <button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteTarget(row)}>Delete</button>}</div></td></tr>)}</tbody>
+                <tbody>{contracts.map((row) => <tr key={row.id}><td><button className="font-semibold text-primary" onClick={() => { setSelectedId(row.id); setDetailOpen(true); }}>{row.title}</button></td><td>{row.project?.name}</td><td><span className="badge bg-primary">{row.status}</span></td><td>${Number(row.originalBudget).toLocaleString()}</td><td>${Number(row.totalPaid).toLocaleString()}</td><td>{row.workerAssignments.filter((entry) => !entry.removedAt).length}</td><td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-dark" onClick={() => { setSelectedId(row.id); setDetailOpen(true); }}>View</button>{canUpdate && <><button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(row)}>Edit</button>{allowedTransitions[row.status]?.map((status) => <button className="btn btn-sm btn-outline-info" key={status} onClick={() => transition(row, status)}>{status}</button>)}</>}{canDelete && <button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteTarget(row)}>Delete</button>}</div></td></tr>)}</tbody>
             </table>
         </div>
-        {selected && <div className="mt-6 space-y-6">
+        <Modal open={detailOpen && Boolean(selected)} onClose={() => setDetailOpen(false)} title={selected?.title || 'Contract details'} wide>{selected && <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-3"><div className="panel"><p className="text-white-dark">Adjusted budget</p><p className="mt-2 text-2xl font-bold">${adjustedBudget.toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Total paid</p><p className="mt-2 text-2xl font-bold">${Number(selected.totalPaid).toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Remaining</p><p className="mt-2 text-2xl font-bold text-success">${(adjustedBudget - Number(selected.totalPaid)).toLocaleString()}</p></div></div>
-            <div className="grid gap-6 xl:grid-cols-3">
-                {canAssign && <form className="panel space-y-3" onSubmit={assignWorker}><h2 className="font-bold">Assign worker</h2><select className="form-select" required value={worker.staffId} onChange={(e) => setWorker({ ...worker, staffId: e.target.value })}><option value="">Select worker…</option>{staff.map((person) => <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>)}</select><input className="form-input" placeholder="Role" value={worker.role} onChange={(e) => setWorker({ ...worker, role: e.target.value })} /><textarea className="form-textarea" placeholder="Notes" value={worker.notes} onChange={(e) => setWorker({ ...worker, notes: e.target.value })} /><button className="btn btn-primary w-full">Assign</button></form>}
-                {canPay && <form className="panel space-y-3" onSubmit={addPayment}><h2 className="font-bold">Record payment</h2><select className="form-select" required value={payment.staffId} onChange={(e) => setPayment({ ...payment, staffId: e.target.value })}><option value="">Assigned worker…</option>{selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <option key={entry.staffId} value={entry.staffId}>{entry.staff.firstName} {entry.staff.lastName}</option>)}</select><input className="form-input" type="number" min="0.01" step="0.01" placeholder="Amount" required value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} /><input className="form-input" type="date" value={payment.date} onChange={(e) => setPayment({ ...payment, date: e.target.value })} /><input className="form-input" placeholder="Description" required value={payment.description} onChange={(e) => setPayment({ ...payment, description: e.target.value })} /><button className="btn btn-success w-full">Record payment</button></form>}
-                {canUpdate && <form className="panel space-y-3" onSubmit={addAdjustment}><h2 className="font-bold">Adjust budget</h2><input className="form-input" type="number" step="0.01" placeholder="Positive or negative amount" required value={adjustment.amount} onChange={(e) => setAdjustment({ ...adjustment, amount: e.target.value })} /><textarea className="form-textarea" placeholder="Reason" required value={adjustment.reason} onChange={(e) => setAdjustment({ ...adjustment, reason: e.target.value })} /><button className="btn btn-warning w-full">Apply adjustment</button></form>}
+            <div className="flex flex-wrap gap-2">
+                {canAssign && <button className="btn btn-outline-primary" onClick={() => setAssignOpen(true)}>Assign worker</button>}
+                {canPay && <button className="btn btn-outline-success" onClick={() => setPaymentOpen(true)}>Record payment</button>}
+                {canUpdate && <button className="btn btn-outline-warning" onClick={() => setAdjustOpen(true)}>Adjust budget</button>}
             </div>
             <div className="grid gap-6 xl:grid-cols-2">
-                <div className="panel"><h2 className="mb-4 font-bold">Active workers</h2><div className="space-y-2">{selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <div className="flex items-center justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={entry.staffId}><span>{entry.staff.firstName} {entry.staff.lastName} <small className="text-white-dark">{entry.role}</small></span>{canUpdate && <button className="btn btn-sm btn-outline-danger" onClick={() => removeWorker(entry.staffId)}>Remove</button>}</div>)}</div></div>
-                <div className="panel"><h2 className="mb-4 font-bold">Payment history</h2><div className="space-y-2">{selected.payments.map((row) => <div className="flex justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={row.id}><span>{row.staff.firstName} {row.staff.lastName}<small className="block text-white-dark">{row.description}</small></span><strong>${Number(row.amount).toLocaleString()}</strong></div>)}</div></div>
+                <div className="panel"><h2 className="mb-4 font-bold">Active workers</h2><div className="space-y-2">{!selected.workerAssignments.filter((entry) => !entry.removedAt).length ? <p className="text-white-dark">No workers assigned.</p> : selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <div className="flex items-center justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={entry.staffId}><span>{entry.staff.firstName} {entry.staff.lastName} <small className="text-white-dark">{entry.role}</small></span>{canUpdate && <button className="btn btn-sm btn-outline-danger" onClick={() => removeWorker(entry.staffId)}>Remove</button>}</div>)}</div></div>
+                <div className="panel"><h2 className="mb-4 font-bold">Payment history</h2><div className="space-y-2">{!selected.payments.length ? <p className="text-white-dark">No payments recorded.</p> : selected.payments.map((row) => <div className="flex justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={row.id}><span>{row.staff.firstName} {row.staff.lastName}<small className="block text-white-dark">{row.description}</small></span><strong>${Number(row.amount).toLocaleString()}</strong></div>)}</div></div>
             </div>
-        </div>}
+        </div>}</Modal>
+        <Modal open={assignOpen} onClose={() => setAssignOpen(false)} title="Assign worker"><form className="space-y-3" onSubmit={assignWorker}><select className="form-select" required value={worker.staffId} onChange={(e) => setWorker({ ...worker, staffId: e.target.value })}><option value="">Select worker…</option>{staff.map((person) => <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>)}</select><input className="form-input" placeholder="Role" value={worker.role} onChange={(e) => setWorker({ ...worker, role: e.target.value })} /><textarea className="form-textarea" placeholder="Notes" value={worker.notes} onChange={(e) => setWorker({ ...worker, notes: e.target.value })} /><FormActions onCancel={() => setAssignOpen(false)} saveLabel="Assign" /></form></Modal>
+        <Modal open={paymentOpen} onClose={() => setPaymentOpen(false)} title="Record payment"><form className="space-y-3" onSubmit={addPayment}><select className="form-select" required value={payment.staffId} onChange={(e) => setPayment({ ...payment, staffId: e.target.value })}><option value="">Assigned worker…</option>{selected?.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <option key={entry.staffId} value={entry.staffId}>{entry.staff.firstName} {entry.staff.lastName}</option>)}</select><CurrencyInput className="form-input" min="0.01" step="0.01" placeholder="Amount" required value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} /><input className="form-input" type="date" value={payment.date} onChange={(e) => setPayment({ ...payment, date: e.target.value })} /><input className="form-input" placeholder="Description" required value={payment.description} onChange={(e) => setPayment({ ...payment, description: e.target.value })} /><FormActions onCancel={() => setPaymentOpen(false)} saveLabel="Record payment" /></form></Modal>
+        <Modal open={adjustOpen} onClose={() => setAdjustOpen(false)} title="Adjust budget"><form className="space-y-3" onSubmit={addAdjustment}><CurrencyInput className="form-input" step="0.01" placeholder="Positive or negative amount" required value={adjustment.amount} onChange={(e) => setAdjustment({ ...adjustment, amount: e.target.value })} /><textarea className="form-textarea" placeholder="Reason" required value={adjustment.reason} onChange={(e) => setAdjustment({ ...adjustment, reason: e.target.value })} /><FormActions onCancel={() => setAdjustOpen(false)} saveLabel="Apply adjustment" /></form></Modal>
         <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Edit contract' : 'Create contract'}><form className="grid gap-4 sm:grid-cols-2" onSubmit={saveContract}>
             <Field label="Project" required><select className="form-select mt-1" required value={contractForm.projectId} onChange={(e) => setContractForm({ ...contractForm, projectId: e.target.value })}><option value="">Select project…</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></Field>
             <Field label="Title" required><input className="form-input mt-1" required value={contractForm.title} onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })} /></Field>
-            <Field label="Original budget" required><input className="form-input mt-1" type="number" min="0" step="0.01" required value={contractForm.originalBudget} onChange={(e) => setContractForm({ ...contractForm, originalBudget: e.target.value })} /></Field>
+            <Field label="Original budget" required><CurrencyInput className="form-input mt-1" min="0" step="0.01" required value={contractForm.originalBudget} onChange={(e) => setContractForm({ ...contractForm, originalBudget: e.target.value })} /></Field>
             <Field label="Start date"><input className="form-input mt-1" type="date" value={contractForm.startDate} onChange={(e) => setContractForm({ ...contractForm, startDate: e.target.value })} /></Field>
             <Field label="End date"><input className="form-input mt-1" type="date" value={contractForm.endDate} onChange={(e) => setContractForm({ ...contractForm, endDate: e.target.value })} /></Field>
             <div className="sm:col-span-2"><Field label="Description"><textarea className="form-textarea mt-1" value={contractForm.description} onChange={(e) => setContractForm({ ...contractForm, description: e.target.value })} /></Field></div>

@@ -5,7 +5,7 @@ import AppShell from '../components/maamulpro/AppShell';
 import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../lib/api';
 import LineItemsEditor, { LineItemConfig } from '../components/maamulpro/LineItemsEditor';
-import { EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, PasswordInput, StatGrid, StatusPill, SuccessAlert, fieldHint, formatTableValue, humanize as titleize, isSystemIdKey, money, shortDate, somaliExample, visibleTableColumns } from '../components/maamulpro/PageKit';
+import { CurrencyInput, EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, PasswordInput, StatGrid, StatusPill, SuccessAlert, fieldHint, formatTableValue, humanize as titleize, isCurrencyName, isSystemIdKey, money, shortDate, somaliExample, visibleTableColumns } from '../components/maamulpro/PageKit';
 
 export type CrudField = {
     name: string;
@@ -16,9 +16,12 @@ export type CrudField = {
     hint?: string;
     options?: { value: string; label: string }[];
     uploadFolder?: 'avatars' | 'staff' | 'projects' | 'properties' | 'materials' | 'branding';
-    lookup?: { endpoint: string; valueKey?: string; labelKeys: string[]; populate?: Record<string, string> };
+    lookup?: { endpoint: string; valueKey?: string; labelKeys: string[]; populate?: Record<string, string>; create?: { fields: CrudField[]; label?: string; endpoint?: string } };
     lineItems?: LineItemConfig;
+    hideWhen?: (form: Record<string, any>) => boolean;
 };
+
+const INLINE_CREATE_SENTINEL = '__inline_create__';
 
 export type CrudPageProps = {
     title: string;
@@ -28,9 +31,9 @@ export type CrudPageProps = {
     canCreate?: boolean;
     canEdit?: boolean | ((row: Record<string, any>) => boolean);
     canDelete?: boolean | ((row: Record<string, any>) => boolean);
-    createPermission?: string;
-    updatePermission?: string;
-    deletePermission?: string;
+    createPermission?: string | string[];
+    updatePermission?: string | string[];
+    deletePermission?: string | string[];
     transitions?: { action: string; label: string; tone?: 'primary' | 'success' | 'danger' | 'warning'; when?: string[]; path?: string; method?: 'POST' | 'PATCH'; body?: Record<string, unknown> }[];
     initialMode?: 'create' | 'edit';
     recordId?: string;
@@ -63,7 +66,8 @@ const printableValue = (value: any): string => {
 
 const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, createPermission, updatePermission, deletePermission, transitions = [], initialMode, recordId, returnTo, printable = false }: CrudPageProps) => {
     const navigate = useNavigate();
-    const { hasPermission } = usePermissions();
+    const { hasPermission, hasAnyPermission } = usePermissions();
+    const allowed = (perm?: string | string[]) => !perm || (Array.isArray(perm) ? hasAnyPermission(perm) : hasPermission(perm));
     const noun = title.replace(/^(Add|Edit|New|Record|Create)\s+/i, '');
     const openedInitial = useRef(false);
     const [rows, setRows] = useState<Record<string, any>[]>([]);
@@ -84,20 +88,28 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const [confirmation, setConfirmation] = useState<{ row: Record<string, any>; transition?: NonNullable<CrudPageProps['transitions']>[number] } | null>(null);
     const [confirmationReason, setConfirmationReason] = useState('');
     const [confirming, setConfirming] = useState(false);
+    const [inlineCreate, setInlineCreate] = useState<{ field: CrudField; form: Record<string, any>; errors: Record<string, string>; saving: boolean; error: string } | null>(null);
     const load = () => {
         setLoading(true);
         return api<unknown>(endpoint).then((result) => setRows(unwrap(result))).catch((reason) => setError(reason.message)).finally(() => setLoading(false));
     };
     useEffect(() => { load(); }, [endpoint]);
+    const loadLookupOptions = async (field: CrudField) => {
+        const rows = unwrap(await api<unknown>(field.lookup!.endpoint));
+        const options = rows.map((row) => ({ value: String(row[field.lookup!.valueKey || 'id']), label: lookupLabel(row, field.lookup!.labelKeys) }));
+        return { rows, options };
+    };
+    const refreshLookup = async (field: CrudField) => {
+        const { rows, options } = await loadLookupOptions(field);
+        setLookups((current) => ({ ...current, [field.name]: options }));
+        setRawLookups((current) => ({ ...current, [field.name]: rows }));
+        return { rows, options };
+    };
     useEffect(() => {
         const lookupFields = fields.filter((field) => field.lookup);
         if (!lookupFields.length) return;
         Promise.allSettled(lookupFields.map(async (field) => {
-            const rows = unwrap(await api<unknown>(field.lookup!.endpoint));
-            const options = rows.map((row) => ({
-                value: String(row[field.lookup!.valueKey || 'id']),
-                label: lookupLabel(row, field.lookup!.labelKeys),
-            }));
+            const { rows, options } = await loadLookupOptions(field);
             return [field.name, options, rows] as const;
         })).then((results) => {
             const fulfilled = results
@@ -125,7 +137,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         });
         return visibleTableColumns(rows[0], preferred, 7);
     }, [rows, fields, lookups]);
-    const amountKey = useMemo(() => fields.find((field) => field.type === 'number' && /(total|amount|price|cost|balance|budget|rent)/i.test(field.name))?.name, [fields]);
+    const amountKey = useMemo(() => fields.find((field) => field.type === 'number' && isCurrencyName(field.name))?.name, [fields]);
     const amountTotal = amountKey ? filtered.reduce((sum, row) => sum + Number(row[amountKey] || 0), 0) : 0;
     const displayCell = (key: string, value: any) => {
         if (value == null || value === '') return '—';
@@ -172,6 +184,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const submit = async (event: FormEvent) => {
         event.preventDefault(); setError(''); setSuccess('');
         const errors = Object.fromEntries(fields.flatMap((field) => {
+            if (field.hideWhen?.(form)) return [];
             const value = form[field.name];
             const empty = value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length);
             return field.required && empty ? [[field.name, `${field.label} is required.`]] : [];
@@ -181,6 +194,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         try {
             const payload = Object.fromEntries(fields.map((field) => {
                 const value = form[field.name];
+                if (field.hideWhen?.(form)) return [field.name, undefined];
                 if (field.type === 'number') return [field.name, value === '' ? undefined : Number(value)];
                 if (field.type === 'json') return [field.name, value === '' ? undefined : JSON.parse(value)];
                 if (field.type === 'lineItems') return [field.name, value];
@@ -250,7 +264,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     };
 
     return <AppShell>
-        <PageHeader title={title} description={description} eyebrow="Workspace records" actions={canCreate && (!createPermission || hasPermission(createPermission)) ? <button className="btn btn-primary shrink-0" onClick={showCreate}>Add new</button> : undefined} />
+        <PageHeader title={title} description={description} eyebrow="Workspace records" actions={canCreate && allowed(createPermission) ? <button className="btn btn-primary shrink-0" onClick={showCreate}>Add new</button> : undefined} />
         <StatGrid items={[
             { label: 'Total records', value: rows.length },
             { label: 'Matching records', value: filtered.length, tone: 'info' },
@@ -263,7 +277,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         <div className="panel overflow-x-auto p-0">
             {loading ? <LoadingState /> : !filtered.length ? <EmptyState title="No records found" description="Adjust the filters or add the first record." /> :
                 <table className="table-hover w-full"><thead><tr>{columns.map((column) => <th key={column}>{humanize(column)}</th>)}<th>Actions</th></tr></thead>
-                    <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{displayCell(column, row[column])}</td>)}<td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && (!updatePermission || hasPermission(updatePermission)) && <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>}{(!updatePermission || hasPermission(updatePermission)) && transitions.filter((item) => !item.when || item.when.includes(row.status)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && (!deletePermission || hasPermission(deletePermission)) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
+                    <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{displayCell(column, row[column])}</td>)}<td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && allowed(updatePermission) && <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>}{allowed(updatePermission) && transitions.filter((item) => !item.when || item.when.includes(row.status)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && allowed(deletePermission) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
                 </table>}
         </div>
         <Modal open={Boolean(viewing)} onClose={() => setViewing(null)} title={`${title} details`} wide>
@@ -277,10 +291,14 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             <form className="panel max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto" noValidate onSubmit={submit}>
                 <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${noun}` : `Add ${noun}`}</h2><button aria-label="Close" className="btn btn-outline-dark btn-sm p-1.5" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)} type="button"><X size={16} /></button></div>
                 {error && <ErrorAlert message={error} />}
-                <div className="grid gap-4 sm:grid-cols-2">{fields.map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
+                <div className="grid gap-4 sm:grid-cols-2">{fields.filter((field) => !field.hideWhen?.(form)).map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
                     <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
                     {field.type === 'select' || field.lookup ? <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} onChange={(e) => {
                         const val = e.target.value;
+                        if (val === INLINE_CREATE_SENTINEL && field.lookup?.create) {
+                            setInlineCreate({ field, form: emptyForm(field.lookup.create.fields), errors: {}, saving: false, error: '' });
+                            return;
+                        }
                         const updates: Record<string, any> = { [field.name]: val };
                         if (field.lookup?.populate && val) {
                             const rawRow = rawLookups[field.name]?.find((r) => String(r[field.lookup?.valueKey || 'id']) === val);
@@ -293,18 +311,60 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                         }
                         setForm((current) => ({ ...current, ...updates }));
                         setFieldErrors((current) => ({ ...current, [field.name]: '' }));
-                    }}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                    }}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}{field.lookup?.create && <option value={INLINE_CREATE_SENTINEL}>{field.lookup.create.label || `+ Add new ${field.label.toLowerCase()}`}</option>}</select>
                         : field.type === 'textarea' || field.type === 'json' ? <textarea id={field.name} className={`form-textarea mt-1 ${field.type === 'json' ? 'min-h-40 font-mono text-xs' : ''} ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
                         : field.type === 'lineItems' && field.lineItems ? <div className="mt-1"><LineItemsEditor value={form[field.name]} onChange={(items) => setForm({ ...form, [field.name]: items })} config={field.lineItems} /></div>
                         : field.type === 'image' ? <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">{form[field.name] && <img className="h-20 w-20 rounded-lg border border-white-light object-cover dark:border-[#191e3a]" src={form[field.name]} alt="" />}<div className="flex-1"><input id={field.name} className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === field.name} onChange={(e) => uploadImage(field, e.target.files?.[0])} />{uploading === field.name && <p className="mt-1 text-xs text-primary">Uploading…</p>}{form[field.name] && <button type="button" className="mt-2 text-xs text-danger hover:underline" onClick={() => setForm({ ...form, [field.name]: '' })}>Remove from record</button>}</div></div>
                         : field.type === 'checkbox' ? <input id={field.name} className="form-checkbox mt-2 block" type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => setForm({ ...form, [field.name]: e.target.checked })} />
                         : field.type === 'password' ? <PasswordInput id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
+                        : field.type === 'number' && isCurrencyName(field.name) ? <CurrencyInput id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
                         : <input id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} type={field.type || 'text'} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />}
                     {fieldErrors[field.name] ? <p className="mt-1 text-xs text-danger" role="alert">{fieldErrors[field.name]}</p> : fieldHint(field.name, field.type, field.hint) && <p className="mt-1 text-xs text-white-dark">{fieldHint(field.name, field.type, field.hint)}</p>}
                 </div>)}</div>
                 <FormActions onCancel={() => returnTo ? navigate(returnTo) : setOpen(false)} loading={saving} saveLabel="Save record" savingLabel="Saving…" />
             </form>
         </div>}
+        <Modal open={Boolean(inlineCreate)} onClose={() => !inlineCreate?.saving && setInlineCreate(null)} title={inlineCreate ? `Add new ${inlineCreate.field.label.toLowerCase()}` : ''} wide>
+            {inlineCreate && <form className="space-y-4" noValidate onSubmit={async (e) => {
+                e.preventDefault();
+                const cfg = inlineCreate.field.lookup!.create!;
+                const errors = Object.fromEntries(cfg.fields.flatMap((f) => {
+                    const v = inlineCreate.form[f.name];
+                    const empty = v === undefined || v === null || v === '';
+                    return f.required && empty ? [[f.name, `${f.label} is required.`]] : [];
+                }));
+                if (Object.keys(errors).length) { setInlineCreate({ ...inlineCreate, errors }); return; }
+                setInlineCreate({ ...inlineCreate, saving: true, error: '' });
+                try {
+                    const payload = Object.fromEntries(cfg.fields.map((f) => {
+                        const v = inlineCreate.form[f.name];
+                        if (f.type === 'number') return [f.name, v === '' ? undefined : Number(v)];
+                        return [f.name, v === '' ? undefined : v];
+                    }));
+                    const created = await api<Record<string, any>>(cfg.endpoint || inlineCreate.field.lookup!.endpoint, { method: 'POST', body: JSON.stringify(payload) });
+                    const { options } = await refreshLookup(inlineCreate.field);
+                    const newId = String(created[inlineCreate.field.lookup!.valueKey || 'id']);
+                    const target = inlineCreate.field.name;
+                    if (options.some((opt) => opt.value === newId)) {
+                        setForm((current) => ({ ...current, [target]: newId }));
+                        setFieldErrors((current) => ({ ...current, [target]: '' }));
+                    }
+                    setInlineCreate(null);
+                } catch (reason) {
+                    setInlineCreate((current) => current ? { ...current, saving: false, error: reason instanceof Error ? reason.message : 'Unable to save record' } : current);
+                }
+            }}>
+                {inlineCreate.error && <ErrorAlert message={inlineCreate.error} />}
+                <div className="grid gap-4 sm:grid-cols-2">{inlineCreate.field.lookup!.create!.fields.map((f) => <div className={f.type === 'textarea' ? 'sm:col-span-2' : ''} key={f.name}>
+                    <label className="font-semibold" htmlFor={`inline-${f.name}`}>{f.label}{f.required && <span className="text-danger"> *</span>}</label>
+                    {f.type === 'select' ? <select id={`inline-${f.name}`} className="form-select mt-1" required={f.required} value={inlineCreate.form[f.name] || ''} onChange={(e) => setInlineCreate({ ...inlineCreate, form: { ...inlineCreate.form, [f.name]: e.target.value }, errors: { ...inlineCreate.errors, [f.name]: '' } })}><option value="">Select…</option>{(f.options || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                    : f.type === 'textarea' ? <textarea id={`inline-${f.name}`} className={`form-textarea mt-1 ${inlineCreate.errors[f.name] ? 'border-danger' : ''}`} placeholder={f.placeholder} value={inlineCreate.form[f.name] || ''} onChange={(e) => setInlineCreate({ ...inlineCreate, form: { ...inlineCreate.form, [f.name]: e.target.value }, errors: { ...inlineCreate.errors, [f.name]: '' } })} />
+                    : <input id={`inline-${f.name}`} className={`form-input mt-1 ${inlineCreate.errors[f.name] ? 'border-danger' : ''}`} type={f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : f.type === 'email' ? 'email' : 'text'} placeholder={f.placeholder} value={inlineCreate.form[f.name] || ''} onChange={(e) => setInlineCreate({ ...inlineCreate, form: { ...inlineCreate.form, [f.name]: e.target.value }, errors: { ...inlineCreate.errors, [f.name]: '' } })} />}
+                    {inlineCreate.errors[f.name] && <p className="mt-1 text-xs text-danger" role="alert">{inlineCreate.errors[f.name]}</p>}
+                </div>)}</div>
+                <div className="flex justify-end gap-2 border-t border-white-light pt-4 dark:border-[#191e3a]"><button type="button" className="btn btn-outline-dark" disabled={inlineCreate.saving} onClick={() => setInlineCreate(null)}>Cancel</button><button type="submit" className="btn btn-primary" disabled={inlineCreate.saving}>{inlineCreate.saving ? 'Saving…' : 'Save & select'}</button></div>
+            </form>}
+        </Modal>
         <Modal open={Boolean(confirmation)} onClose={() => !confirming && setConfirmation(null)} title={confirmation?.transition ? `${humanize(confirmation.transition.action)} record` : `Delete ${noun}`}>
             {confirmation && <div className="space-y-4"><p className="text-white-dark">{confirmation.transition ? `Are you sure you want to ${confirmation.transition.label.toLowerCase()}?` : 'This action permanently removes the record and cannot be undone.'}</p>{confirmation.transition?.action === 'reject' && <div><label className="font-semibold" htmlFor="rejection-reason">Rejection reason <span className="text-danger">*</span></label><textarea id="rejection-reason" className="form-textarea mt-1" placeholder="Sharax sababta diidmada" value={confirmationReason} onChange={(event) => setConfirmationReason(event.target.value)} /></div>}<div className="flex justify-end gap-2"><button className="btn btn-outline-dark" disabled={confirming} onClick={() => setConfirmation(null)}>Cancel</button><button className={`btn ${confirmation.transition?.tone === 'danger' || !confirmation.transition ? 'btn-danger' : 'btn-primary'}`} disabled={confirming} onClick={confirmAction}>{confirming ? 'Please wait…' : confirmation.transition ? confirmation.transition.label : 'Delete record'}</button></div></div>}
         </Modal>

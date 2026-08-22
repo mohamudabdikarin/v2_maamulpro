@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
 import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
-import { EmptyState, ErrorAlert, Field, FormActions, LoadingState, Modal, PageHeader, PasswordInput, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
+import { CurrencyInput, EmptyState, ErrorAlert, Field, FormActions, LoadingState, Modal, PageHeader, PasswordInput, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
 import { api, refreshSession, sessionStore } from '../lib/api';
 import { toast } from '../lib/toast';
 import { useApiRows } from '../hooks/useApiData';
@@ -94,7 +94,7 @@ const StaffPage = () => {
             <Field label="First name" required><input className="form-input mt-1" required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></Field><Field label="Last name" required><input className="form-input mt-1" required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></Field>
             {['phone', 'position'].map((key) => <Field label={key[0].toUpperCase() + key.slice(1)} key={key}><input className="form-input mt-1" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} /></Field>)}
             <Field label="Department"><select className="form-select mt-1" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>{['GENERAL', 'CONSTRUCTION', 'REAL_ESTATE', 'MATERIAL_MANAGEMENT'].map((value) => <option key={value} value={value}>{value.replace(/_/g, ' ')}</option>)}</select></Field><Field label="Status"><select className="form-select mt-1" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED'].map((value) => <option key={value} value={value}>{value.replace(/_/g, ' ')}</option>)}</select></Field>
-            <Field label="Salary"><input className="form-input mt-1" type="number" min="0" step=".01" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} /></Field><Field label="Hire date"><input className="form-input mt-1" type="date" value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} /></Field>
+            <Field label="Salary"><CurrencyInput className="form-input mt-1" min="0" step=".01" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} /></Field><Field label="Hire date"><input className="form-input mt-1" type="date" value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} /></Field>
             {canUseConstruction && form.department === 'CONSTRUCTION' && (
                 <Field label="Assigned project">
                     <select className="form-select mt-1" value={form.assignedProjectId} onChange={(e) => setForm({ ...form, assignedProjectId: e.target.value })}>

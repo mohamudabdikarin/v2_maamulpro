@@ -40,6 +40,7 @@ export class FinancialsService {
     if (query.categoryId) where.categoryId = query.categoryId;
     if (query.projectId) where.projectId = query.projectId;
     if (query.propertyId) where.propertyId = query.propertyId;
+    if (query.materialId) where.materialId = query.materialId;
     if (query.startDate || query.endDate) {
       where.date = { gte: query.startDate, lte: query.endDate };
     }
@@ -50,7 +51,7 @@ export class FinancialsService {
         where,
         skip: (page - 1) * limit,
         take: limit,
-        include: { category: true, project: true, property: true, deal: true },
+        include: { category: true, project: true, property: true, deal: true, material: true },
         orderBy: { date: 'desc' },
       }),
       tenantDb.transaction.count({ where }),
@@ -127,6 +128,7 @@ export class FinancialsService {
           projectId: data.projectId || null,
           propertyId: data.propertyId || null,
           dealId: data.dealId || null,
+          materialId: data.materialId || null,
           userId: data.userId || null,
           description: data.description,
           notes: data.notes,
@@ -212,6 +214,7 @@ export class FinancialsService {
           projectId: data.projectId !== undefined ? data.projectId : existing.projectId,
           propertyId: data.propertyId !== undefined ? data.propertyId : existing.propertyId,
           dealId: data.dealId !== undefined ? data.dealId : existing.dealId,
+          materialId: data.materialId !== undefined ? data.materialId : existing.materialId,
           notes: data.notes !== undefined ? data.notes : existing.notes,
           date: nextDate,
           journalBatchId,

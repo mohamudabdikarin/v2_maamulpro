@@ -49,6 +49,7 @@ export type TransactionMinAggregateOutputType = {
   projectId: string | null
   propertyId: string | null
   dealId: string | null
+  materialId: string | null
   notes: string | null
   version: number | null
   journalBatchId: string | null
@@ -71,6 +72,7 @@ export type TransactionMaxAggregateOutputType = {
   projectId: string | null
   propertyId: string | null
   dealId: string | null
+  materialId: string | null
   notes: string | null
   version: number | null
   journalBatchId: string | null
@@ -93,6 +95,7 @@ export type TransactionCountAggregateOutputType = {
   projectId: number
   propertyId: number
   dealId: number
+  materialId: number
   notes: number
   version: number
   journalBatchId: number
@@ -127,6 +130,7 @@ export type TransactionMinAggregateInputType = {
   projectId?: true
   propertyId?: true
   dealId?: true
+  materialId?: true
   notes?: true
   version?: true
   journalBatchId?: true
@@ -149,6 +153,7 @@ export type TransactionMaxAggregateInputType = {
   projectId?: true
   propertyId?: true
   dealId?: true
+  materialId?: true
   notes?: true
   version?: true
   journalBatchId?: true
@@ -171,6 +176,7 @@ export type TransactionCountAggregateInputType = {
   projectId?: true
   propertyId?: true
   dealId?: true
+  materialId?: true
   notes?: true
   version?: true
   journalBatchId?: true
@@ -280,6 +286,7 @@ export type TransactionGroupByOutputType = {
   projectId: string | null
   propertyId: string | null
   dealId: string | null
+  materialId: string | null
   notes: string | null
   version: number
   journalBatchId: string | null
@@ -325,6 +332,7 @@ export type TransactionWhereInput = {
   projectId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   propertyId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   dealId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  materialId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   version?: Prisma.IntFilter<"Transaction"> | number
   journalBatchId?: Prisma.StringNullableFilter<"Transaction"> | string | null
@@ -337,6 +345,7 @@ export type TransactionWhereInput = {
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   property?: Prisma.XOR<Prisma.PropertyNullableScalarRelationFilter, Prisma.PropertyWhereInput> | null
   deal?: Prisma.XOR<Prisma.DealNullableScalarRelationFilter, Prisma.DealWhereInput> | null
+  material?: Prisma.XOR<Prisma.MaterialNullableScalarRelationFilter, Prisma.MaterialWhereInput> | null
   journalBatch?: Prisma.XOR<Prisma.JournalBatchNullableScalarRelationFilter, Prisma.JournalBatchWhereInput> | null
 }
 
@@ -353,6 +362,7 @@ export type TransactionOrderByWithRelationInput = {
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   propertyId?: Prisma.SortOrderInput | Prisma.SortOrder
   dealId?: Prisma.SortOrderInput | Prisma.SortOrder
+  materialId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   version?: Prisma.SortOrder
   journalBatchId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -365,6 +375,7 @@ export type TransactionOrderByWithRelationInput = {
   project?: Prisma.ProjectOrderByWithRelationInput
   property?: Prisma.PropertyOrderByWithRelationInput
   deal?: Prisma.DealOrderByWithRelationInput
+  material?: Prisma.MaterialOrderByWithRelationInput
   journalBatch?: Prisma.JournalBatchOrderByWithRelationInput
 }
 
@@ -384,6 +395,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   projectId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   propertyId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   dealId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  materialId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   version?: Prisma.IntFilter<"Transaction"> | number
   journalBatchId?: Prisma.StringNullableFilter<"Transaction"> | string | null
@@ -396,6 +408,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   property?: Prisma.XOR<Prisma.PropertyNullableScalarRelationFilter, Prisma.PropertyWhereInput> | null
   deal?: Prisma.XOR<Prisma.DealNullableScalarRelationFilter, Prisma.DealWhereInput> | null
+  material?: Prisma.XOR<Prisma.MaterialNullableScalarRelationFilter, Prisma.MaterialWhereInput> | null
   journalBatch?: Prisma.XOR<Prisma.JournalBatchNullableScalarRelationFilter, Prisma.JournalBatchWhereInput> | null
 }, "id" | "referenceId">
 
@@ -412,6 +425,7 @@ export type TransactionOrderByWithAggregationInput = {
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   propertyId?: Prisma.SortOrderInput | Prisma.SortOrder
   dealId?: Prisma.SortOrderInput | Prisma.SortOrder
+  materialId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   version?: Prisma.SortOrder
   journalBatchId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -442,6 +456,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
   projectId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   propertyId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   dealId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  materialId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   version?: Prisma.IntWithAggregatesFilter<"Transaction"> | number
   journalBatchId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
@@ -470,6 +485,7 @@ export type TransactionCreateInput = {
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  material?: Prisma.MaterialCreateNestedOneWithoutLedgerTransactionsInput
   journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
@@ -486,6 +502,7 @@ export type TransactionUncheckedCreateInput = {
   projectId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -514,6 +531,7 @@ export type TransactionUpdateInput = {
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  material?: Prisma.MaterialUpdateOneWithoutLedgerTransactionsNestedInput
   journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
@@ -530,6 +548,7 @@ export type TransactionUncheckedUpdateInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -552,6 +571,7 @@ export type TransactionCreateManyInput = {
   projectId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -590,6 +610,7 @@ export type TransactionUncheckedUpdateManyInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -622,6 +643,7 @@ export type TransactionCountOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   propertyId?: Prisma.SortOrder
   dealId?: Prisma.SortOrder
+  materialId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   version?: Prisma.SortOrder
   journalBatchId?: Prisma.SortOrder
@@ -649,6 +671,7 @@ export type TransactionMaxOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   propertyId?: Prisma.SortOrder
   dealId?: Prisma.SortOrder
+  materialId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   version?: Prisma.SortOrder
   journalBatchId?: Prisma.SortOrder
@@ -671,6 +694,7 @@ export type TransactionMinOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   propertyId?: Prisma.SortOrder
   dealId?: Prisma.SortOrder
+  materialId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   version?: Prisma.SortOrder
   journalBatchId?: Prisma.SortOrder
@@ -827,6 +851,48 @@ export type TransactionUncheckedUpdateManyWithoutProjectNestedInput = {
   deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
 }
 
+export type TransactionCreateNestedManyWithoutMaterialInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutMaterialInput, Prisma.TransactionUncheckedCreateWithoutMaterialInput> | Prisma.TransactionCreateWithoutMaterialInput[] | Prisma.TransactionUncheckedCreateWithoutMaterialInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutMaterialInput | Prisma.TransactionCreateOrConnectWithoutMaterialInput[]
+  createMany?: Prisma.TransactionCreateManyMaterialInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUncheckedCreateNestedManyWithoutMaterialInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutMaterialInput, Prisma.TransactionUncheckedCreateWithoutMaterialInput> | Prisma.TransactionCreateWithoutMaterialInput[] | Prisma.TransactionUncheckedCreateWithoutMaterialInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutMaterialInput | Prisma.TransactionCreateOrConnectWithoutMaterialInput[]
+  createMany?: Prisma.TransactionCreateManyMaterialInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUpdateManyWithoutMaterialNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutMaterialInput, Prisma.TransactionUncheckedCreateWithoutMaterialInput> | Prisma.TransactionCreateWithoutMaterialInput[] | Prisma.TransactionUncheckedCreateWithoutMaterialInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutMaterialInput | Prisma.TransactionCreateOrConnectWithoutMaterialInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutMaterialInput | Prisma.TransactionUpsertWithWhereUniqueWithoutMaterialInput[]
+  createMany?: Prisma.TransactionCreateManyMaterialInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutMaterialInput | Prisma.TransactionUpdateWithWhereUniqueWithoutMaterialInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutMaterialInput | Prisma.TransactionUpdateManyWithWhereWithoutMaterialInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
+export type TransactionUncheckedUpdateManyWithoutMaterialNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutMaterialInput, Prisma.TransactionUncheckedCreateWithoutMaterialInput> | Prisma.TransactionCreateWithoutMaterialInput[] | Prisma.TransactionUncheckedCreateWithoutMaterialInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutMaterialInput | Prisma.TransactionCreateOrConnectWithoutMaterialInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutMaterialInput | Prisma.TransactionUpsertWithWhereUniqueWithoutMaterialInput[]
+  createMany?: Prisma.TransactionCreateManyMaterialInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutMaterialInput | Prisma.TransactionUpdateWithWhereUniqueWithoutMaterialInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutMaterialInput | Prisma.TransactionUpdateManyWithWhereWithoutMaterialInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
 export type TransactionCreateNestedManyWithoutPropertyInput = {
   create?: Prisma.XOR<Prisma.TransactionCreateWithoutPropertyInput, Prisma.TransactionUncheckedCreateWithoutPropertyInput> | Prisma.TransactionCreateWithoutPropertyInput[] | Prisma.TransactionUncheckedCreateWithoutPropertyInput[]
   connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutPropertyInput | Prisma.TransactionCreateOrConnectWithoutPropertyInput[]
@@ -971,6 +1037,7 @@ export type TransactionCreateWithoutUserInput = {
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  material?: Prisma.MaterialCreateNestedOneWithoutLedgerTransactionsInput
   journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
@@ -986,6 +1053,7 @@ export type TransactionUncheckedCreateWithoutUserInput = {
   projectId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1037,6 +1105,7 @@ export type TransactionScalarWhereInput = {
   projectId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   propertyId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   dealId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  materialId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   version?: Prisma.IntFilter<"Transaction"> | number
   journalBatchId?: Prisma.StringNullableFilter<"Transaction"> | string | null
@@ -1064,6 +1133,7 @@ export type TransactionCreateWithoutCategoryInput = {
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  material?: Prisma.MaterialCreateNestedOneWithoutLedgerTransactionsInput
   journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
@@ -1079,6 +1149,7 @@ export type TransactionUncheckedCreateWithoutCategoryInput = {
   projectId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1132,6 +1203,7 @@ export type TransactionCreateWithoutProjectInput = {
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  material?: Prisma.MaterialCreateNestedOneWithoutLedgerTransactionsInput
   journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
@@ -1147,6 +1219,7 @@ export type TransactionUncheckedCreateWithoutProjectInput = {
   userId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1182,6 +1255,76 @@ export type TransactionUpdateManyWithWhereWithoutProjectInput = {
   data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutProjectInput>
 }
 
+export type TransactionCreateWithoutMaterialInput = {
+  id?: string
+  referenceId?: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  notes?: string | null
+  version?: number
+  postingStatus?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
+  user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
+  deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
+}
+
+export type TransactionUncheckedCreateWithoutMaterialInput = {
+  id?: string
+  referenceId?: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  categoryId?: string | null
+  userId?: string | null
+  projectId?: string | null
+  propertyId?: string | null
+  dealId?: string | null
+  notes?: string | null
+  version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type TransactionCreateOrConnectWithoutMaterialInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutMaterialInput, Prisma.TransactionUncheckedCreateWithoutMaterialInput>
+}
+
+export type TransactionCreateManyMaterialInputEnvelope = {
+  data: Prisma.TransactionCreateManyMaterialInput | Prisma.TransactionCreateManyMaterialInput[]
+  skipDuplicates?: boolean
+}
+
+export type TransactionUpsertWithWhereUniqueWithoutMaterialInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.TransactionUpdateWithoutMaterialInput, Prisma.TransactionUncheckedUpdateWithoutMaterialInput>
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutMaterialInput, Prisma.TransactionUncheckedCreateWithoutMaterialInput>
+}
+
+export type TransactionUpdateWithWhereUniqueWithoutMaterialInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.TransactionUpdateWithoutMaterialInput, Prisma.TransactionUncheckedUpdateWithoutMaterialInput>
+}
+
+export type TransactionUpdateManyWithWhereWithoutMaterialInput = {
+  where: Prisma.TransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutMaterialInput>
+}
+
 export type TransactionCreateWithoutPropertyInput = {
   id?: string
   referenceId?: string
@@ -1200,6 +1343,7 @@ export type TransactionCreateWithoutPropertyInput = {
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  material?: Prisma.MaterialCreateNestedOneWithoutLedgerTransactionsInput
   journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
@@ -1215,6 +1359,7 @@ export type TransactionUncheckedCreateWithoutPropertyInput = {
   userId?: string | null
   projectId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1268,6 +1413,7 @@ export type TransactionCreateWithoutDealInput = {
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
+  material?: Prisma.MaterialCreateNestedOneWithoutLedgerTransactionsInput
   journalBatch?: Prisma.JournalBatchCreateNestedOneWithoutTransactionsInput
 }
 
@@ -1283,6 +1429,7 @@ export type TransactionUncheckedCreateWithoutDealInput = {
   userId?: string | null
   projectId?: string | null
   propertyId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1337,6 +1484,7 @@ export type TransactionCreateWithoutJournalBatchInput = {
   project?: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   property?: Prisma.PropertyCreateNestedOneWithoutTransactionsInput
   deal?: Prisma.DealCreateNestedOneWithoutTransactionsInput
+  material?: Prisma.MaterialCreateNestedOneWithoutLedgerTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutJournalBatchInput = {
@@ -1352,6 +1500,7 @@ export type TransactionUncheckedCreateWithoutJournalBatchInput = {
   projectId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   postingStatus?: string
@@ -1398,6 +1547,7 @@ export type TransactionCreateManyUserInput = {
   projectId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1425,6 +1575,7 @@ export type TransactionUpdateWithoutUserInput = {
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  material?: Prisma.MaterialUpdateOneWithoutLedgerTransactionsNestedInput
   journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
@@ -1440,6 +1591,7 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1461,6 +1613,7 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1482,6 +1635,7 @@ export type TransactionCreateManyCategoryInput = {
   projectId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1509,6 +1663,7 @@ export type TransactionUpdateWithoutCategoryInput = {
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  material?: Prisma.MaterialUpdateOneWithoutLedgerTransactionsNestedInput
   journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
@@ -1524,6 +1679,7 @@ export type TransactionUncheckedUpdateWithoutCategoryInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1545,6 +1701,7 @@ export type TransactionUncheckedUpdateManyWithoutCategoryInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1566,6 +1723,7 @@ export type TransactionCreateManyProjectInput = {
   userId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1593,6 +1751,7 @@ export type TransactionUpdateWithoutProjectInput = {
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  material?: Prisma.MaterialUpdateOneWithoutLedgerTransactionsNestedInput
   journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
@@ -1608,6 +1767,7 @@ export type TransactionUncheckedUpdateWithoutProjectInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1627,6 +1787,95 @@ export type TransactionUncheckedUpdateManyWithoutProjectInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type TransactionCreateManyMaterialInput = {
+  id?: string
+  referenceId?: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  categoryId?: string | null
+  userId?: string | null
+  projectId?: string | null
+  propertyId?: string | null
+  dealId?: string | null
+  notes?: string | null
+  version?: number
+  journalBatchId?: string | null
+  postingStatus?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type TransactionUpdateWithoutMaterialInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  referenceId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
+  user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
+  property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
+  deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
+}
+
+export type TransactionUncheckedUpdateWithoutMaterialInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  referenceId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type TransactionUncheckedUpdateManyWithoutMaterialInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  referenceId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1650,6 +1899,7 @@ export type TransactionCreateManyPropertyInput = {
   userId?: string | null
   projectId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1677,6 +1927,7 @@ export type TransactionUpdateWithoutPropertyInput = {
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  material?: Prisma.MaterialUpdateOneWithoutLedgerTransactionsNestedInput
   journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
@@ -1692,6 +1943,7 @@ export type TransactionUncheckedUpdateWithoutPropertyInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1713,6 +1965,7 @@ export type TransactionUncheckedUpdateManyWithoutPropertyInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1734,6 +1987,7 @@ export type TransactionCreateManyDealInput = {
   userId?: string | null
   projectId?: string | null
   propertyId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   journalBatchId?: string | null
@@ -1761,6 +2015,7 @@ export type TransactionUpdateWithoutDealInput = {
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
+  material?: Prisma.MaterialUpdateOneWithoutLedgerTransactionsNestedInput
   journalBatch?: Prisma.JournalBatchUpdateOneWithoutTransactionsNestedInput
 }
 
@@ -1776,6 +2031,7 @@ export type TransactionUncheckedUpdateWithoutDealInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1797,6 +2053,7 @@ export type TransactionUncheckedUpdateManyWithoutDealInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   journalBatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1819,6 +2076,7 @@ export type TransactionCreateManyJournalBatchInput = {
   projectId?: string | null
   propertyId?: string | null
   dealId?: string | null
+  materialId?: string | null
   notes?: string | null
   version?: number
   postingStatus?: string
@@ -1846,6 +2104,7 @@ export type TransactionUpdateWithoutJournalBatchInput = {
   project?: Prisma.ProjectUpdateOneWithoutTransactionsNestedInput
   property?: Prisma.PropertyUpdateOneWithoutTransactionsNestedInput
   deal?: Prisma.DealUpdateOneWithoutTransactionsNestedInput
+  material?: Prisma.MaterialUpdateOneWithoutLedgerTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutJournalBatchInput = {
@@ -1861,6 +2120,7 @@ export type TransactionUncheckedUpdateWithoutJournalBatchInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1882,6 +2142,7 @@ export type TransactionUncheckedUpdateManyWithoutJournalBatchInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   propertyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dealId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  materialId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   postingStatus?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1905,6 +2166,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   projectId?: boolean
   propertyId?: boolean
   dealId?: boolean
+  materialId?: boolean
   notes?: boolean
   version?: boolean
   journalBatchId?: boolean
@@ -1917,6 +2179,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  material?: boolean | Prisma.Transaction$materialArgs<ExtArgs>
   journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
@@ -1933,6 +2196,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   projectId?: boolean
   propertyId?: boolean
   dealId?: boolean
+  materialId?: boolean
   notes?: boolean
   version?: boolean
   journalBatchId?: boolean
@@ -1945,6 +2209,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  material?: boolean | Prisma.Transaction$materialArgs<ExtArgs>
   journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
@@ -1961,6 +2226,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   projectId?: boolean
   propertyId?: boolean
   dealId?: boolean
+  materialId?: boolean
   notes?: boolean
   version?: boolean
   journalBatchId?: boolean
@@ -1973,6 +2239,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  material?: boolean | Prisma.Transaction$materialArgs<ExtArgs>
   journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
@@ -1989,6 +2256,7 @@ export type TransactionSelectScalar = {
   projectId?: boolean
   propertyId?: boolean
   dealId?: boolean
+  materialId?: boolean
   notes?: boolean
   version?: boolean
   journalBatchId?: boolean
@@ -1998,13 +2266,14 @@ export type TransactionSelectScalar = {
   deletedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "type" | "status" | "description" | "amount" | "date" | "categoryId" | "userId" | "projectId" | "propertyId" | "dealId" | "notes" | "version" | "journalBatchId" | "postingStatus" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "type" | "status" | "description" | "amount" | "date" | "categoryId" | "userId" | "projectId" | "propertyId" | "dealId" | "materialId" | "notes" | "version" | "journalBatchId" | "postingStatus" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  material?: boolean | Prisma.Transaction$materialArgs<ExtArgs>
   journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }
 export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2013,6 +2282,7 @@ export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  material?: boolean | Prisma.Transaction$materialArgs<ExtArgs>
   journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }
 export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2021,6 +2291,7 @@ export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.
   project?: boolean | Prisma.Transaction$projectArgs<ExtArgs>
   property?: boolean | Prisma.Transaction$propertyArgs<ExtArgs>
   deal?: boolean | Prisma.Transaction$dealArgs<ExtArgs>
+  material?: boolean | Prisma.Transaction$materialArgs<ExtArgs>
   journalBatch?: boolean | Prisma.Transaction$journalBatchArgs<ExtArgs>
 }
 
@@ -2032,6 +2303,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     project: Prisma.$ProjectPayload<ExtArgs> | null
     property: Prisma.$PropertyPayload<ExtArgs> | null
     deal: Prisma.$DealPayload<ExtArgs> | null
+    material: Prisma.$MaterialPayload<ExtArgs> | null
     journalBatch: Prisma.$JournalBatchPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2047,6 +2319,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     projectId: string | null
     propertyId: string | null
     dealId: string | null
+    materialId: string | null
     notes: string | null
     version: number
     journalBatchId: string | null
@@ -2453,6 +2726,7 @@ export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runt
   project<T extends Prisma.Transaction$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   property<T extends Prisma.Transaction$propertyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$propertyArgs<ExtArgs>>): Prisma.Prisma__PropertyClient<runtime.Types.Result.GetResult<Prisma.$PropertyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   deal<T extends Prisma.Transaction$dealArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$dealArgs<ExtArgs>>): Prisma.Prisma__DealClient<runtime.Types.Result.GetResult<Prisma.$DealPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  material<T extends Prisma.Transaction$materialArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$materialArgs<ExtArgs>>): Prisma.Prisma__MaterialClient<runtime.Types.Result.GetResult<Prisma.$MaterialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   journalBatch<T extends Prisma.Transaction$journalBatchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$journalBatchArgs<ExtArgs>>): Prisma.Prisma__JournalBatchClient<runtime.Types.Result.GetResult<Prisma.$JournalBatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2495,6 +2769,7 @@ export interface TransactionFieldRefs {
   readonly projectId: Prisma.FieldRef<"Transaction", 'String'>
   readonly propertyId: Prisma.FieldRef<"Transaction", 'String'>
   readonly dealId: Prisma.FieldRef<"Transaction", 'String'>
+  readonly materialId: Prisma.FieldRef<"Transaction", 'String'>
   readonly notes: Prisma.FieldRef<"Transaction", 'String'>
   readonly version: Prisma.FieldRef<"Transaction", 'Int'>
   readonly journalBatchId: Prisma.FieldRef<"Transaction", 'String'>
@@ -2995,6 +3270,25 @@ export type Transaction$dealArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   include?: Prisma.DealInclude<ExtArgs> | null
   where?: Prisma.DealWhereInput
+}
+
+/**
+ * Transaction.material
+ */
+export type Transaction$materialArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Material
+   */
+  select?: Prisma.MaterialSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Material
+   */
+  omit?: Prisma.MaterialOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MaterialInclude<ExtArgs> | null
+  where?: Prisma.MaterialWhereInput
 }
 
 /**
