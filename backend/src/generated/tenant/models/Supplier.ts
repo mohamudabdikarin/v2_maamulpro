@@ -258,6 +258,7 @@ export type SupplierWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<"Supplier"> | Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderListRelationFilter
   transactions?: Prisma.SupplierTransactionListRelationFilter
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionListRelationFilter
 }
 
 export type SupplierOrderByWithRelationInput = {
@@ -273,6 +274,7 @@ export type SupplierOrderByWithRelationInput = {
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   purchaseOrders?: Prisma.PurchaseOrderOrderByRelationAggregateInput
   transactions?: Prisma.SupplierTransactionOrderByRelationAggregateInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionOrderByRelationAggregateInput
 }
 
 export type SupplierWhereUniqueInput = Prisma.AtLeast<{
@@ -291,6 +293,7 @@ export type SupplierWhereUniqueInput = Prisma.AtLeast<{
   deletedAt?: Prisma.DateTimeNullableFilter<"Supplier"> | Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderListRelationFilter
   transactions?: Prisma.SupplierTransactionListRelationFilter
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionListRelationFilter
 }, "id">
 
 export type SupplierOrderByWithAggregationInput = {
@@ -340,6 +343,7 @@ export type SupplierCreateInput = {
   deletedAt?: Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderCreateNestedManyWithoutSupplierInput
   transactions?: Prisma.SupplierTransactionCreateNestedManyWithoutSupplierInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutSupplierInput
 }
 
 export type SupplierUncheckedCreateInput = {
@@ -355,6 +359,7 @@ export type SupplierUncheckedCreateInput = {
   deletedAt?: Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderUncheckedCreateNestedManyWithoutSupplierInput
   transactions?: Prisma.SupplierTransactionUncheckedCreateNestedManyWithoutSupplierInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutSupplierInput
 }
 
 export type SupplierUpdateInput = {
@@ -370,6 +375,7 @@ export type SupplierUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderUpdateManyWithoutSupplierNestedInput
   transactions?: Prisma.SupplierTransactionUpdateManyWithoutSupplierNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutSupplierNestedInput
 }
 
 export type SupplierUncheckedUpdateInput = {
@@ -385,6 +391,7 @@ export type SupplierUncheckedUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderUncheckedUpdateManyWithoutSupplierNestedInput
   transactions?: Prisma.SupplierTransactionUncheckedUpdateManyWithoutSupplierNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutSupplierNestedInput
 }
 
 export type SupplierCreateManyInput = {
@@ -424,6 +431,11 @@ export type SupplierUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type SupplierNullableScalarRelationFilter = {
+  is?: Prisma.SupplierWhereInput | null
+  isNot?: Prisma.SupplierWhereInput | null
 }
 
 export type SupplierCountOrderByAggregateInput = {
@@ -478,9 +490,20 @@ export type SupplierScalarRelationFilter = {
   isNot?: Prisma.SupplierWhereInput
 }
 
-export type SupplierNullableScalarRelationFilter = {
-  is?: Prisma.SupplierWhereInput | null
-  isNot?: Prisma.SupplierWhereInput | null
+export type SupplierCreateNestedOneWithoutConstructionInventoryTransactionsInput = {
+  create?: Prisma.XOR<Prisma.SupplierCreateWithoutConstructionInventoryTransactionsInput, Prisma.SupplierUncheckedCreateWithoutConstructionInventoryTransactionsInput>
+  connectOrCreate?: Prisma.SupplierCreateOrConnectWithoutConstructionInventoryTransactionsInput
+  connect?: Prisma.SupplierWhereUniqueInput
+}
+
+export type SupplierUpdateOneWithoutConstructionInventoryTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.SupplierCreateWithoutConstructionInventoryTransactionsInput, Prisma.SupplierUncheckedCreateWithoutConstructionInventoryTransactionsInput>
+  connectOrCreate?: Prisma.SupplierCreateOrConnectWithoutConstructionInventoryTransactionsInput
+  upsert?: Prisma.SupplierUpsertWithoutConstructionInventoryTransactionsInput
+  disconnect?: Prisma.SupplierWhereInput | boolean
+  delete?: Prisma.SupplierWhereInput | boolean
+  connect?: Prisma.SupplierWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SupplierUpdateToOneWithWhereWithoutConstructionInventoryTransactionsInput, Prisma.SupplierUpdateWithoutConstructionInventoryTransactionsInput>, Prisma.SupplierUncheckedUpdateWithoutConstructionInventoryTransactionsInput>
 }
 
 export type SupplierCreateNestedOneWithoutTransactionsInput = {
@@ -513,6 +536,82 @@ export type SupplierUpdateOneWithoutPurchaseOrdersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SupplierUpdateToOneWithWhereWithoutPurchaseOrdersInput, Prisma.SupplierUpdateWithoutPurchaseOrdersInput>, Prisma.SupplierUncheckedUpdateWithoutPurchaseOrdersInput>
 }
 
+export type SupplierCreateWithoutConstructionInventoryTransactionsInput = {
+  id?: string
+  name: string
+  email?: string | null
+  phone?: string | null
+  address?: string | null
+  balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  purchaseOrders?: Prisma.PurchaseOrderCreateNestedManyWithoutSupplierInput
+  transactions?: Prisma.SupplierTransactionCreateNestedManyWithoutSupplierInput
+}
+
+export type SupplierUncheckedCreateWithoutConstructionInventoryTransactionsInput = {
+  id?: string
+  name: string
+  email?: string | null
+  phone?: string | null
+  address?: string | null
+  balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  purchaseOrders?: Prisma.PurchaseOrderUncheckedCreateNestedManyWithoutSupplierInput
+  transactions?: Prisma.SupplierTransactionUncheckedCreateNestedManyWithoutSupplierInput
+}
+
+export type SupplierCreateOrConnectWithoutConstructionInventoryTransactionsInput = {
+  where: Prisma.SupplierWhereUniqueInput
+  create: Prisma.XOR<Prisma.SupplierCreateWithoutConstructionInventoryTransactionsInput, Prisma.SupplierUncheckedCreateWithoutConstructionInventoryTransactionsInput>
+}
+
+export type SupplierUpsertWithoutConstructionInventoryTransactionsInput = {
+  update: Prisma.XOR<Prisma.SupplierUpdateWithoutConstructionInventoryTransactionsInput, Prisma.SupplierUncheckedUpdateWithoutConstructionInventoryTransactionsInput>
+  create: Prisma.XOR<Prisma.SupplierCreateWithoutConstructionInventoryTransactionsInput, Prisma.SupplierUncheckedCreateWithoutConstructionInventoryTransactionsInput>
+  where?: Prisma.SupplierWhereInput
+}
+
+export type SupplierUpdateToOneWithWhereWithoutConstructionInventoryTransactionsInput = {
+  where?: Prisma.SupplierWhereInput
+  data: Prisma.XOR<Prisma.SupplierUpdateWithoutConstructionInventoryTransactionsInput, Prisma.SupplierUncheckedUpdateWithoutConstructionInventoryTransactionsInput>
+}
+
+export type SupplierUpdateWithoutConstructionInventoryTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  purchaseOrders?: Prisma.PurchaseOrderUpdateManyWithoutSupplierNestedInput
+  transactions?: Prisma.SupplierTransactionUpdateManyWithoutSupplierNestedInput
+}
+
+export type SupplierUncheckedUpdateWithoutConstructionInventoryTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  purchaseOrders?: Prisma.PurchaseOrderUncheckedUpdateManyWithoutSupplierNestedInput
+  transactions?: Prisma.SupplierTransactionUncheckedUpdateManyWithoutSupplierNestedInput
+}
+
 export type SupplierCreateWithoutTransactionsInput = {
   id?: string
   name: string
@@ -525,6 +624,7 @@ export type SupplierCreateWithoutTransactionsInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderCreateNestedManyWithoutSupplierInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutSupplierInput
 }
 
 export type SupplierUncheckedCreateWithoutTransactionsInput = {
@@ -539,6 +639,7 @@ export type SupplierUncheckedCreateWithoutTransactionsInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderUncheckedCreateNestedManyWithoutSupplierInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutSupplierInput
 }
 
 export type SupplierCreateOrConnectWithoutTransactionsInput = {
@@ -569,6 +670,7 @@ export type SupplierUpdateWithoutTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderUpdateManyWithoutSupplierNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutSupplierNestedInput
 }
 
 export type SupplierUncheckedUpdateWithoutTransactionsInput = {
@@ -583,6 +685,7 @@ export type SupplierUncheckedUpdateWithoutTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   purchaseOrders?: Prisma.PurchaseOrderUncheckedUpdateManyWithoutSupplierNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutSupplierNestedInput
 }
 
 export type SupplierCreateWithoutPurchaseOrdersInput = {
@@ -597,6 +700,7 @@ export type SupplierCreateWithoutPurchaseOrdersInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   transactions?: Prisma.SupplierTransactionCreateNestedManyWithoutSupplierInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutSupplierInput
 }
 
 export type SupplierUncheckedCreateWithoutPurchaseOrdersInput = {
@@ -611,6 +715,7 @@ export type SupplierUncheckedCreateWithoutPurchaseOrdersInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   transactions?: Prisma.SupplierTransactionUncheckedCreateNestedManyWithoutSupplierInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutSupplierInput
 }
 
 export type SupplierCreateOrConnectWithoutPurchaseOrdersInput = {
@@ -641,6 +746,7 @@ export type SupplierUpdateWithoutPurchaseOrdersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   transactions?: Prisma.SupplierTransactionUpdateManyWithoutSupplierNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutSupplierNestedInput
 }
 
 export type SupplierUncheckedUpdateWithoutPurchaseOrdersInput = {
@@ -655,6 +761,7 @@ export type SupplierUncheckedUpdateWithoutPurchaseOrdersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   transactions?: Prisma.SupplierTransactionUncheckedUpdateManyWithoutSupplierNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutSupplierNestedInput
 }
 
 
@@ -665,11 +772,13 @@ export type SupplierUncheckedUpdateWithoutPurchaseOrdersInput = {
 export type SupplierCountOutputType = {
   purchaseOrders: number
   transactions: number
+  constructionInventoryTransactions: number
 }
 
 export type SupplierCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   purchaseOrders?: boolean | SupplierCountOutputTypeCountPurchaseOrdersArgs
   transactions?: boolean | SupplierCountOutputTypeCountTransactionsArgs
+  constructionInventoryTransactions?: boolean | SupplierCountOutputTypeCountConstructionInventoryTransactionsArgs
 }
 
 /**
@@ -696,6 +805,13 @@ export type SupplierCountOutputTypeCountTransactionsArgs<ExtArgs extends runtime
   where?: Prisma.SupplierTransactionWhereInput
 }
 
+/**
+ * SupplierCountOutputType without action
+ */
+export type SupplierCountOutputTypeCountConstructionInventoryTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConstructionInventoryTransactionWhereInput
+}
+
 
 export type SupplierSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -710,6 +826,7 @@ export type SupplierSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   deletedAt?: boolean
   purchaseOrders?: boolean | Prisma.Supplier$purchaseOrdersArgs<ExtArgs>
   transactions?: boolean | Prisma.Supplier$transactionsArgs<ExtArgs>
+  constructionInventoryTransactions?: boolean | Prisma.Supplier$constructionInventoryTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.SupplierCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["supplier"]>
 
@@ -756,6 +873,7 @@ export type SupplierOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type SupplierInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   purchaseOrders?: boolean | Prisma.Supplier$purchaseOrdersArgs<ExtArgs>
   transactions?: boolean | Prisma.Supplier$transactionsArgs<ExtArgs>
+  constructionInventoryTransactions?: boolean | Prisma.Supplier$constructionInventoryTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.SupplierCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SupplierIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -766,6 +884,7 @@ export type $SupplierPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     purchaseOrders: Prisma.$PurchaseOrderPayload<ExtArgs>[]
     transactions: Prisma.$SupplierTransactionPayload<ExtArgs>[]
+    constructionInventoryTransactions: Prisma.$ConstructionInventoryTransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1174,6 +1293,7 @@ export interface Prisma__SupplierClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   purchaseOrders<T extends Prisma.Supplier$purchaseOrdersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Supplier$purchaseOrdersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PurchaseOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.Supplier$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Supplier$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupplierTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  constructionInventoryTransactions<T extends Prisma.Supplier$constructionInventoryTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Supplier$constructionInventoryTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConstructionInventoryTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1651,6 +1771,30 @@ export type Supplier$transactionsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.SupplierTransactionScalarFieldEnum | Prisma.SupplierTransactionScalarFieldEnum[]
+}
+
+/**
+ * Supplier.constructionInventoryTransactions
+ */
+export type Supplier$constructionInventoryTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ConstructionInventoryTransaction
+   */
+  select?: Prisma.ConstructionInventoryTransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ConstructionInventoryTransaction
+   */
+  omit?: Prisma.ConstructionInventoryTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConstructionInventoryTransactionInclude<ExtArgs> | null
+  where?: Prisma.ConstructionInventoryTransactionWhereInput
+  orderBy?: Prisma.ConstructionInventoryTransactionOrderByWithRelationInput | Prisma.ConstructionInventoryTransactionOrderByWithRelationInput[]
+  cursor?: Prisma.ConstructionInventoryTransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConstructionInventoryTransactionScalarFieldEnum | Prisma.ConstructionInventoryTransactionScalarFieldEnum[]
 }
 
 /**

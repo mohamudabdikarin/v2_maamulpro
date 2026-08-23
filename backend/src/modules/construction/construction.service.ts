@@ -745,14 +745,21 @@ export class ConstructionService {
       }
       const currentQuantity = Number(material.quantity);
       const qty = Number(data.quantity);
+      const eventDate = data.date || new Date();
+      const unitCost = Number(data.unitCost ?? material.unitCost ?? 0);
+      const totalCost = Number(data.totalCost ?? qty * unitCost);
       // ADJUSTMENT: positive adds stock, negative reduces (write-off without project)
       const delta = data.type === 'USAGE' ? -Math.abs(qty) : data.type === 'ADJUSTMENT' ? qty : Math.abs(qty);
       const nextQuantity = currentQuantity + delta;
       if (nextQuantity < 0) throw new BadRequestException('Insufficient stock for this movement');
+      const nextUnitCost = data.type === 'RESTOCK' && nextQuantity > 0
+        ? Math.round((((currentQuantity * Number(material.unitCost || 0)) + totalCost) / nextQuantity) * 100) / 100
+        : Number(material.unitCost || 0);
       const updated = await tx.constructionMaterial.updateMany({
         where: { id: material.id, version: material.version, deletedAt: null },
         data: {
           quantity: nextQuantity,
+          unitCost: nextUnitCost,
           warehouse: data.warehouse || material.warehouse,
           version: { increment: 1 },
         },
@@ -767,13 +774,48 @@ export class ConstructionService {
           userId,
           notes: data.notes,
           warehouse: data.warehouse,
-          date: new Date(),
+          date: eventDate,
+          supplierId: data.supplierId,
+          paymentMethod: data.paymentMethod,
+          unitCost,
+          totalCost,
+          sourceRef: data.sourceRef,
         },
         include: { material: true, project: true, user: true },
       });
-      // Job costing for USAGE is tracked via constructionInventoryTransaction
-      // (reports). Do not post CLEARED cashbook expense here — purchases
-      // already expense at RECEIVED, and double-posting would inflate P&L.
+      if (data.type === 'RESTOCK' && totalCost > 0) {
+        const category = await this.findOrCreateCategory(tx, 'Construction Materials');
+        const referenceId = `construction-procurement:${movement.sourceRef || movement.id}`;
+        await tx.transaction.create({
+          data: {
+            referenceId,
+            type: 'EXPENSE',
+            status: 'CLEARED',
+            description: `${material.name} purchase`,
+            amount: totalCost,
+            date: eventDate,
+            categoryId: category.id,
+            projectId: data.projectId,
+            userId,
+            notes: data.paymentMethod ? `Payment method: ${data.paymentMethod}` : data.notes,
+          },
+        });
+        await this.safePost(() => this.accounting.postFinancialEvent(tx, {
+          tx,
+          tenantId: 'system',
+          userId,
+          sourceType: 'CONSTRUCTION_PROCUREMENT',
+          sourceId: movement.id,
+          sourceRef: movement.sourceRef || movement.id,
+          date: eventDate,
+          memo: `${material.name} purchase`,
+          drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
+          crKey: 'TRANSACTION_EXPENSE_CASH',
+          amount: totalCost,
+        }));
+      }
+      // USAGE is an internal stock movement only. Procurement was already
+      // expensed at RESTOCK, so posting usage again would double-count it.
       return movement;
     });
   }

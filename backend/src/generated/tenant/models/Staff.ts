@@ -881,10 +881,12 @@ export type StaffCreateNestedOneWithoutWorkforceContractPaymentsInput = {
   connect?: Prisma.StaffWhereUniqueInput
 }
 
-export type StaffUpdateOneRequiredWithoutWorkforceContractPaymentsNestedInput = {
+export type StaffUpdateOneWithoutWorkforceContractPaymentsNestedInput = {
   create?: Prisma.XOR<Prisma.StaffCreateWithoutWorkforceContractPaymentsInput, Prisma.StaffUncheckedCreateWithoutWorkforceContractPaymentsInput>
   connectOrCreate?: Prisma.StaffCreateOrConnectWithoutWorkforceContractPaymentsInput
   upsert?: Prisma.StaffUpsertWithoutWorkforceContractPaymentsInput
+  disconnect?: Prisma.StaffWhereInput | boolean
+  delete?: Prisma.StaffWhereInput | boolean
   connect?: Prisma.StaffWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.StaffUpdateToOneWithWhereWithoutWorkforceContractPaymentsInput, Prisma.StaffUpdateWithoutWorkforceContractPaymentsInput>, Prisma.StaffUncheckedUpdateWithoutWorkforceContractPaymentsInput>
 }

@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 23;
+export const CURRENT_TENANT_SCHEMA_VERSION = 24;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -64,7 +64,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
-    CREATE TYPE "UnitType" AS ENUM ('KG','BAG','PIECE','METER','LITER','TON');
+    CREATE TYPE "UnitType" AS ENUM ('KG','BAG','PIECE','METER','LITER','TON','TRUCK_LOAD','LOT','SQUARE_METER','SET','BUCKET');
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
@@ -89,6 +89,11 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'SUPPLIER_OFFICER'`,
   `ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'DELIVERY_OFFICER'`,
   `ALTER TYPE "Department" ADD VALUE IF NOT EXISTS 'MATERIAL_MANAGEMENT'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'TRUCK_LOAD'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'LOT'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'SQUARE_METER'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'SET'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'BUCKET'`,
   `ALTER TYPE "InventoryTransactionType" ADD VALUE IF NOT EXISTS 'ADJUSTMENT'`,
   `ALTER TYPE "InventoryTransactionType" ADD VALUE IF NOT EXISTS 'TRANSFER'`,
 

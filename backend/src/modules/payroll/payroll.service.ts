@@ -39,6 +39,7 @@ export class PayrollService {
     const tax = Number(payroll.totalTax || 0);
     const deductions = Number(payroll.totalDeductions || 0);
     const amount = net > 0 ? net : gross;
+    const paymentDate = payroll.paymentDate || new Date();
 
     await tx.transaction.upsert({
       where: { referenceId: `PAYROLL-${payroll.id}` },
@@ -48,7 +49,8 @@ export class PayrollService {
         status: 'CLEARED',
         description,
         amount,
-        date: new Date(),
+        date: paymentDate,
+        projectId: payroll.projectId,
         userId,
         notes: `Expense account: ${payroll.expenseAccountCode || 'not assigned'}`,
       },
@@ -57,7 +59,8 @@ export class PayrollService {
         status: 'CLEARED',
         description,
         amount,
-        date: new Date(),
+        date: paymentDate,
+        projectId: payroll.projectId,
         userId,
         deletedAt: null,
         version: { increment: 1 },
@@ -92,7 +95,7 @@ export class PayrollService {
         userId,
         tx,
         dto: {
-          date: new Date(),
+          date: paymentDate,
           memo: description,
           sourceType: 'PAYROLL',
           sourceId: payroll.id,

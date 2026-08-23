@@ -182,7 +182,7 @@ export class MaterialManagementService {
       }
       await this.syncPurchaseLedger(tx, updated);
       return updated;
-    });
+    }, { timeout: 30_000 });
   }
 
   async updatePurchaseOrder(db: any, id: string, userId: string, data: PurchaseOrderDto) {
@@ -420,7 +420,7 @@ export class MaterialManagementService {
       });
       await this.syncTransportationLedger(tx, record);
       return record;
-    });
+    }, { timeout: 30_000 });
   }
 
   async updateTransportation(db: any, id: string, data: TransportationDto) {
@@ -463,7 +463,7 @@ export class MaterialManagementService {
       });
       await this.syncTransportationLedger(tx, record);
       return record;
-    });
+    }, { timeout: 30_000 });
   }
 
   async deleteTransportation(db: any, id: string) {

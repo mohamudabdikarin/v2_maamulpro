@@ -75,14 +75,14 @@ const WORKSPACES: Record<ReportWorkspace, WorkspaceConfig> = {
         emptyActionLabel: 'New project',
         budgetLabel: 'budget',
         categories: {
-            manpower: { label: 'Manpower', desc: 'Worker ledger costs for this project' },
-            materials: { label: 'Materials', desc: 'Material usage charged to this project' },
+            manpower: { label: 'Manpower', desc: 'Payroll, worker and subcontractor payments for this project' },
+            materials: { label: 'Materials', desc: 'Construction material procurement charged to this project' },
             expenses: { label: 'Site Expenses', desc: 'Daily operational expenses on site' },
         },
         primaryCol: (cat) => (cat === 'materials' ? 'Item' : cat === 'manpower' ? 'Worker' : 'Description'),
-        secondaryCol: (cat) => (cat === 'materials' ? 'Used by' : 'Category'),
+        secondaryCol: (cat) => (cat === 'materials' ? 'Recorded by' : 'Category'),
         primaryValue: (cat, row) => (cat === 'materials' ? row.item : cat === 'manpower' ? row.worker : row.description) || '—',
-        secondaryValue: (cat, row) => (cat === 'materials' ? (row.usedBy || row.enteredBy) : cat === 'manpower' ? (row.rollupKey || row.description) : row.expenseCategory) || '—',
+        secondaryValue: (cat, row) => (cat === 'materials' ? row.enteredBy : cat === 'manpower' ? (row.rollupKey || row.description) : row.expenseCategory) || '—',
     },
     real_estate: {
         apiRoot: '/api/reports/properties',

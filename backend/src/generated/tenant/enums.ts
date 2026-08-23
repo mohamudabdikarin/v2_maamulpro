@@ -140,7 +140,12 @@ export const UnitType = {
   PIECE: 'PIECE',
   METER: 'METER',
   LITER: 'LITER',
-  TON: 'TON'
+  TON: 'TON',
+  TRUCK_LOAD: 'TRUCK_LOAD',
+  LOT: 'LOT',
+  SQUARE_METER: 'SQUARE_METER',
+  SET: 'SET',
+  BUCKET: 'BUCKET'
 } as const
 
 export type UnitType = (typeof UnitType)[keyof typeof UnitType]

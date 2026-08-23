@@ -43,6 +43,7 @@ export type WorkforceContractMinAggregateOutputType = {
   projectId: string | null
   title: string | null
   description: string | null
+  contractorName: string | null
   originalBudget: runtime.Decimal | null
   totalPaid: runtime.Decimal | null
   status: $Enums.WorkforceContractStatus | null
@@ -60,6 +61,7 @@ export type WorkforceContractMaxAggregateOutputType = {
   projectId: string | null
   title: string | null
   description: string | null
+  contractorName: string | null
   originalBudget: runtime.Decimal | null
   totalPaid: runtime.Decimal | null
   status: $Enums.WorkforceContractStatus | null
@@ -77,6 +79,7 @@ export type WorkforceContractCountAggregateOutputType = {
   projectId: number
   title: number
   description: number
+  contractorName: number
   originalBudget: number
   totalPaid: number
   status: number
@@ -108,6 +111,7 @@ export type WorkforceContractMinAggregateInputType = {
   projectId?: true
   title?: true
   description?: true
+  contractorName?: true
   originalBudget?: true
   totalPaid?: true
   status?: true
@@ -125,6 +129,7 @@ export type WorkforceContractMaxAggregateInputType = {
   projectId?: true
   title?: true
   description?: true
+  contractorName?: true
   originalBudget?: true
   totalPaid?: true
   status?: true
@@ -142,6 +147,7 @@ export type WorkforceContractCountAggregateInputType = {
   projectId?: true
   title?: true
   description?: true
+  contractorName?: true
   originalBudget?: true
   totalPaid?: true
   status?: true
@@ -246,6 +252,7 @@ export type WorkforceContractGroupByOutputType = {
   projectId: string
   title: string
   description: string | null
+  contractorName: string | null
   originalBudget: runtime.Decimal
   totalPaid: runtime.Decimal
   status: $Enums.WorkforceContractStatus
@@ -286,6 +293,7 @@ export type WorkforceContractWhereInput = {
   projectId?: Prisma.StringFilter<"WorkforceContract"> | string
   title?: Prisma.StringFilter<"WorkforceContract"> | string
   description?: Prisma.StringNullableFilter<"WorkforceContract"> | string | null
+  contractorName?: Prisma.StringNullableFilter<"WorkforceContract"> | string | null
   originalBudget?: Prisma.DecimalFilter<"WorkforceContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFilter<"WorkforceContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFilter<"WorkforceContract"> | $Enums.WorkforceContractStatus
@@ -307,6 +315,7 @@ export type WorkforceContractOrderByWithRelationInput = {
   projectId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  contractorName?: Prisma.SortOrderInput | Prisma.SortOrder
   originalBudget?: Prisma.SortOrder
   totalPaid?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -331,6 +340,7 @@ export type WorkforceContractWhereUniqueInput = Prisma.AtLeast<{
   projectId?: Prisma.StringFilter<"WorkforceContract"> | string
   title?: Prisma.StringFilter<"WorkforceContract"> | string
   description?: Prisma.StringNullableFilter<"WorkforceContract"> | string | null
+  contractorName?: Prisma.StringNullableFilter<"WorkforceContract"> | string | null
   originalBudget?: Prisma.DecimalFilter<"WorkforceContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFilter<"WorkforceContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFilter<"WorkforceContract"> | $Enums.WorkforceContractStatus
@@ -352,6 +362,7 @@ export type WorkforceContractOrderByWithAggregationInput = {
   projectId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  contractorName?: Prisma.SortOrderInput | Prisma.SortOrder
   originalBudget?: Prisma.SortOrder
   totalPaid?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -377,6 +388,7 @@ export type WorkforceContractScalarWhereWithAggregatesInput = {
   projectId?: Prisma.StringWithAggregatesFilter<"WorkforceContract"> | string
   title?: Prisma.StringWithAggregatesFilter<"WorkforceContract"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContract"> | string | null
+  contractorName?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContract"> | string | null
   originalBudget?: Prisma.DecimalWithAggregatesFilter<"WorkforceContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalWithAggregatesFilter<"WorkforceContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusWithAggregatesFilter<"WorkforceContract"> | $Enums.WorkforceContractStatus
@@ -393,6 +405,7 @@ export type WorkforceContractCreateInput = {
   id?: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -414,6 +427,7 @@ export type WorkforceContractUncheckedCreateInput = {
   projectId: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -433,6 +447,7 @@ export type WorkforceContractUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -454,6 +469,7 @@ export type WorkforceContractUncheckedUpdateInput = {
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -474,6 +490,7 @@ export type WorkforceContractCreateManyInput = {
   projectId: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -490,6 +507,7 @@ export type WorkforceContractUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -507,6 +525,7 @@ export type WorkforceContractUncheckedUpdateManyInput = {
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -534,6 +553,7 @@ export type WorkforceContractCountOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  contractorName?: Prisma.SortOrder
   originalBudget?: Prisma.SortOrder
   totalPaid?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -557,6 +577,7 @@ export type WorkforceContractMaxOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  contractorName?: Prisma.SortOrder
   originalBudget?: Prisma.SortOrder
   totalPaid?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -574,6 +595,7 @@ export type WorkforceContractMinOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  contractorName?: Prisma.SortOrder
   originalBudget?: Prisma.SortOrder
   totalPaid?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -689,6 +711,7 @@ export type WorkforceContractCreateWithoutProjectInput = {
   id?: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -708,6 +731,7 @@ export type WorkforceContractUncheckedCreateWithoutProjectInput = {
   id?: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -757,6 +781,7 @@ export type WorkforceContractScalarWhereInput = {
   projectId?: Prisma.StringFilter<"WorkforceContract"> | string
   title?: Prisma.StringFilter<"WorkforceContract"> | string
   description?: Prisma.StringNullableFilter<"WorkforceContract"> | string | null
+  contractorName?: Prisma.StringNullableFilter<"WorkforceContract"> | string | null
   originalBudget?: Prisma.DecimalFilter<"WorkforceContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFilter<"WorkforceContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFilter<"WorkforceContract"> | $Enums.WorkforceContractStatus
@@ -773,6 +798,7 @@ export type WorkforceContractCreateWithoutWorkerAssignmentsInput = {
   id?: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -793,6 +819,7 @@ export type WorkforceContractUncheckedCreateWithoutWorkerAssignmentsInput = {
   projectId: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -827,6 +854,7 @@ export type WorkforceContractUpdateWithoutWorkerAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -847,6 +875,7 @@ export type WorkforceContractUncheckedUpdateWithoutWorkerAssignmentsInput = {
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -865,6 +894,7 @@ export type WorkforceContractCreateWithoutPaymentsInput = {
   id?: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -885,6 +915,7 @@ export type WorkforceContractUncheckedCreateWithoutPaymentsInput = {
   projectId: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -919,6 +950,7 @@ export type WorkforceContractUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -939,6 +971,7 @@ export type WorkforceContractUncheckedUpdateWithoutPaymentsInput = {
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -957,6 +990,7 @@ export type WorkforceContractCreateWithoutBudgetAdjustmentsInput = {
   id?: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -977,6 +1011,7 @@ export type WorkforceContractUncheckedCreateWithoutBudgetAdjustmentsInput = {
   projectId: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -1011,6 +1046,7 @@ export type WorkforceContractUpdateWithoutBudgetAdjustmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -1031,6 +1067,7 @@ export type WorkforceContractUncheckedUpdateWithoutBudgetAdjustmentsInput = {
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -1049,6 +1086,7 @@ export type WorkforceContractCreateManyProjectInput = {
   id?: string
   title: string
   description?: string | null
+  contractorName?: string | null
   originalBudget: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.WorkforceContractStatus
@@ -1065,6 +1103,7 @@ export type WorkforceContractUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -1084,6 +1123,7 @@ export type WorkforceContractUncheckedUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -1103,6 +1143,7 @@ export type WorkforceContractUncheckedUpdateManyWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contractorName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalBudget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumWorkforceContractStatusFieldUpdateOperationsInput | $Enums.WorkforceContractStatus
@@ -1169,6 +1210,7 @@ export type WorkforceContractSelect<ExtArgs extends runtime.Types.Extensions.Int
   projectId?: boolean
   title?: boolean
   description?: boolean
+  contractorName?: boolean
   originalBudget?: boolean
   totalPaid?: boolean
   status?: boolean
@@ -1191,6 +1233,7 @@ export type WorkforceContractSelectCreateManyAndReturn<ExtArgs extends runtime.T
   projectId?: boolean
   title?: boolean
   description?: boolean
+  contractorName?: boolean
   originalBudget?: boolean
   totalPaid?: boolean
   status?: boolean
@@ -1209,6 +1252,7 @@ export type WorkforceContractSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   projectId?: boolean
   title?: boolean
   description?: boolean
+  contractorName?: boolean
   originalBudget?: boolean
   totalPaid?: boolean
   status?: boolean
@@ -1227,6 +1271,7 @@ export type WorkforceContractSelectScalar = {
   projectId?: boolean
   title?: boolean
   description?: boolean
+  contractorName?: boolean
   originalBudget?: boolean
   totalPaid?: boolean
   status?: boolean
@@ -1239,7 +1284,7 @@ export type WorkforceContractSelectScalar = {
   deletedAt?: boolean
 }
 
-export type WorkforceContractOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "title" | "description" | "originalBudget" | "totalPaid" | "status" | "startDate" | "endDate" | "notes" | "version" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["workforceContract"]>
+export type WorkforceContractOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "title" | "description" | "contractorName" | "originalBudget" | "totalPaid" | "status" | "startDate" | "endDate" | "notes" | "version" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["workforceContract"]>
 export type WorkforceContractInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   workerAssignments?: boolean | Prisma.WorkforceContract$workerAssignmentsArgs<ExtArgs>
@@ -1267,6 +1312,7 @@ export type $WorkforceContractPayload<ExtArgs extends runtime.Types.Extensions.I
     projectId: string
     title: string
     description: string | null
+    contractorName: string | null
     originalBudget: runtime.Decimal
     totalPaid: runtime.Decimal
     status: $Enums.WorkforceContractStatus
@@ -1708,6 +1754,7 @@ export interface WorkforceContractFieldRefs {
   readonly projectId: Prisma.FieldRef<"WorkforceContract", 'String'>
   readonly title: Prisma.FieldRef<"WorkforceContract", 'String'>
   readonly description: Prisma.FieldRef<"WorkforceContract", 'String'>
+  readonly contractorName: Prisma.FieldRef<"WorkforceContract", 'String'>
   readonly originalBudget: Prisma.FieldRef<"WorkforceContract", 'Decimal'>
   readonly totalPaid: Prisma.FieldRef<"WorkforceContract", 'Decimal'>
   readonly status: Prisma.FieldRef<"WorkforceContract", 'WorkforceContractStatus'>
