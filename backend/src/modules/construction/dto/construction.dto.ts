@@ -56,12 +56,33 @@ export class InventoryMovementDto {
   @IsOptional() @IsString() projectId?: string;
   @IsOptional() @IsString() @MaxLength(1000) notes?: string;
   @IsOptional() @IsString() @MaxLength(200) warehouse?: string;
+  @IsOptional() @Type(() => Date) @IsDate() date?: Date;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) unitCost?: number;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) totalCost?: number;
+  @IsOptional() @IsString() supplierId?: string;
+  @IsOptional() @IsString() @MaxLength(80) paymentMethod?: string;
+  @IsOptional() @IsString() @MaxLength(160) sourceRef?: string;
+}
+
+export class ConstructionMaterialDto {
+  @IsString() @MaxLength(180) name: string;
+  @IsOptional() @IsString() @MaxLength(120) category?: string;
+  @IsOptional() @IsString() @MaxLength(120) materialType?: string;
+  @IsOptional() @IsString() @MaxLength(2048) photoUrl?: string;
+  @IsIn(['KG', 'BAG', 'PIECE', 'METER', 'LITER', 'TON', 'TRUCK_LOAD', 'LOT', 'SQUARE_METER', 'SET', 'BUCKET']) unit: string;
+  @Type(() => Number) @IsNumber() @Min(0) unitCost: number;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) quantity?: number;
+  @IsOptional() @IsString() @MaxLength(160) warehouse?: string;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) lowStockThreshold?: number;
+  @IsOptional() @IsIn(['ACTIVE', 'INACTIVE', 'DISCONTINUED']) status?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
 export class WorkforceContractDto {
   @IsString() projectId: string;
   @IsString() @MaxLength(200) title: string;
   @IsOptional() @IsString() @MaxLength(2000) description?: string;
+  @IsOptional() @IsString() @MaxLength(200) contractorName?: string;
   @Type(() => Number) @IsNumber() @Min(0) originalBudget: number;
   @IsOptional() @IsIn(['DRAFT', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'SUSPENDED']) status?: string;
   @IsOptional() @Type(() => Date) @IsDate() startDate?: Date;
@@ -77,7 +98,8 @@ export class ContractAssignmentDto {
 }
 
 export class ContractPaymentDto {
-  @IsString() staffId: string;
+  @IsOptional() @IsString() staffId?: string;
+  @IsOptional() @IsString() @MaxLength(200) payeeName?: string;
   @Type(() => Number) @IsNumber() @Min(0.01) amount: number;
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
   @IsString() @MaxLength(1000) description: string;

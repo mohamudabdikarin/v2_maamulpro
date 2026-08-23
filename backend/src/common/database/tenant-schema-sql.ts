@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 22;
+export const CURRENT_TENANT_SCHEMA_VERSION = 23;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -1564,6 +1564,63 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `CREATE INDEX IF NOT EXISTS "transactions_material_id_idx" ON "transactions"("material_id")`,
+
+  // ── Construction module: independent material inventory, decoupled
+  // from the Material Management module's "materials" table (v23) ──
+  `CREATE TABLE IF NOT EXISTS "construction_materials" (
+    "id"         TEXT         NOT NULL PRIMARY KEY,
+    "name"       TEXT         NOT NULL,
+    "category"   TEXT,
+    "material_type" TEXT,
+    "photo_url"  TEXT,
+    "quantity"   DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "unit"       "UnitType"    NOT NULL,
+    "unit_cost"  DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "warehouse"  TEXT,
+    "low_stock_threshold" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "status"     "MaterialProductStatus" NOT NULL DEFAULT 'ACTIVE',
+    "version"    INTEGER       NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "construction_inventory_transactions" (
+    "id"          TEXT                       NOT NULL PRIMARY KEY,
+    "material_id" TEXT                       NOT NULL,
+    "project_id"  TEXT,
+    "type"        "InventoryTransactionType" NOT NULL,
+    "quantity"    DECIMAL(12,2)              NOT NULL,
+    "date"        TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "user_id"     TEXT                       NOT NULL,
+    "notes"       TEXT,
+    "warehouse"   TEXT,
+    "created_at"  TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"  TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at"  TIMESTAMP(3)
+  )`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD CONSTRAINT "construction_inventory_transactions_material_id_fkey"
+      FOREIGN KEY ("material_id") REFERENCES "construction_materials"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD CONSTRAINT "construction_inventory_transactions_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD CONSTRAINT "construction_inventory_transactions_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `CREATE INDEX IF NOT EXISTS "construction_materials_name_idx" ON "construction_materials"("name")`,
+  `CREATE INDEX IF NOT EXISTS "construction_materials_created_at_idx" ON "construction_materials"("created_at")`,
+  `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_material_id_idx" ON "construction_inventory_transactions"("material_id")`,
+  `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_project_id_idx" ON "construction_inventory_transactions"("project_id")`,
+  `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_date_idx" ON "construction_inventory_transactions"("date")`,
+  `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_type_project_id_date_idx" ON "construction_inventory_transactions"("type", "project_id", "date")`,
 ];
 
 /**

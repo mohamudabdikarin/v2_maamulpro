@@ -414,6 +414,8 @@ export const ModelName = {
   ProjectTask: 'ProjectTask',
   Material: 'Material',
   InventoryTransaction: 'InventoryTransaction',
+  ConstructionMaterial: 'ConstructionMaterial',
+  ConstructionInventoryTransaction: 'ConstructionInventoryTransaction',
   ReportSchedule: 'ReportSchedule',
   AccountingPeriod: 'AccountingPeriod',
   DocumentAttachment: 'DocumentAttachment',
@@ -459,7 +461,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "operationalAlert" | "operationalAlertRead" | "project" | "projectTask" | "material" | "inventoryTransaction" | "reportSchedule" | "accountingPeriod" | "documentAttachment" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
+    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "operationalAlert" | "operationalAlertRead" | "project" | "projectTask" | "material" | "inventoryTransaction" | "constructionMaterial" | "constructionInventoryTransaction" | "reportSchedule" | "accountingPeriod" | "documentAttachment" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1718,6 +1720,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.InventoryTransactionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.InventoryTransactionCountAggregateOutputType> | number
+        }
+      }
+    }
+    ConstructionMaterial: {
+      payload: Prisma.$ConstructionMaterialPayload<ExtArgs>
+      fields: Prisma.ConstructionMaterialFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ConstructionMaterialFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ConstructionMaterialFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>
+        }
+        findFirst: {
+          args: Prisma.ConstructionMaterialFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ConstructionMaterialFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>
+        }
+        findMany: {
+          args: Prisma.ConstructionMaterialFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>[]
+        }
+        create: {
+          args: Prisma.ConstructionMaterialCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>
+        }
+        createMany: {
+          args: Prisma.ConstructionMaterialCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ConstructionMaterialCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>[]
+        }
+        delete: {
+          args: Prisma.ConstructionMaterialDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>
+        }
+        update: {
+          args: Prisma.ConstructionMaterialUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>
+        }
+        deleteMany: {
+          args: Prisma.ConstructionMaterialDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ConstructionMaterialUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ConstructionMaterialUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>[]
+        }
+        upsert: {
+          args: Prisma.ConstructionMaterialUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionMaterialPayload>
+        }
+        aggregate: {
+          args: Prisma.ConstructionMaterialAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConstructionMaterial>
+        }
+        groupBy: {
+          args: Prisma.ConstructionMaterialGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConstructionMaterialGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ConstructionMaterialCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConstructionMaterialCountAggregateOutputType> | number
+        }
+      }
+    }
+    ConstructionInventoryTransaction: {
+      payload: Prisma.$ConstructionInventoryTransactionPayload<ExtArgs>
+      fields: Prisma.ConstructionInventoryTransactionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ConstructionInventoryTransactionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ConstructionInventoryTransactionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>
+        }
+        findFirst: {
+          args: Prisma.ConstructionInventoryTransactionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ConstructionInventoryTransactionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>
+        }
+        findMany: {
+          args: Prisma.ConstructionInventoryTransactionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>[]
+        }
+        create: {
+          args: Prisma.ConstructionInventoryTransactionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>
+        }
+        createMany: {
+          args: Prisma.ConstructionInventoryTransactionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ConstructionInventoryTransactionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>[]
+        }
+        delete: {
+          args: Prisma.ConstructionInventoryTransactionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>
+        }
+        update: {
+          args: Prisma.ConstructionInventoryTransactionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ConstructionInventoryTransactionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ConstructionInventoryTransactionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ConstructionInventoryTransactionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ConstructionInventoryTransactionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConstructionInventoryTransactionPayload>
+        }
+        aggregate: {
+          args: Prisma.ConstructionInventoryTransactionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConstructionInventoryTransaction>
+        }
+        groupBy: {
+          args: Prisma.ConstructionInventoryTransactionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConstructionInventoryTransactionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ConstructionInventoryTransactionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConstructionInventoryTransactionCountAggregateOutputType> | number
         }
       }
     }
@@ -4270,6 +4420,45 @@ export const InventoryTransactionScalarFieldEnum = {
 export type InventoryTransactionScalarFieldEnum = (typeof InventoryTransactionScalarFieldEnum)[keyof typeof InventoryTransactionScalarFieldEnum]
 
 
+export const ConstructionMaterialScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  category: 'category',
+  materialType: 'materialType',
+  photoUrl: 'photoUrl',
+  quantity: 'quantity',
+  unit: 'unit',
+  unitCost: 'unitCost',
+  warehouse: 'warehouse',
+  lowStockThreshold: 'lowStockThreshold',
+  status: 'status',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ConstructionMaterialScalarFieldEnum = (typeof ConstructionMaterialScalarFieldEnum)[keyof typeof ConstructionMaterialScalarFieldEnum]
+
+
+export const ConstructionInventoryTransactionScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  projectId: 'projectId',
+  type: 'type',
+  quantity: 'quantity',
+  date: 'date',
+  userId: 'userId',
+  notes: 'notes',
+  warehouse: 'warehouse',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ConstructionInventoryTransactionScalarFieldEnum = (typeof ConstructionInventoryTransactionScalarFieldEnum)[keyof typeof ConstructionInventoryTransactionScalarFieldEnum]
+
+
 export const ReportScheduleScalarFieldEnum = {
   id: 'id',
   reportId: 'reportId',
@@ -5372,6 +5561,8 @@ export type GlobalOmitConfig = {
   projectTask?: Prisma.ProjectTaskOmit
   material?: Prisma.MaterialOmit
   inventoryTransaction?: Prisma.InventoryTransactionOmit
+  constructionMaterial?: Prisma.ConstructionMaterialOmit
+  constructionInventoryTransaction?: Prisma.ConstructionInventoryTransactionOmit
   reportSchedule?: Prisma.ReportScheduleOmit
   accountingPeriod?: Prisma.AccountingPeriodOmit
   documentAttachment?: Prisma.DocumentAttachmentOmit

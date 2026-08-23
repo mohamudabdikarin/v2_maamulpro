@@ -33,6 +33,8 @@ export class CreateTransactionDto {
   @IsOptional() @IsString() materialId?: string;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
+  @IsOptional() @IsString() @MaxLength(30) debitAccountCode?: string;
+  @IsOptional() @IsString() @MaxLength(30) creditAccountCode?: string;
 }
 
 export class UpdateTransactionDto {

@@ -125,6 +125,16 @@ export type Material = Prisma.MaterialModel
  */
 export type InventoryTransaction = Prisma.InventoryTransactionModel
 /**
+ * Model ConstructionMaterial
+ * 
+ */
+export type ConstructionMaterial = Prisma.ConstructionMaterialModel
+/**
+ * Model ConstructionInventoryTransaction
+ * 
+ */
+export type ConstructionInventoryTransaction = Prisma.ConstructionInventoryTransactionModel
+/**
  * Model ReportSchedule
  * 
  */

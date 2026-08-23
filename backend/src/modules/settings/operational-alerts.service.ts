@@ -121,8 +121,9 @@ export class OperationalAlertsService {
   private async collectCandidates(tenantDb: any, now: Date): Promise<AlertCandidate[]> {
     const leaseCutoff = new Date(now);
     leaseCutoff.setDate(leaseCutoff.getDate() + LEASE_ALERT_WINDOW_DAYS);
-    const [materials, rentPayments, payrolls, tasks, leases] = await Promise.all([
+    const [materials, constructionMaterials, rentPayments, payrolls, tasks, leases] = await Promise.all([
       tenantDb.material.findMany({ where: { deletedAt: null, status: 'ACTIVE' }, select: { id: true, name: true, quantity: true, lowStockThreshold: true } }),
+      tenantDb.constructionMaterial.findMany({ where: { deletedAt: null, status: 'ACTIVE' }, select: { id: true, name: true, quantity: true, lowStockThreshold: true } }),
       tenantDb.rentPayment.findMany({ where: { deletedAt: null, dueDate: { lt: now }, status: { not: 'PAID' } }, include: { tenant: { select: { name: true } } } }),
       tenantDb.payroll.findMany({ where: { deletedAt: null, status: 'PENDING_APPROVAL' }, select: { id: true, name: true, year: true, month: true } }),
       tenantDb.projectTask.findMany({ where: { deletedAt: null, dueDate: { lt: now }, status: { not: 'COMPLETED' } }, include: { project: { select: { name: true } } } }),
@@ -134,6 +135,12 @@ export class OperationalAlertsService {
       if (Number(material.quantity) <= Number(material.lowStockThreshold)) candidates.push({
         sourceKey: `low-stock:${material.id}`, type: 'LOW_STOCK', severity: 'WARNING', title: `Low stock: ${material.name}`,
         details: `${Number(material.quantity)} remaining; threshold is ${Number(material.lowStockThreshold)}.`, targetPath: '/app/materials/inventory', requiredPermission: 'materials_products.read',
+      });
+    }
+    for (const material of constructionMaterials) {
+      if (Number(material.quantity) <= Number(material.lowStockThreshold)) candidates.push({
+        sourceKey: `construction-low-stock:${material.id}`, type: 'LOW_STOCK', severity: 'WARNING', title: `Low stock: ${material.name}`,
+        details: `${Number(material.quantity)} remaining; threshold is ${Number(material.lowStockThreshold)}.`, targetPath: '/app/construction/inventory', requiredPermission: 'construction_inventory.read',
       });
     }
     for (const payment of rentPayments) {

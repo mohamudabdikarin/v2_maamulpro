@@ -17,6 +17,7 @@ const UPLOAD_WRITE_PERMISSIONS = [
   'projects.update',
   'properties.update',
   'materials_products.update',
+  'construction_inventory.update',
   'users.update',
   'settings.update',
 ];

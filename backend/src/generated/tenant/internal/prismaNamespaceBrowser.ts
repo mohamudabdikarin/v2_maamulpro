@@ -68,6 +68,8 @@ export const ModelName = {
   ProjectTask: 'ProjectTask',
   Material: 'Material',
   InventoryTransaction: 'InventoryTransaction',
+  ConstructionMaterial: 'ConstructionMaterial',
+  ConstructionInventoryTransaction: 'ConstructionInventoryTransaction',
   ReportSchedule: 'ReportSchedule',
   AccountingPeriod: 'AccountingPeriod',
   DocumentAttachment: 'DocumentAttachment',
@@ -404,6 +406,45 @@ export const InventoryTransactionScalarFieldEnum = {
 } as const
 
 export type InventoryTransactionScalarFieldEnum = (typeof InventoryTransactionScalarFieldEnum)[keyof typeof InventoryTransactionScalarFieldEnum]
+
+
+export const ConstructionMaterialScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  category: 'category',
+  materialType: 'materialType',
+  photoUrl: 'photoUrl',
+  quantity: 'quantity',
+  unit: 'unit',
+  unitCost: 'unitCost',
+  warehouse: 'warehouse',
+  lowStockThreshold: 'lowStockThreshold',
+  status: 'status',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ConstructionMaterialScalarFieldEnum = (typeof ConstructionMaterialScalarFieldEnum)[keyof typeof ConstructionMaterialScalarFieldEnum]
+
+
+export const ConstructionInventoryTransactionScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  projectId: 'projectId',
+  type: 'type',
+  quantity: 'quantity',
+  date: 'date',
+  userId: 'userId',
+  notes: 'notes',
+  warehouse: 'warehouse',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ConstructionInventoryTransactionScalarFieldEnum = (typeof ConstructionInventoryTransactionScalarFieldEnum)[keyof typeof ConstructionInventoryTransactionScalarFieldEnum]
 
 
 export const ReportScheduleScalarFieldEnum = {

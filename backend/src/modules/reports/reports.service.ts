@@ -258,7 +258,7 @@ export class ReportsService {
         netProfit: rows.reduce((sum, row) => sum + Number(row.profit), 0),
       };
     } else if (reportId === 'construction-material-usage') {
-      rows = await db.inventoryTransaction.findMany({
+      rows = await db.constructionInventoryTransaction.findMany({
         where: { type: 'USAGE', deletedAt: null, ...(projectId ? { projectId } : {}), ...(date ? { date } : {}) },
         include: { material: true, project: true, user: { select: { id: true, name: true, email: true } } },
       });
@@ -390,7 +390,7 @@ export class ReportsService {
 
     const [ledger, usages, expenses] = await Promise.all([
       db.workerLedgerEntry.findMany({ where: { projectId: { in: projectIds }, type: 'EXPENSE' }, select: { projectId: true, amount: true } }),
-      db.inventoryTransaction.findMany({
+      db.constructionInventoryTransaction.findMany({
         where: { type: 'USAGE', projectId: { in: projectIds }, deletedAt: null },
         include: { material: { select: { unitCost: true } } },
       }),
@@ -455,7 +455,7 @@ export class ReportsService {
         where: { projectId, type: 'EXPENSE', ...(date ? { date } : {}) },
         select: { amount: true, description: true, type: true, date: true },
       }),
-      db.inventoryTransaction.findMany({
+      db.constructionInventoryTransaction.findMany({
         where: { type: 'USAGE', projectId, deletedAt: null, ...(date ? { date } : {}) },
         include: { material: { select: { id: true, name: true, unitCost: true, unit: true } } },
       }),
@@ -587,7 +587,7 @@ export class ReportsService {
     }
 
     if (cat === 'materials') {
-      const rows = await db.inventoryTransaction.findMany({
+      const rows = await db.constructionInventoryTransaction.findMany({
         where: {
           type: 'USAGE',
           projectId,

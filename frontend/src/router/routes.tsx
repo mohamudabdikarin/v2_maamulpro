@@ -30,7 +30,7 @@ const ConstructionOverviewPage = lazy(() => import('../pages/ConstructionOvervie
 const ConstructionProjectsPage = lazy(() => import('../pages/ConstructionProjectsPage'));
 const ConstructionProgressPage = lazy(() => import('../pages/ConstructionProgressPage'));
 const ManpowerPage = lazy(() => import('../pages/ManpowerPage'));
-import { expenseFields, projectFields, taskFields } from '../pages/constructionConfig';
+import { constructionMaterialFields, expenseFields, projectFields, taskFields } from '../pages/constructionConfig';
 const RealEstateOverviewPage = lazy(() => import('../pages/RealEstateOverviewPage'));
 const PropertiesPage = lazy(() => import('../pages/PropertiesPage'));
 const RentalHubPage = lazy(() => import('../pages/RentalHubPage'));
@@ -138,6 +138,9 @@ const routes = [
         { name: 'date', label: 'Date', type: 'date' }, { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'] } }, { name: 'staffId', label: 'Staff member', lookup: { endpoint: '/api/staff/options', labelKeys: ['firstName', 'lastName'] } },
     ]} />, layout: 'blank', permission: 'manpower.read' },
     { path: '/app/construction/inventory', element: <ConstructionInventoryPage />, layout: 'blank', permission: 'construction_inventory.read' },
+    { path: '/app/construction/inventory/manage', element: <CrudPage title="Manage construction materials" description="Add, edit or retire the material catalog used for site stock and usage tracking." endpoint="/api/construction/materials" createPermission="construction_inventory.create" updatePermission="construction_inventory.update" deletePermission="construction_inventory.delete" createTo="/app/construction/inventory/manage/new" editTo={(id) => `/app/construction/inventory/manage/${id}/edit`} fields={constructionMaterialFields} />, layout: 'blank', permission: 'construction_inventory.read' },
+    { path: '/app/construction/inventory/manage/new', element: <CrudRoutePage title="Add construction material" description="Create a new material listing with cost and stock parameters." endpoint="/api/construction/materials" fields={constructionMaterialFields} initialMode="create" returnTo="/app/construction/inventory" />, layout: 'blank', permission: 'construction_inventory.create' },
+    { path: '/app/construction/inventory/manage/:id/edit', element: <CrudRoutePage title="Edit construction material" description="Update cost, warehouse or threshold settings." endpoint="/api/construction/materials" fields={constructionMaterialFields} initialMode="edit" returnTo="/app/construction/inventory" />, layout: 'blank', permission: 'construction_inventory.update' },
     { path: '/app/construction/contracts', element: <WorkforceContractsPage />, layout: 'blank', permission: 'workforce_contracts.read' },
     ...reportRoutes('/app/construction/inventory/reports', 'reports.construction.read', 'construction'),
     ...reportRoutes('/app/construction/reports', 'reports.construction.read', 'construction'),

@@ -33,6 +33,7 @@ export class SavePayrollDto {
   @IsOptional() @IsString() payPeriod?: string;
   @IsOptional() @Type(() => Date) @IsDate() paymentDate?: Date;
   @IsOptional() @IsString() expenseAccountCode?: string;
+  @IsOptional() @IsString() projectId?: string;
   @IsOptional() @IsIn(['DRAFT', 'PENDING_APPROVAL']) status?: string;
   @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => PayrollItemDto)
   items: PayrollItemDto[];

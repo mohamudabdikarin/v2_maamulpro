@@ -7,6 +7,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { StaffService } from '../staff/staff.service';
 import { CreateStaffDto, UpdateStaffDto } from '../staff/dto/staff.dto';
 import {
+  ConstructionMaterialDto,
   ContractAdjustmentDto,
   ContractAssignmentDto,
   ContractPaymentDto,
@@ -353,5 +354,41 @@ export class ConstructionController {
     @Body() body: InventoryMovementDto,
   ) {
     return this.constructionService.createInventoryMovement(db, userId, body);
+  }
+
+  @Get('materials')
+  @RequirePermissions('construction_inventory.read')
+  getMaterials(@GetTenantDb() db: any, @Query('search') search?: string) {
+    return this.constructionService.getMaterials(db, search);
+  }
+
+  @Get('materials/options')
+  @RequireAnyPermission('construction_inventory.read', 'construction_inventory.create')
+  getMaterialOptions(@GetTenantDb() db: any) {
+    return this.constructionService.getMaterialOptions(db);
+  }
+
+  @Post('materials')
+  @RequirePermissions('construction_inventory.create')
+  createMaterial(@GetTenantDb() db: any, @Body() body: ConstructionMaterialDto) {
+    return this.constructionService.createMaterial(db, body);
+  }
+
+  @Get('materials/:id')
+  @RequirePermissions('construction_inventory.read')
+  getMaterial(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.constructionService.getMaterial(db, id);
+  }
+
+  @Patch('materials/:id')
+  @RequirePermissions('construction_inventory.update')
+  updateMaterial(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: ConstructionMaterialDto) {
+    return this.constructionService.updateMaterial(db, id, body);
+  }
+
+  @Delete('materials/:id')
+  @RequirePermissions('construction_inventory.delete')
+  deleteMaterial(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.constructionService.deleteMaterial(db, id);
   }
 }

@@ -30,6 +30,17 @@ export const taskFields: CrudField[] = [
     { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Sharax shaqada, natiijada la filayo, iyo wixii caqabad ah.' },
 ];
 
+export const constructionMaterialFields: CrudField[] = [
+    { name: 'name', label: 'Material name', required: true, placeholder: 'Sibidhka Dangote 50kg' },
+    { name: 'unit', label: 'Unit', type: 'select', required: true, options: ['BAG', 'KG', 'PIECE', 'METER', 'LITER', 'TON'].map((value) => ({ value, label: value })) },
+    { name: 'unitCost', label: 'Unit cost ($)', type: 'number', required: true, placeholder: '8.50' },
+    { name: 'quantity', label: 'Opening stock quantity', type: 'number', placeholder: '100' },
+    { name: 'lowStockThreshold', label: 'Low stock alert threshold', type: 'number', placeholder: '15' },
+    { name: 'warehouse', label: 'Site / warehouse (Optional)', placeholder: 'Goobta mashruuca' },
+    { name: 'category', label: 'Category (Optional)', placeholder: 'Sibidh / Dhismo' },
+    { name: 'photoUrl', label: 'Material image (Optional)', type: 'image', uploadFolder: 'materials' },
+];
+
 export const expenseFields: CrudField[] = [
     { name: 'amount', label: 'Amount', type: 'number', required: true, placeholder: '1500' },
     { name: 'description', label: 'Description', required: true, placeholder: 'Iibsiga sibidhka goobta' },

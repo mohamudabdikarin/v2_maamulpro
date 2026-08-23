@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { AccountingService } from '../accounting/accounting.service';
 import {
+  ConstructionMaterialDto,
   ContractAdjustmentDto,
   ContractAssignmentDto,
   ContractPaymentDto,
@@ -653,11 +654,11 @@ export class ConstructionService {
     const movementWhere: any = {};
     if (projectId) movementWhere.projectId = projectId;
     const [materials, movements] = await Promise.all([
-      tenantDb.material.findMany({
+      tenantDb.constructionMaterial.findMany({
         where: { deletedAt: null },
         orderBy: { name: 'asc' },
       }),
-      tenantDb.inventoryTransaction.findMany({
+      tenantDb.constructionInventoryTransaction.findMany({
         where: movementWhere,
         include: { material: true, project: true, user: true },
         orderBy: { date: 'desc' },
@@ -680,9 +681,61 @@ export class ConstructionService {
     };
   }
 
+  getMaterials(tenantDb: any, search?: string) {
+    const where: any = { deletedAt: null };
+    if (search) where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { category: { contains: search, mode: 'insensitive' } },
+    ];
+    return tenantDb.constructionMaterial.findMany({ where, orderBy: { name: 'asc' } });
+  }
+
+  getMaterialOptions(tenantDb: any) {
+    return tenantDb.constructionMaterial.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true, unitCost: true, quantity: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async getMaterial(tenantDb: any, id: string) {
+    const material = await tenantDb.constructionMaterial.findFirst({ where: { id, deletedAt: null } });
+    if (!material) throw new NotFoundException('Material not found');
+    return material;
+  }
+
+  createMaterial(tenantDb: any, data: ConstructionMaterialDto) {
+    return tenantDb.constructionMaterial.create({
+      data: {
+        ...data,
+        unit: data.unit as any,
+        status: (data.status as any) || 'ACTIVE',
+        quantity: data.quantity || 0,
+      },
+    });
+  }
+
+  async updateMaterial(tenantDb: any, id: string, data: ConstructionMaterialDto) {
+    const result = await tenantDb.constructionMaterial.updateMany({
+      where: { id, deletedAt: null },
+      data: { ...data, unit: data.unit as any, status: data.status as any, version: { increment: 1 } },
+    });
+    if (!result.count) throw new NotFoundException('Material not found');
+    return tenantDb.constructionMaterial.findUnique({ where: { id } });
+  }
+
+  async deleteMaterial(tenantDb: any, id: string) {
+    const result = await tenantDb.constructionMaterial.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date(), version: { increment: 1 } },
+    });
+    if (!result.count) throw new NotFoundException('Material not found');
+    return { deleted: true };
+  }
+
   async createInventoryMovement(tenantDb: any, userId: string, data: InventoryMovementDto) {
     return tenantDb.$transaction(async (tx: any) => {
-      const material = await tx.material.findFirst({ where: { id: data.materialId, deletedAt: null } });
+      const material = await tx.constructionMaterial.findFirst({ where: { id: data.materialId, deletedAt: null } });
       if (!material) throw new NotFoundException('Material not found');
       if (data.type === 'USAGE' && !data.projectId) {
         throw new BadRequestException('A project is required for material usage');
@@ -696,7 +749,7 @@ export class ConstructionService {
       const delta = data.type === 'USAGE' ? -Math.abs(qty) : data.type === 'ADJUSTMENT' ? qty : Math.abs(qty);
       const nextQuantity = currentQuantity + delta;
       if (nextQuantity < 0) throw new BadRequestException('Insufficient stock for this movement');
-      const updated = await tx.material.updateMany({
+      const updated = await tx.constructionMaterial.updateMany({
         where: { id: material.id, version: material.version, deletedAt: null },
         data: {
           quantity: nextQuantity,
@@ -705,7 +758,7 @@ export class ConstructionService {
         },
       });
       if (!updated.count) throw new ConflictException('Stock changed while recording movement; reload and retry');
-      const movement = await tx.inventoryTransaction.create({
+      const movement = await tx.constructionInventoryTransaction.create({
         data: {
           materialId: data.materialId,
           projectId: data.projectId,
@@ -718,9 +771,9 @@ export class ConstructionService {
         },
         include: { material: true, project: true, user: true },
       });
-      // Job costing for USAGE is tracked via inventoryTransaction (reports).
-      // Do not post CLEARED cashbook expense here — purchases already expense
-      // at RECEIVED, and double-posting would inflate company P&L.
+      // Job costing for USAGE is tracked via constructionInventoryTransaction
+      // (reports). Do not post CLEARED cashbook expense here — purchases
+      // already expense at RECEIVED, and double-posting would inflate P&L.
       return movement;
     });
   }

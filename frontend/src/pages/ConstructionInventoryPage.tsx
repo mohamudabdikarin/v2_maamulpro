@@ -123,7 +123,7 @@ const ConstructionInventoryPage = () => {
         <PageHeader
             title="Construction inventory"
             actions={<>
-                {hasPermission('materials_products.read') && <Link to="/app/materials/inventory/manage" className="btn btn-outline-primary">Manage material catalog</Link>}
+                {hasPermission('construction_inventory.read') && <Link to="/app/construction/inventory/manage" className="btn btn-outline-primary">Manage material catalog</Link>}
                 <PermissionButton perm="construction_inventory.create" className="btn btn-primary" onClick={openModal}>Record movement</PermissionButton>
             </>}
         />
@@ -158,7 +158,7 @@ const ConstructionInventoryPage = () => {
                     <EmptyState
                         title="No materials registered yet"
                         description="Add your material items (such as Cement, Steel, Bricks) to the catalog to start tracking construction inventory and site usage."
-                        action={hasPermission('materials_products.create') ? <Link to="/app/materials/inventory/manage/new" className="btn btn-primary">Add material product</Link> : undefined}
+                        action={hasPermission('construction_inventory.create') ? <Link to="/app/construction/inventory/manage/new" className="btn btn-primary">Add material product</Link> : undefined}
                     />
                 ) : (
                     <div className="overflow-x-auto">
@@ -227,7 +227,7 @@ const ConstructionInventoryPage = () => {
             <form className="grid gap-4" onSubmit={submit}>
                 {!inventory?.materials.length && (
                     <div className="rounded-md bg-warning-light p-3 text-xs font-semibold text-warning">
-                        ⚠️ No materials exist in your catalog yet. <Link to="/app/materials/inventory/manage/new" className="font-bold underline">Click here to add your first material product</Link>.
+                        ⚠️ No materials exist in your catalog yet. <Link to="/app/construction/inventory/manage/new" className="font-bold underline">Click here to add your first material product</Link>.
                     </div>
                 )}
                 <Field label="Material" required>

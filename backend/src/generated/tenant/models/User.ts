@@ -347,6 +347,7 @@ export type UserWhereInput = {
   projectTasks?: Prisma.ProjectTaskListRelationFilter
   createdDeals?: Prisma.DealListRelationFilter
   inventoryTransactions?: Prisma.InventoryTransactionListRelationFilter
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionListRelationFilter
   workerLedgerEntries?: Prisma.WorkerLedgerEntryListRelationFilter
   materialSales?: Prisma.MaterialSaleListRelationFilter
   rbacUserRoles?: Prisma.RbacUserRoleListRelationFilter
@@ -391,6 +392,7 @@ export type UserOrderByWithRelationInput = {
   projectTasks?: Prisma.ProjectTaskOrderByRelationAggregateInput
   createdDeals?: Prisma.DealOrderByRelationAggregateInput
   inventoryTransactions?: Prisma.InventoryTransactionOrderByRelationAggregateInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionOrderByRelationAggregateInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryOrderByRelationAggregateInput
   materialSales?: Prisma.MaterialSaleOrderByRelationAggregateInput
   rbacUserRoles?: Prisma.RbacUserRoleOrderByRelationAggregateInput
@@ -438,6 +440,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   projectTasks?: Prisma.ProjectTaskListRelationFilter
   createdDeals?: Prisma.DealListRelationFilter
   inventoryTransactions?: Prisma.InventoryTransactionListRelationFilter
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionListRelationFilter
   workerLedgerEntries?: Prisma.WorkerLedgerEntryListRelationFilter
   materialSales?: Prisma.MaterialSaleListRelationFilter
   rbacUserRoles?: Prisma.RbacUserRoleListRelationFilter
@@ -536,6 +539,7 @@ export type UserCreateInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -580,6 +584,7 @@ export type UserUncheckedCreateInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -624,6 +629,7 @@ export type UserUpdateInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -668,6 +674,7 @@ export type UserUncheckedUpdateInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -994,6 +1001,20 @@ export type UserUpdateOneRequiredWithoutInventoryTransactionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutInventoryTransactionsInput, Prisma.UserUpdateWithoutInventoryTransactionsInput>, Prisma.UserUncheckedUpdateWithoutInventoryTransactionsInput>
 }
 
+export type UserCreateNestedOneWithoutConstructionInventoryTransactionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConstructionInventoryTransactionsInput, Prisma.UserUncheckedCreateWithoutConstructionInventoryTransactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConstructionInventoryTransactionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutConstructionInventoryTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConstructionInventoryTransactionsInput, Prisma.UserUncheckedCreateWithoutConstructionInventoryTransactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConstructionInventoryTransactionsInput
+  upsert?: Prisma.UserUpsertWithoutConstructionInventoryTransactionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutConstructionInventoryTransactionsInput, Prisma.UserUpdateWithoutConstructionInventoryTransactionsInput>, Prisma.UserUncheckedUpdateWithoutConstructionInventoryTransactionsInput>
+}
+
 export type UserCreateNestedOneWithoutLockedAccountingPeriodsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutLockedAccountingPeriodsInput, Prisma.UserUncheckedCreateWithoutLockedAccountingPeriodsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutLockedAccountingPeriodsInput
@@ -1212,6 +1233,7 @@ export type UserCreateWithoutRbacUserRolesInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
@@ -1255,6 +1277,7 @@ export type UserUncheckedCreateWithoutRbacUserRolesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
@@ -1314,6 +1337,7 @@ export type UserUpdateWithoutRbacUserRolesInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
@@ -1357,6 +1381,7 @@ export type UserUncheckedUpdateWithoutRbacUserRolesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
@@ -1400,6 +1425,7 @@ export type UserCreateWithoutRbacUserPermissionsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -1443,6 +1469,7 @@ export type UserUncheckedCreateWithoutRbacUserPermissionsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -1502,6 +1529,7 @@ export type UserUpdateWithoutRbacUserPermissionsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -1545,6 +1573,7 @@ export type UserUncheckedUpdateWithoutRbacUserPermissionsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -1587,6 +1616,7 @@ export type UserCreateWithoutStaffInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -1630,6 +1660,7 @@ export type UserUncheckedCreateWithoutStaffInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -1689,6 +1720,7 @@ export type UserUpdateWithoutStaffInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -1732,6 +1764,7 @@ export type UserUncheckedUpdateWithoutStaffInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -1775,6 +1808,7 @@ export type UserCreateWithoutTransactionsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -1818,6 +1852,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -1877,6 +1912,7 @@ export type UserUpdateWithoutTransactionsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -1920,6 +1956,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -1963,6 +2000,7 @@ export type UserCreateWithoutActivityLogsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -2006,6 +2044,7 @@ export type UserUncheckedCreateWithoutActivityLogsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -2065,6 +2104,7 @@ export type UserUpdateWithoutActivityLogsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -2108,6 +2148,7 @@ export type UserUncheckedUpdateWithoutActivityLogsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -2151,6 +2192,7 @@ export type UserCreateWithoutAssignedOperationalAlertsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -2194,6 +2236,7 @@ export type UserUncheckedCreateWithoutAssignedOperationalAlertsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -2253,6 +2296,7 @@ export type UserUpdateWithoutAssignedOperationalAlertsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -2296,6 +2340,7 @@ export type UserUncheckedUpdateWithoutAssignedOperationalAlertsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -2339,6 +2384,7 @@ export type UserCreateWithoutOperationalAlertReadsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -2382,6 +2428,7 @@ export type UserUncheckedCreateWithoutOperationalAlertReadsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -2441,6 +2488,7 @@ export type UserUpdateWithoutOperationalAlertReadsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -2484,6 +2532,7 @@ export type UserUncheckedUpdateWithoutOperationalAlertReadsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -2527,6 +2576,7 @@ export type UserCreateWithoutProjectTasksInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -2570,6 +2620,7 @@ export type UserUncheckedCreateWithoutProjectTasksInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -2629,6 +2680,7 @@ export type UserUpdateWithoutProjectTasksInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -2672,6 +2724,7 @@ export type UserUncheckedUpdateWithoutProjectTasksInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -2715,6 +2768,7 @@ export type UserCreateWithoutInventoryTransactionsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -2758,6 +2812,7 @@ export type UserUncheckedCreateWithoutInventoryTransactionsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -2817,6 +2872,7 @@ export type UserUpdateWithoutInventoryTransactionsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -2860,6 +2916,199 @@ export type UserUncheckedUpdateWithoutInventoryTransactionsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserCreateWithoutConstructionInventoryTransactionsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchCreateNestedManyWithoutPostedByInput
+}
+
+export type UserUncheckedCreateWithoutConstructionInventoryTransactionsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  name: string
+  role?: $Enums.UserRole
+  avatarUrl?: string | null
+  isActive?: boolean
+  constructionAccess?: boolean
+  realEstateAccess?: boolean
+  materialManagementAccess?: boolean
+  language?: string
+  lastLoginAt?: Date | string | null
+  resetTokenHash?: string | null
+  resetTokenExpiresAt?: Date | string | null
+  resetRequestedAt?: Date | string | null
+  passwordResetAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvalLimit?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedCreateNestedOneWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedCreateNestedManyWithoutUserInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedCreateNestedManyWithoutAssigneeInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedCreateNestedManyWithoutLockedByInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedCreateNestedManyWithoutSignedByInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutRecordedByInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUncheckedCreateNestedManyWithoutAdjustedByInput
+  createdPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutCreatedByUserInput
+  approvedPayrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutApprovedByUserInput
+  postedJournalBatches?: Prisma.JournalBatchUncheckedCreateNestedManyWithoutPostedByInput
+}
+
+export type UserCreateOrConnectWithoutConstructionInventoryTransactionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutConstructionInventoryTransactionsInput, Prisma.UserUncheckedCreateWithoutConstructionInventoryTransactionsInput>
+}
+
+export type UserUpsertWithoutConstructionInventoryTransactionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutConstructionInventoryTransactionsInput, Prisma.UserUncheckedUpdateWithoutConstructionInventoryTransactionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutConstructionInventoryTransactionsInput, Prisma.UserUncheckedCreateWithoutConstructionInventoryTransactionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutConstructionInventoryTransactionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutConstructionInventoryTransactionsInput, Prisma.UserUncheckedUpdateWithoutConstructionInventoryTransactionsInput>
+}
+
+export type UserUpdateWithoutConstructionInventoryTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
+  materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
+  rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
+  rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
+  recordedDailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutRecordedByNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutRecordedByNestedInput
+  workforceContractAdjustments?: Prisma.WorkforceContractAdjustmentUpdateManyWithoutAdjustedByNestedInput
+  createdPayrolls?: Prisma.PayrollUpdateManyWithoutCreatedByUserNestedInput
+  approvedPayrolls?: Prisma.PayrollUpdateManyWithoutApprovedByUserNestedInput
+  postedJournalBatches?: Prisma.JournalBatchUpdateManyWithoutPostedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutConstructionInventoryTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  constructionAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalLimit?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  staff?: Prisma.StaffUncheckedUpdateOneWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  operationalAlertReads?: Prisma.OperationalAlertReadUncheckedUpdateManyWithoutUserNestedInput
+  assignedOperationalAlerts?: Prisma.OperationalAlertUncheckedUpdateManyWithoutAssigneeNestedInput
+  lockedAccountingPeriods?: Prisma.AccountingPeriodUncheckedUpdateManyWithoutLockedByNestedInput
+  uploadedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  signedDocuments?: Prisma.DocumentAttachmentUncheckedUpdateManyWithoutSignedByNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -2903,6 +3152,7 @@ export type UserCreateWithoutLockedAccountingPeriodsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -2946,6 +3196,7 @@ export type UserUncheckedCreateWithoutLockedAccountingPeriodsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -3005,6 +3256,7 @@ export type UserUpdateWithoutLockedAccountingPeriodsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -3048,6 +3300,7 @@ export type UserUncheckedUpdateWithoutLockedAccountingPeriodsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -3091,6 +3344,7 @@ export type UserCreateWithoutUploadedDocumentsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -3134,6 +3388,7 @@ export type UserUncheckedCreateWithoutUploadedDocumentsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -3182,6 +3437,7 @@ export type UserCreateWithoutSignedDocumentsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -3225,6 +3481,7 @@ export type UserUncheckedCreateWithoutSignedDocumentsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -3284,6 +3541,7 @@ export type UserUpdateWithoutUploadedDocumentsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -3327,6 +3585,7 @@ export type UserUncheckedUpdateWithoutUploadedDocumentsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -3381,6 +3640,7 @@ export type UserUpdateWithoutSignedDocumentsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -3424,6 +3684,7 @@ export type UserUncheckedUpdateWithoutSignedDocumentsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -3468,6 +3729,7 @@ export type UserCreateWithoutMaterialSalesInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
   rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
@@ -3511,6 +3773,7 @@ export type UserUncheckedCreateWithoutMaterialSalesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
@@ -3570,6 +3833,7 @@ export type UserUpdateWithoutMaterialSalesInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
@@ -3613,6 +3877,7 @@ export type UserUncheckedUpdateWithoutMaterialSalesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
@@ -3656,6 +3921,7 @@ export type UserCreateWithoutRecordedDailyExpensesInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -3699,6 +3965,7 @@ export type UserUncheckedCreateWithoutRecordedDailyExpensesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -3758,6 +4025,7 @@ export type UserUpdateWithoutRecordedDailyExpensesInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -3801,6 +4069,7 @@ export type UserUncheckedUpdateWithoutRecordedDailyExpensesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -3844,6 +4113,7 @@ export type UserCreateWithoutWorkerLedgerEntriesInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
   rbacUserPermissions?: Prisma.RbacUserPermissionCreateNestedManyWithoutUserInput
@@ -3887,6 +4157,7 @@ export type UserUncheckedCreateWithoutWorkerLedgerEntriesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedCreateNestedManyWithoutUserInput
@@ -3946,6 +4217,7 @@ export type UserUpdateWithoutWorkerLedgerEntriesInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUpdateManyWithoutUserNestedInput
@@ -3989,6 +4261,7 @@ export type UserUncheckedUpdateWithoutWorkerLedgerEntriesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserPermissions?: Prisma.RbacUserPermissionUncheckedUpdateManyWithoutUserNestedInput
@@ -4031,6 +4304,7 @@ export type UserCreateWithoutCreatedDealsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -4074,6 +4348,7 @@ export type UserUncheckedCreateWithoutCreatedDealsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -4133,6 +4408,7 @@ export type UserUpdateWithoutCreatedDealsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -4176,6 +4452,7 @@ export type UserUncheckedUpdateWithoutCreatedDealsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -4220,6 +4497,7 @@ export type UserCreateWithoutPostedJournalBatchesInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -4263,6 +4541,7 @@ export type UserUncheckedCreateWithoutPostedJournalBatchesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -4322,6 +4601,7 @@ export type UserUpdateWithoutPostedJournalBatchesInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -4365,6 +4645,7 @@ export type UserUncheckedUpdateWithoutPostedJournalBatchesInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -4408,6 +4689,7 @@ export type UserCreateWithoutWorkforceContractPaymentsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -4451,6 +4733,7 @@ export type UserUncheckedCreateWithoutWorkforceContractPaymentsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -4510,6 +4793,7 @@ export type UserUpdateWithoutWorkforceContractPaymentsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -4553,6 +4837,7 @@ export type UserUncheckedUpdateWithoutWorkforceContractPaymentsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -4596,6 +4881,7 @@ export type UserCreateWithoutWorkforceContractAdjustmentsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -4639,6 +4925,7 @@ export type UserUncheckedCreateWithoutWorkforceContractAdjustmentsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -4698,6 +4985,7 @@ export type UserUpdateWithoutWorkforceContractAdjustmentsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -4741,6 +5029,7 @@ export type UserUncheckedUpdateWithoutWorkforceContractAdjustmentsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -4784,6 +5073,7 @@ export type UserCreateWithoutCreatedPayrollsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -4827,6 +5117,7 @@ export type UserUncheckedCreateWithoutCreatedPayrollsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -4875,6 +5166,7 @@ export type UserCreateWithoutApprovedPayrollsInput = {
   projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleCreateNestedManyWithoutUserInput
@@ -4918,6 +5210,7 @@ export type UserUncheckedCreateWithoutApprovedPayrollsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdDeals?: Prisma.DealUncheckedCreateNestedManyWithoutCreatedByInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutUserInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutUserInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutUserInput
   materialSales?: Prisma.MaterialSaleUncheckedCreateNestedManyWithoutUserInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -4977,6 +5270,7 @@ export type UserUpdateWithoutCreatedPayrollsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -5020,6 +5314,7 @@ export type UserUncheckedUpdateWithoutCreatedPayrollsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -5074,6 +5369,7 @@ export type UserUpdateWithoutApprovedPayrollsInput = {
   projectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUpdateManyWithoutUserNestedInput
@@ -5117,6 +5413,7 @@ export type UserUncheckedUpdateWithoutApprovedPayrollsInput = {
   projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdDeals?: Prisma.DealUncheckedUpdateManyWithoutCreatedByNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
   materialSales?: Prisma.MaterialSaleUncheckedUpdateManyWithoutUserNestedInput
   rbacUserRoles?: Prisma.RbacUserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -5144,6 +5441,7 @@ export type UserCountOutputType = {
   projectTasks: number
   createdDeals: number
   inventoryTransactions: number
+  constructionInventoryTransactions: number
   workerLedgerEntries: number
   materialSales: number
   rbacUserRoles: number
@@ -5167,6 +5465,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   projectTasks?: boolean | UserCountOutputTypeCountProjectTasksArgs
   createdDeals?: boolean | UserCountOutputTypeCountCreatedDealsArgs
   inventoryTransactions?: boolean | UserCountOutputTypeCountInventoryTransactionsArgs
+  constructionInventoryTransactions?: boolean | UserCountOutputTypeCountConstructionInventoryTransactionsArgs
   workerLedgerEntries?: boolean | UserCountOutputTypeCountWorkerLedgerEntriesArgs
   materialSales?: boolean | UserCountOutputTypeCountMaterialSalesArgs
   rbacUserRoles?: boolean | UserCountOutputTypeCountRbacUserRolesArgs
@@ -5257,6 +5556,13 @@ export type UserCountOutputTypeCountCreatedDealsArgs<ExtArgs extends runtime.Typ
  */
 export type UserCountOutputTypeCountInventoryTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.InventoryTransactionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountConstructionInventoryTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConstructionInventoryTransactionWhereInput
 }
 
 /**
@@ -5362,6 +5668,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   projectTasks?: boolean | Prisma.User$projectTasksArgs<ExtArgs>
   createdDeals?: boolean | Prisma.User$createdDealsArgs<ExtArgs>
   inventoryTransactions?: boolean | Prisma.User$inventoryTransactionsArgs<ExtArgs>
+  constructionInventoryTransactions?: boolean | Prisma.User$constructionInventoryTransactionsArgs<ExtArgs>
   workerLedgerEntries?: boolean | Prisma.User$workerLedgerEntriesArgs<ExtArgs>
   materialSales?: boolean | Prisma.User$materialSalesArgs<ExtArgs>
   rbacUserRoles?: boolean | Prisma.User$rbacUserRolesArgs<ExtArgs>
@@ -5457,6 +5764,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   projectTasks?: boolean | Prisma.User$projectTasksArgs<ExtArgs>
   createdDeals?: boolean | Prisma.User$createdDealsArgs<ExtArgs>
   inventoryTransactions?: boolean | Prisma.User$inventoryTransactionsArgs<ExtArgs>
+  constructionInventoryTransactions?: boolean | Prisma.User$constructionInventoryTransactionsArgs<ExtArgs>
   workerLedgerEntries?: boolean | Prisma.User$workerLedgerEntriesArgs<ExtArgs>
   materialSales?: boolean | Prisma.User$materialSalesArgs<ExtArgs>
   rbacUserRoles?: boolean | Prisma.User$rbacUserRolesArgs<ExtArgs>
@@ -5486,6 +5794,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     projectTasks: Prisma.$ProjectTaskPayload<ExtArgs>[]
     createdDeals: Prisma.$DealPayload<ExtArgs>[]
     inventoryTransactions: Prisma.$InventoryTransactionPayload<ExtArgs>[]
+    constructionInventoryTransactions: Prisma.$ConstructionInventoryTransactionPayload<ExtArgs>[]
     workerLedgerEntries: Prisma.$WorkerLedgerEntryPayload<ExtArgs>[]
     materialSales: Prisma.$MaterialSalePayload<ExtArgs>[]
     rbacUserRoles: Prisma.$RbacUserRolePayload<ExtArgs>[]
@@ -5923,6 +6232,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   projectTasks<T extends Prisma.User$projectTasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectTasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectTaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdDeals<T extends Prisma.User$createdDealsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdDealsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DealPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   inventoryTransactions<T extends Prisma.User$inventoryTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$inventoryTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InventoryTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  constructionInventoryTransactions<T extends Prisma.User$constructionInventoryTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$constructionInventoryTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConstructionInventoryTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workerLedgerEntries<T extends Prisma.User$workerLedgerEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$workerLedgerEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkerLedgerEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   materialSales<T extends Prisma.User$materialSalesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$materialSalesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialSalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   rbacUserRoles<T extends Prisma.User$rbacUserRolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rbacUserRolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RbacUserRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -6631,6 +6941,30 @@ export type User$inventoryTransactionsArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.InventoryTransactionScalarFieldEnum | Prisma.InventoryTransactionScalarFieldEnum[]
+}
+
+/**
+ * User.constructionInventoryTransactions
+ */
+export type User$constructionInventoryTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ConstructionInventoryTransaction
+   */
+  select?: Prisma.ConstructionInventoryTransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ConstructionInventoryTransaction
+   */
+  omit?: Prisma.ConstructionInventoryTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConstructionInventoryTransactionInclude<ExtArgs> | null
+  where?: Prisma.ConstructionInventoryTransactionWhereInput
+  orderBy?: Prisma.ConstructionInventoryTransactionOrderByWithRelationInput | Prisma.ConstructionInventoryTransactionOrderByWithRelationInput[]
+  cursor?: Prisma.ConstructionInventoryTransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConstructionInventoryTransactionScalarFieldEnum | Prisma.ConstructionInventoryTransactionScalarFieldEnum[]
 }
 
 /**
