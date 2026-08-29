@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "your-frontend",
+  "compatibility_date": "2026-08-25",
+
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+
+  "routes": [
+    {
+      "pattern": "*.maamulpro.site/*",
+      "zone_name": "maamulpro.site"
+    }
+  ]
+}

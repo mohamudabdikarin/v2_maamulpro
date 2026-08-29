@@ -66,31 +66,53 @@ export class ReportsService {
     query: { startDate?: string; endDate?: string; entityId?: string; projectId?: string },
   ) {
     const result = await this.runReport(db, reportId, query);
+    const brand = await this.companyBrand(db);
     const stamp = new Date().toISOString().slice(0, 10);
-    if (format === 'csv') return { filename: `${reportId}-${stamp}.csv`, contentType: 'text/csv; charset=utf-8', content: Buffer.from(this.reportCsv(result), 'utf8') };
-    if (format === 'xls') return { filename: `${reportId}-${stamp}.xls`, contentType: 'application/vnd.ms-excel; charset=utf-8', content: Buffer.from(this.reportSpreadsheetXml(result), 'utf8') };
-    return { filename: `${reportId}-${stamp}.pdf`, contentType: 'application/pdf', content: this.reportPdf(result) };
+    if (format === 'csv') return { filename: `${reportId}-${stamp}.csv`, contentType: 'text/csv; charset=utf-8', content: Buffer.from(this.reportCsv(result, brand), 'utf8') };
+    if (format === 'xls') return { filename: `${reportId}-${stamp}.xls`, contentType: 'application/vnd.ms-excel; charset=utf-8', content: Buffer.from(this.reportSpreadsheetXml(result, brand), 'utf8') };
+    return { filename: `${reportId}-${stamp}.pdf`, contentType: 'application/pdf', content: this.reportPdf(result, brand) };
   }
 
-  reportCsv(result: { report: { title: string }; summary: any; rows: any[] }) {
+  private async companyBrand(db: any) {
+    const keys = ['company_name', 'company_address', 'company_phone', 'company_email'];
+    const rows = await db.systemConfig.findMany({ where: { key: { in: keys } } });
+    const values = Object.fromEntries(rows.map((row: any) => [row.key, row.value]));
+    return {
+      companyName: values.company_name || 'Company',
+      companyAddress: values.company_address || '',
+      companyPhone: values.company_phone || '',
+      companyEmail: values.company_email || '',
+    };
+  }
+
+  private brandHeaderLines(brand: { companyName: string; companyAddress?: string; companyPhone?: string; companyEmail?: string }) {
+    const contact = [brand.companyAddress, brand.companyPhone, brand.companyEmail].filter(Boolean).join(' | ');
+    return [brand.companyName, ...(contact ? [contact] : []), `Generated ${new Date().toISOString().slice(0, 10)}`, ''];
+  }
+
+  reportCsv(result: { report: { title: string }; summary: any; rows: any[] }, brand?: { companyName: string; companyAddress?: string; companyPhone?: string; companyEmail?: string }) {
     const columns = Object.keys(result.rows[0] || {});
+    const brandLines = brand ? this.brandHeaderLines(brand).map((line) => [line]) : [];
     const lines: string[][] = [
+      ...brandLines,
       [result.report.title], [], ['Metric', 'Value'],
       ...Object.entries(result.summary).map(([key, value]) => [key, this.exportValue(value)]),
       [], columns,
       ...result.rows.map((row) => columns.map((column) => this.exportValue(row[column]))),
     ];
-    return lines.map((line) => line.map((value) => `"${value.replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    return lines.map((line) => line.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\r\n');
   }
 
-  private reportSpreadsheetXml(result: { report: { title: string }; summary: any; rows: any[] }) {
+  private reportSpreadsheetXml(result: { report: { title: string }; summary: any; rows: any[] }, brand?: { companyName: string; companyAddress?: string; companyPhone?: string; companyEmail?: string }) {
     const columns = Object.keys(result.rows[0] || {});
     const row = (values: any[]) => `<Row>${values.map((value) => `<Cell><Data ss:Type="String">${this.xmlEscape(this.exportValue(value))}</Data></Cell>`).join('')}</Row>`;
-    return `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Report"><Table>${row([result.report.title])}${row([])}${row(['Metric', 'Value'])}${Object.entries(result.summary).map(([key, value]) => row([key, value])).join('')}${row([])}${row(columns)}${result.rows.map((item) => row(columns.map((column) => item[column]))).join('')}</Table></Worksheet></Workbook>`;
+    const brandRows = brand ? this.brandHeaderLines(brand).map((line) => row([line])).join('') : '';
+    return `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Report"><Table>${brandRows}${row([result.report.title])}${row([])}${row(['Metric', 'Value'])}${Object.entries(result.summary).map(([key, value]) => row([key, value])).join('')}${row([])}${row(columns)}${result.rows.map((item) => row(columns.map((column) => item[column]))).join('')}</Table></Worksheet></Workbook>`;
   }
 
-  private reportPdf(result: { report: { title: string }; summary: any; rows: any[] }) {
-    const lines = [result.report.title, '', ...Object.entries(result.summary).map(([key, value]) => `${key}: ${this.exportValue(value)}`), '', ...result.rows.slice(0, 35).map((row) => Object.values(row).slice(0, 5).map((value) => this.exportValue(value)).join(' | '))];
+  private reportPdf(result: { report: { title: string }; summary: any; rows: any[] }, brand?: { companyName: string; companyAddress?: string; companyPhone?: string; companyEmail?: string }) {
+    const header = brand ? this.brandHeaderLines(brand) : [];
+    const lines = [...header, result.report.title, '', ...Object.entries(result.summary).map(([key, value]) => `${key}: ${this.exportValue(value)}`), '', ...result.rows.slice(0, 35).map((row) => Object.values(row).slice(0, 5).map((value) => this.exportValue(value)).join(' | '))];
     const escaped = lines.map((line) => line.replace(/[^\x20-\x7E]/g, '?').replace(/([\\()])/g, '\\$1'));
     const content = `BT /F1 10 Tf 40 760 Td 14 TL ${escaped.map((line, index) => `${index ? 'T* ' : ''}(${line.slice(0, 110)}) Tj`).join(' ')} ET`;
     const objects = [
@@ -388,26 +410,17 @@ export class ReportsService {
     const projectIds = projects.map((p: any) => p.id);
     if (!projectIds.length) return [];
 
-    const [ledger, usages, expenses] = await Promise.all([
-      db.workerLedgerEntry.findMany({ where: { projectId: { in: projectIds }, type: 'EXPENSE' }, select: { projectId: true, amount: true } }),
-      db.constructionInventoryTransaction.findMany({
-        where: { type: 'USAGE', projectId: { in: projectIds }, deletedAt: null },
-        include: { material: { select: { unitCost: true } } },
-      }),
-      db.dailyOperationalExpense.findMany({
-        where: { deletedAt: null, projectId: { in: projectIds } },
-        select: { projectId: true, amount: true },
-      }),
-    ]);
+    const expenses = await db.transaction.findMany({
+      where: {
+        deletedAt: null,
+        status: 'CLEARED',
+        type: 'EXPENSE',
+        projectId: { in: projectIds },
+      },
+      select: { projectId: true, amount: true },
+    });
 
     const spentByProject = new Map<string, number>();
-    for (const row of ledger) {
-      spentByProject.set(row.projectId, (spentByProject.get(row.projectId) || 0) + Number(row.amount));
-    }
-    for (const row of usages) {
-      if (!row.projectId) continue;
-      spentByProject.set(row.projectId, (spentByProject.get(row.projectId) || 0) + this.materialLineTotal(row));
-    }
     for (const row of expenses) {
       if (!row.projectId) continue;
       spentByProject.set(row.projectId, (spentByProject.get(row.projectId) || 0) + Number(row.amount));
@@ -439,37 +452,42 @@ export class ReportsService {
     const project = await this.getProjectOrThrow(db, projectId);
     const date = this.dateFilter(query.startDate, query.endDate);
 
-    const [incomeTxns, manpowerRows, materialRows, expenseRows] = await Promise.all([
+    const [incomeTxns, expenseTxns] = await Promise.all([
       db.transaction.findMany({
         where: {
           deletedAt: null,
           status: 'CLEARED',
           type: 'INCOME',
           projectId,
-          NOT: { referenceId: { startsWith: 'wfcontract:' } },
+          NOT: [
+            { referenceId: { startsWith: 'wfcontract:' } },
+            { referenceId: { startsWith: 'siiv:cash:' } },
+          ],
           ...(date ? { date } : {}),
         },
         select: { amount: true, date: true, referenceId: true },
       }),
-      db.workerLedgerEntry.findMany({
-        where: { projectId, type: 'EXPENSE', ...(date ? { date } : {}) },
-        select: { amount: true, description: true, type: true, date: true },
-      }),
-      db.constructionInventoryTransaction.findMany({
-        where: { type: 'USAGE', projectId, deletedAt: null, ...(date ? { date } : {}) },
-        include: { material: { select: { id: true, name: true, unitCost: true, unit: true } } },
-      }),
-      db.dailyOperationalExpense.findMany({
-        where: { deletedAt: null, projectId, ...(date ? { date } : {}) },
-        select: { amount: true, category: true, date: true },
+      db.transaction.findMany({
+        where: { deletedAt: null, status: 'CLEARED', type: 'EXPENSE', projectId, ...(date ? { date } : {}) },
+        include: { category: { select: { name: true } } },
       }),
     ]);
 
     const incomeAmount = incomeTxns.reduce((sum: number, row: any) => sum + Number(row.amount), 0);
 
+    const manpowerRows = expenseTxns.filter((row: any) =>
+      row.referenceId?.startsWith('wfpayment:') || row.referenceId?.startsWith('PAYROLL-'),
+    );
+    const materialRows = expenseTxns.filter((row: any) =>
+      row.referenceId?.startsWith('construction-procurement:'),
+    );
+    const expenseRows = expenseTxns.filter((row: any) =>
+      !manpowerRows.includes(row) && !materialRows.includes(row),
+    );
+
     const mpRollup = new Map<string, number>();
     for (const row of manpowerRows) {
-      const key = (row.description || row.type || 'Labor').trim() || 'Labor';
+      const key = (row.description || row.category?.name || 'Labor').trim() || 'Labor';
       mpRollup.set(key, (mpRollup.get(key) || 0) + Number(row.amount));
     }
     const manpowerLines = Array.from(mpRollup.entries())
@@ -479,10 +497,10 @@ export class ReportsService {
 
     const matRollup = new Map<string, { label: string; amount: number; materialId: string }>();
     for (const row of materialRows) {
-      const materialId = row.material?.id || row.materialId;
-      const label = row.material?.name || 'Material';
+      const materialId = row.referenceId;
+      const label = row.description || 'Material';
       const prev = matRollup.get(materialId) || { label, amount: 0, materialId };
-      prev.amount += this.materialLineTotal(row);
+      prev.amount += Number(row.amount);
       matRollup.set(materialId, prev);
     }
     const materialLines = Array.from(matRollup.values())
@@ -492,7 +510,7 @@ export class ReportsService {
 
     const expRollup = new Map<string, number>();
     for (const row of expenseRows) {
-      const key = (row.category || 'OTHER').trim() || 'OTHER';
+      const key = (row.category?.name || 'OTHER').trim() || 'OTHER';
       expRollup.set(key, (expRollup.get(key) || 0) + Number(row.amount));
     }
     const expenseLines = Array.from(expRollup.entries())
@@ -503,9 +521,7 @@ export class ReportsService {
     const totalExpense = manpowerTotal + materialsTotal + expensesTotal;
     const allDates = [
       ...incomeTxns.map((r: any) => r.date),
-      ...manpowerRows.map((r: any) => r.date),
-      ...materialRows.map((r: any) => r.date),
-      ...expenseRows.map((r: any) => r.date),
+      ...expenseTxns.map((r: any) => r.date),
     ].filter(Boolean).map((d: Date) => new Date(d).getTime());
 
     const manager = project.assignedStaff?.[0] ? this.staffName(project.assignedStaff[0]) : null;

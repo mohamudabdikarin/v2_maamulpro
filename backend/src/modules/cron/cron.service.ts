@@ -159,7 +159,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
             try {
               const filters = this.parseReportFilters(schedule.filters);
               const result = await this.reports.runReport(db, schedule.reportId, filters);
-              const csv = this.reports.reportCsv(result);
+              const csv = this.reports.reportCsv(result, { companyName: company.name });
               const recipients = (schedule.recipients || company.adminEmail)
                 .split(',')
                 .map((value: string) => value.trim())

@@ -25,10 +25,11 @@ export class PayrollService {
     }
   }
 
-  private async safePost(fn: () => Promise<unknown>) {
-    try { await fn(); } catch (err) {
+  private async safePost<T>(fn: () => Promise<T>): Promise<T | null> {
+    try { return await fn(); } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(`Journal post skipped: ${message}`);
+      return null;
     }
   }
 
@@ -39,8 +40,9 @@ export class PayrollService {
     const tax = Number(payroll.totalTax || 0);
     const deductions = Number(payroll.totalDeductions || 0);
     const amount = net > 0 ? net : gross;
+    const paymentDate = payroll.paymentDate ? new Date(payroll.paymentDate) : new Date();
 
-    await tx.transaction.upsert({
+    const cashbook = await tx.transaction.upsert({
       where: { referenceId: `PAYROLL-${payroll.id}` },
       create: {
         referenceId: `PAYROLL-${payroll.id}`,
@@ -48,8 +50,9 @@ export class PayrollService {
         status: 'CLEARED',
         description,
         amount,
-        date: new Date(),
+        date: paymentDate,
         userId,
+        projectId: payroll.projectId || null,
         notes: `Expense account: ${payroll.expenseAccountCode || 'not assigned'}`,
       },
       update: {
@@ -57,14 +60,15 @@ export class PayrollService {
         status: 'CLEARED',
         description,
         amount,
-        date: new Date(),
+        date: paymentDate,
         userId,
+        projectId: payroll.projectId || null,
         deletedAt: null,
         version: { increment: 1 },
       },
     });
 
-    await this.safePost(async () => {
+    const batch: any = await this.safePost(async () => {
       await this.accounting.retractPriorForSource(tx, 'PAYROLL', payroll.id, userId);
       const resolved = await this.mappings.resolveMany(tx, [
         'PAYROLL_EXPENSE',
@@ -87,12 +91,12 @@ export class PayrollService {
       if (lines.length === 1) {
         lines.push({ accountCode: cashCode, debit: 0, credit: expenseAmount });
       }
-      await this.accounting.postJournalBatch(tx, {
+      return this.accounting.postJournalBatch(tx, {
         tenantId: 'system',
         userId,
         tx,
         dto: {
-          date: new Date(),
+          date: paymentDate,
           memo: description,
           sourceType: 'PAYROLL',
           sourceId: payroll.id,
@@ -101,6 +105,12 @@ export class PayrollService {
         },
       });
     });
+    if (batch) {
+      await tx.transaction.update({
+        where: { id: cashbook.id },
+        data: { journalBatchId: batch.id, postingStatus: 'POSTED' },
+      });
+    }
   }
 
   async getPayrolls(tenantDb: any, status?: string) {
@@ -183,6 +193,7 @@ export class PayrollService {
           month: data.month,
           payPeriod: data.payPeriod || `${data.year}-${String(data.month).padStart(2, '0')}`,
           paymentDate: data.paymentDate,
+          projectId: data.projectId || null,
           status: 'DRAFT',
           expenseAccountCode: data.expenseAccountCode || null,
           createdById: userId,
@@ -244,6 +255,7 @@ export class PayrollService {
           month: data.month,
           payPeriod: data.payPeriod || `${data.year}-${String(data.month).padStart(2, '0')}`,
           paymentDate: data.paymentDate,
+          projectId: data.projectId || null,
           expenseAccountCode: data.expenseAccountCode || null,
           rejectionReason: null,
           ...calculated.totals,
@@ -297,7 +309,7 @@ export class PayrollService {
           rejectionReason: data.action === 'reject' ? data.reason : null,
           approvedById: data.action === 'approve' ? userId : data.action === 'reopen' ? null : payroll.approvedById,
           approvedAt: data.action === 'approve' ? new Date() : data.action === 'reopen' ? null : payroll.approvedAt,
-          paidAt: data.action === 'pay' ? new Date() : data.action === 'reopen' ? null : payroll.paidAt,
+          paidAt: data.action === 'pay' ? (payroll.paymentDate || new Date()) : data.action === 'reopen' ? null : payroll.paidAt,
         },
       });
       if (data.action === 'pay') {
@@ -407,7 +419,7 @@ export class PayrollService {
         where: { id },
         data: {
           status: 'PAID',
-          paidAt: new Date(),
+          paidAt: payroll.paymentDate || new Date(),
         },
       });
 

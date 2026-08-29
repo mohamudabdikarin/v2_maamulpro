@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { EmptyState, ErrorAlert, LoadingState, formatDescription, money, shortDate, StatusPill } from '../components/maamulpro/PageKit';
+import { ReportBrandFooter, ReportBrandHeader, ReportPrintSheet, ReportPrintStyles, useCompanyBrand } from '../components/maamulpro/ReportBrand';
 import { api, sessionStore } from '../lib/api';
 
 type ReportWorkspace = 'construction' | 'real_estate' | 'material_management' | 'payroll' | 'core';
@@ -188,6 +189,7 @@ type Props = { basePath?: string; workspace?: ReportWorkspace };
 
 const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace = 'construction' }: Props) => {
     const cfg = WORKSPACES[workspace] || WORKSPACES.construction;
+    const brand = useCompanyBrand();
     const navigate = useNavigate();
     const { projectId: entityId, category: categoryParam, txnId } = useParams<{ projectId?: string; category?: string; txnId?: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -423,7 +425,7 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
         return (
             <div>
                 <button type="button" className="print:hidden btn btn-outline-secondary mb-3" onClick={() => navigate(base)}>← Back to {cfg.entityPlural}</button>
-                <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div className="print:hidden mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{cfg.overviewEyebrow}</div>
                         <h1 className="mt-1 text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">{p.name}</h1>
@@ -440,20 +442,14 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                     <div><div className="text-[10px] font-semibold uppercase tracking-wide text-white-dark">Net</div><div className={`mt-1 text-sm ${amountClass}`}>{money(overview.netIncome)}</div></div>
                 </div>
 
-                <div className="print-sheet mx-auto max-w-3xl rounded-2xl border border-white-light bg-white p-7 shadow-sm dark:border-dark dark:bg-[#0e1726]">
-                    <div className="flex items-start justify-between">
-                        <div className="w-16 text-[10px] leading-relaxed text-white-dark">
-                            {new Date(overview.generatedAt).toLocaleString()}
-                            <div className="italic">Accrual Basis</div>
-                        </div>
-                        <div className="flex-1 text-center">
-                            <div className="text-sm font-extrabold tracking-wide text-secondary dark:text-white">MAAMULPRO</div>
-                            <div className="mt-1 text-lg font-bold text-secondary dark:text-white">{p.name} · Summary</div>
-                            <div className="mt-0.5 text-xs text-white-dark">All Transactions</div>
-                        </div>
-                        <div className="w-16" />
-                    </div>
-                    <div className="mt-4 flex justify-between border-b-2 border-secondary pb-2 text-xs font-bold dark:border-white">
+                <ReportPrintSheet>
+                    <ReportBrandHeader
+                        brand={brand}
+                        title={`${p.name} · Summary`}
+                        subtitle="All transactions · Accrual basis"
+                        meta={<>{new Date(overview.generatedAt).toLocaleString()}<div className="mt-1 font-mono text-[11px]">{periodLabel}</div></>}
+                    />
+                    <div className="mt-2 flex justify-between border-b border-secondary/30 pb-2 text-xs font-bold dark:border-white/30">
                         <span />
                         <span className="font-mono">{periodLabel}</span>
                     </div>
@@ -494,7 +490,8 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                     <p className="print:hidden mt-5 text-center text-[11px] italic text-white-dark">
                         Click a category total or line to open its transaction register.
                     </p>
-                </div>
+                    <ReportBrandFooter brand={brand} />
+                </ReportPrintSheet>
             </div>
         );
     };
@@ -517,7 +514,7 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
         return (
             <div>
                 <button type="button" className="print:hidden btn btn-outline-secondary mb-3" onClick={() => navigate(`${base}/${entityId}`)}>← Back to {ledger.project.name}</button>
-                <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div className="print:hidden mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{ledger.project.name}</div>
                         <h1 className="mt-1 text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">{meta.label}</h1>
@@ -534,12 +531,12 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                 {!ledger.rows.length ? (
                     <div className="panel"><EmptyState title={`No ${meta.label.toLowerCase()} entries`} description="Nothing recorded for this selection in the period." /></div>
                 ) : (
-                    <div className="print-sheet mx-auto max-w-6xl rounded-2xl border border-white-light bg-white p-7 shadow-sm dark:border-dark dark:bg-[#0e1726]">
-                        <div className="mb-6 flex flex-col items-center border-b-2 border-secondary/50 pb-4 dark:border-white/50">
-                            <div className="text-sm font-extrabold tracking-wide text-secondary dark:text-white">MAAMULPRO</div>
-                            <div className="mt-1 text-lg font-bold text-secondary dark:text-white">Transaction Detail By Account</div>
-                            <div className="text-xs text-white-dark">All Transactions</div>
-                        </div>
+                    <ReportPrintSheet wide>
+                        <ReportBrandHeader
+                            brand={brand}
+                            title="Transaction Detail By Account"
+                            subtitle={`${ledger.project.name} · ${meta.label} · All transactions`}
+                        />
                         {groupedEntries.map(([groupName, rows]) => {
                             let runningBalance = 0;
                             return (
@@ -610,7 +607,8 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                                 </div>
                             );
                         })}
-                    </div>
+                        <ReportBrandFooter brand={brand} />
+                    </ReportPrintSheet>
                 )}
             </div>
         );
@@ -622,7 +620,7 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
         return (
             <div>
                 <button type="button" className="print:hidden btn btn-outline-secondary mb-3" onClick={() => navigate(`${base}/${entityId}/${detail.category}`)}>← Back to {detail.label}</button>
-                <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div className="print:hidden mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{detail.project.name} · {detail.label}</div>
                         <h1 className="mt-1 text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">Transaction detail</h1>
@@ -633,15 +631,17 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                     <button type="button" className="print:hidden btn btn-primary" onClick={printNow}>Print voucher</button>
                 </div>
 
-                <div className="print-sheet mx-auto max-w-xl overflow-hidden rounded-2xl border border-white-light bg-white shadow-sm dark:border-dark dark:bg-[#0e1726]">
-                    <div className="flex items-start justify-between bg-secondary/90 px-7 py-6 text-white">
-                        <div>
-                            <div className="text-sm font-bold">MAAMULPRO — Transaction Voucher</div>
-                            <div className="mt-1 text-xs text-white/70">{detail.project.name} · {detail.label}</div>
-                        </div>
-                        <div className="text-right text-xs text-primary/90">{shortDate(t.date)}</div>
+                <ReportPrintSheet className="max-w-xl overflow-hidden !p-0">
+                    <div className="px-7 pt-7">
+                        <ReportBrandHeader
+                            brand={brand}
+                            title="Transaction voucher"
+                            subtitle={`${detail.project.name} · ${detail.label}`}
+                            meta={shortDate(t.date)}
+                            compact
+                        />
                     </div>
-                    <div className="px-7 py-6">
+                    <div className="px-7 pb-7">
                         <div className="mb-6 border-b border-dashed border-white-light pb-6 text-center dark:border-dark">
                             <div className="text-[11px] font-semibold uppercase tracking-wide text-white-dark">Amount</div>
                             <div className={`mt-2 text-4xl text-secondary dark:text-white ${amountClass}`}>{money(t.amount)}</div>
@@ -660,31 +660,22 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                             <div className="mt-5 rounded-lg border border-white-light bg-white-light/40 p-3 text-sm text-white-dark dark:border-dark dark:bg-dark">{t.notes}</div>
                         )}
                         <div className="mt-8 flex justify-between gap-6 text-[11px] text-white-dark">
-                            <div className="flex-1 border-t border-white-dark/40 pt-2">Prepared by — {t.enteredBy || t.recordedBy || '—'}</div>
+                            <div className="flex-1 border-t border-white-dark/40 pt-2">Prepared by — {t.enteredBy || t.recordedBy || generatedBy || '—'}</div>
                             <div className="flex-1 border-t border-white-dark/40 pt-2 text-right">Record — {detail.project.name}</div>
                         </div>
-                        <div className="mt-6 flex justify-between border-t border-white-light pt-3 text-[10px] text-white-dark dark:border-dark">
-                            <span>Generated by {generatedBy}</span>
-                            <span>MaamulPro Reports</span>
-                        </div>
+                        <ReportBrandFooter brand={brand} />
                     </div>
-                </div>
+                </ReportPrintSheet>
             </div>
         );
     };
 
     return (
         <AppShell>
-            <style>{`
-                @media print {
-                    aside, header, .main-header, .sidebar, nav, .print\\:hidden { display: none !important; }
-                    .main-content, main, .content { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-                    .print-sheet { box-shadow: none !important; border: none !important; max-width: 100% !important; }
-                }
-            `}</style>
+            <ReportPrintStyles />
             {stepper}
-            {dateFilters}
-            {error && <ErrorAlert message={error} />}
+            <div className="print:hidden">{dateFilters}</div>
+            {error && <div className="print:hidden"><ErrorAlert message={error} /></div>}
             {loading ? <div className="panel"><LoadingState /></div> : (
                 <>
                     {view === 'home' && renderHome()}

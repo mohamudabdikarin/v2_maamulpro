@@ -7,6 +7,7 @@ import {
     money,
     shortDate,
 } from '../components/maamulpro/PageKit';
+import { ReportBrandFooter, ReportBrandHeader, ReportPrintSheet, ReportPrintStyles, useCompanyBrand } from '../components/maamulpro/ReportBrand';
 import { api } from '../lib/api';
 
 // ── Types ────────────────────────────────────────────────────
@@ -146,7 +147,7 @@ function TrialBalanceTab() {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="As of date" value={asOf} onChange={setAsOf} />
                 <button className="btn btn-primary btn-sm mt-4" onClick={load} disabled={loading}>Run</button>
             </div>
@@ -233,7 +234,7 @@ function IncomeStatementTab() {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="From" value={startDate} onChange={setStartDate} />
                 <DateInput label="To" value={endDate} onChange={setEndDate} />
                 <button className="btn btn-primary btn-sm mt-4" onClick={load} disabled={loading}>Run</button>
@@ -358,7 +359,7 @@ function BalanceSheetTab() {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="As of date" value={asOf} onChange={setAsOf} />
                 <button className="btn btn-primary btn-sm mt-4" onClick={load} disabled={loading}>Run</button>
             </div>
@@ -455,7 +456,7 @@ function GeneralLedgerTab() {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="From" value={startDate} onChange={setStartDate} />
                 <DateInput label="To" value={endDate} onChange={setEndDate} />
                 <div className="flex flex-col gap-0.5 text-xs font-semibold text-white-dark">
@@ -572,29 +573,36 @@ type TabId = (typeof TABS)[number]['id'];
 export default function FinancialReportsPage() {
     const [tab, setTab] = useState<TabId>('trial-balance');
     const printRef = useRef<HTMLDivElement>(null);
+    const brand = useCompanyBrand();
 
     function handlePrint() {
         window.print();
     }
 
+    const tabLabel = TABS.find((t) => t.id === tab)?.label || 'Financial report';
+
     return (
         <AppShell>
+            <ReportPrintStyles />
             <div className="p-5">
-                <PageHeader
-                    title="Financial Reports"
-                    actions={
-                        <button className="btn btn-outline-primary btn-sm" onClick={handlePrint}>
-                            Print / Export PDF
-                        </button>
-                    }
-                />
+                <div className="print:hidden">
+                    <PageHeader
+                        title="Financial Reports"
+                        actions={
+                            <button type="button" className="btn btn-outline-primary btn-sm" onClick={handlePrint}>
+                                Print / Export PDF
+                            </button>
+                        }
+                    />
+                </div>
 
                 {/* Tabs */}
-                <div className="mb-5 border-b border-white-light dark:border-[#1b2e4b]">
+                <div className="print:hidden mb-5 border-b border-white-light dark:border-[#1b2e4b]">
                     <nav className="flex gap-1">
                         {TABS.map((t) => (
                             <button
                                 key={t.id}
+                                type="button"
                                 onClick={() => setTab(t.id)}
                                 className={`border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
                                     tab === t.id
@@ -608,12 +616,20 @@ export default function FinancialReportsPage() {
                     </nav>
                 </div>
 
-                <div ref={printRef}>
-                    {tab === 'trial-balance' && <TrialBalanceTab />}
-                    {tab === 'income-statement' && <IncomeStatementTab />}
-                    {tab === 'balance-sheet' && <BalanceSheetTab />}
-                    {tab === 'general-ledger' && <GeneralLedgerTab />}
-                </div>
+                <ReportPrintSheet wide className="!max-w-none">
+                    <div ref={printRef}>
+                        <ReportBrandHeader
+                            brand={brand}
+                            title={tabLabel}
+                            subtitle={`Generated ${new Date().toLocaleString()}`}
+                        />
+                        {tab === 'trial-balance' && <TrialBalanceTab />}
+                        {tab === 'income-statement' && <IncomeStatementTab />}
+                        {tab === 'balance-sheet' && <BalanceSheetTab />}
+                        {tab === 'general-ledger' && <GeneralLedgerTab />}
+                        <ReportBrandFooter brand={brand} />
+                    </div>
+                </ReportPrintSheet>
             </div>
         </AppShell>
     );

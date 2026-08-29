@@ -6,6 +6,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../lib/api';
 import LineItemsEditor, { LineItemConfig } from '../components/maamulpro/LineItemsEditor';
 import { CurrencyInput, EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, PasswordInput, StatGrid, StatusPill, SuccessAlert, fieldHint, formatTableValue, humanize as titleize, isCurrencyName, isSystemIdKey, money, shortDate, somaliExample, visibleTableColumns } from '../components/maamulpro/PageKit';
+import { brandedPrintHtml, escapeHtml, loadCompanyBrand } from '../components/maamulpro/ReportBrand';
 
 export type CrudField = {
     name: string;
@@ -274,13 +275,13 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             setUploading('');
         }
     };
-    const printRecord = (row: Record<string, any>) => {
+    const printRecord = async (row: Record<string, any>) => {
         const printWindow = window.open('', '_blank', 'width=900,height=700');
         if (!printWindow) { setError('Allow pop-ups to print this record.'); return; }
-        const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char));
-        const rowsHtml = Object.entries(row).filter(([key]) => !isSystemIdKey(key) && !hiddenKeys.has(key)).map(([key, value]) =>
-            `<tr><th>${escape(titleize(key))}</th><td>${escape(printableValue(value))}</td></tr>`).join('');
-        printWindow.document.write(`<html><head><title>${escape(title)}</title><style>body{font:14px Arial;padding:32px;color:#172033}h1{margin:0 0 4px}p{color:#64748b}table{border-collapse:collapse;width:100%;margin-top:24px}th,td{border:1px solid #dbe2ea;padding:10px;text-align:left;vertical-align:top}th{width:28%;background:#f6f8fb}@media print{button{display:none}}</style></head><body><h1>${escape(title)}</h1><p>MaamulPro · ${escape(new Date().toLocaleString())}</p><table>${rowsHtml}</table><button onclick="window.print()" style="margin-top:20px;padding:10px 18px">Print</button></body></html>`);
+        const brand = await loadCompanyBrand();
+        const rowsHtml = `<table>${Object.entries(row).filter(([key]) => !isSystemIdKey(key) && !hiddenKeys.has(key)).map(([key, value]) =>
+            `<tr><th>${escapeHtml(titleize(key))}</th><td>${escapeHtml(printableValue(value))}</td></tr>`).join('')}</table>`;
+        printWindow.document.write(brandedPrintHtml({ brand, documentTitle: title, heading: title, bodyHtml: rowsHtml }));
         printWindow.document.close();
     };
 

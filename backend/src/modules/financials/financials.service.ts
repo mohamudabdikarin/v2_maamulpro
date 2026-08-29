@@ -81,15 +81,24 @@ export class FinancialsService {
       let journalBatchId: string | null = null;
       let postingStatus: 'POSTED' | 'UNPOSTED' | 'FAILED' = 'UNPOSTED';
       if (status === 'CLEARED') {
+        if (Boolean(data.debitAccountCode) !== Boolean(data.creditAccountCode)) {
+          throw new BadRequestException('Both debit and credit account codes are required for an explicit posting');
+        }
         try {
-          const resolved = await this.mappings.resolveMany(tenantDb, [
-            'TRANSACTION_INCOME_CASH',
-            'TRANSACTION_INCOME_REVENUE',
-            'TRANSACTION_EXPENSE_CASH',
-            'TRANSACTION_EXPENSE_ACCOUNT',
-          ]);
-          const lines =
-            data.type === 'INCOME'
+          let lines: { accountCode: string; debit: number; credit: number }[];
+          if (data.debitAccountCode && data.creditAccountCode) {
+            lines = [
+              { accountCode: data.debitAccountCode, debit: data.amount, credit: 0 },
+              { accountCode: data.creditAccountCode, debit: 0, credit: data.amount },
+            ];
+          } else {
+            const resolved = await this.mappings.resolveMany(tenantDb, [
+              'TRANSACTION_INCOME_CASH',
+              'TRANSACTION_INCOME_REVENUE',
+              'TRANSACTION_EXPENSE_CASH',
+              'TRANSACTION_EXPENSE_ACCOUNT',
+            ]);
+            lines = data.type === 'INCOME'
               ? [
                   { accountCode: resolved.TRANSACTION_INCOME_CASH, debit: data.amount, credit: 0 },
                   { accountCode: resolved.TRANSACTION_INCOME_REVENUE, debit: 0, credit: data.amount },
@@ -98,6 +107,7 @@ export class FinancialsService {
                   { accountCode: resolved.TRANSACTION_EXPENSE_ACCOUNT, debit: data.amount, credit: 0 },
                   { accountCode: resolved.TRANSACTION_EXPENSE_CASH, debit: 0, credit: data.amount },
                 ];
+          }
           const batch = await this.accounting.postJournalBatch(tenantDb, {
             tenantId: data.tenantId || 'system',
             userId: data.userId,
@@ -113,6 +123,7 @@ export class FinancialsService {
           journalBatchId = batch.id;
           postingStatus = 'POSTED';
         } catch (err) {
+          if (data.debitAccountCode && data.creditAccountCode) throw err;
           const message = err instanceof Error ? err.message : String(err);
           this.logger.warn(`Auto-post failed for transaction (${data.type} ${data.amount}): ${message}`);
           postingStatus = 'UNPOSTED';

@@ -64,6 +64,7 @@ export type PayrollMinAggregateOutputType = {
   totalGrossSalary: runtime.Decimal | null
   totalNetSalary: runtime.Decimal | null
   expenseAccountCode: string | null
+  projectId: string | null
   createdById: string | null
   approvedById: string | null
   approvedAt: Date | null
@@ -89,6 +90,7 @@ export type PayrollMaxAggregateOutputType = {
   totalGrossSalary: runtime.Decimal | null
   totalNetSalary: runtime.Decimal | null
   expenseAccountCode: string | null
+  projectId: string | null
   createdById: string | null
   approvedById: string | null
   approvedAt: Date | null
@@ -114,6 +116,7 @@ export type PayrollCountAggregateOutputType = {
   totalGrossSalary: number
   totalNetSalary: number
   expenseAccountCode: number
+  projectId: number
   createdById: number
   approvedById: number
   approvedAt: number
@@ -163,6 +166,7 @@ export type PayrollMinAggregateInputType = {
   totalGrossSalary?: true
   totalNetSalary?: true
   expenseAccountCode?: true
+  projectId?: true
   createdById?: true
   approvedById?: true
   approvedAt?: true
@@ -188,6 +192,7 @@ export type PayrollMaxAggregateInputType = {
   totalGrossSalary?: true
   totalNetSalary?: true
   expenseAccountCode?: true
+  projectId?: true
   createdById?: true
   approvedById?: true
   approvedAt?: true
@@ -213,6 +218,7 @@ export type PayrollCountAggregateInputType = {
   totalGrossSalary?: true
   totalNetSalary?: true
   expenseAccountCode?: true
+  projectId?: true
   createdById?: true
   approvedById?: true
   approvedAt?: true
@@ -325,6 +331,7 @@ export type PayrollGroupByOutputType = {
   totalGrossSalary: runtime.Decimal
   totalNetSalary: runtime.Decimal
   expenseAccountCode: string | null
+  projectId: string | null
   createdById: string | null
   approvedById: string | null
   approvedAt: Date | null
@@ -373,6 +380,7 @@ export type PayrollWhereInput = {
   totalGrossSalary?: Prisma.DecimalFilter<"Payroll"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFilter<"Payroll"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.StringNullableFilter<"Payroll"> | string | null
+  projectId?: Prisma.StringNullableFilter<"Payroll"> | string | null
   createdById?: Prisma.StringNullableFilter<"Payroll"> | string | null
   approvedById?: Prisma.StringNullableFilter<"Payroll"> | string | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Payroll"> | Date | string | null
@@ -383,6 +391,7 @@ export type PayrollWhereInput = {
   createdByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   approvedByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   expenseAccount?: Prisma.XOR<Prisma.AccountNullableScalarRelationFilter, Prisma.AccountWhereInput> | null
+  project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   items?: Prisma.PayrollItemListRelationFilter
 }
 
@@ -402,6 +411,7 @@ export type PayrollOrderByWithRelationInput = {
   totalGrossSalary?: Prisma.SortOrder
   totalNetSalary?: Prisma.SortOrder
   expenseAccountCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedById?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -412,6 +422,7 @@ export type PayrollOrderByWithRelationInput = {
   createdByUser?: Prisma.UserOrderByWithRelationInput
   approvedByUser?: Prisma.UserOrderByWithRelationInput
   expenseAccount?: Prisma.AccountOrderByWithRelationInput
+  project?: Prisma.ProjectOrderByWithRelationInput
   items?: Prisma.PayrollItemOrderByRelationAggregateInput
 }
 
@@ -435,6 +446,7 @@ export type PayrollWhereUniqueInput = Prisma.AtLeast<{
   totalGrossSalary?: Prisma.DecimalFilter<"Payroll"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFilter<"Payroll"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.StringNullableFilter<"Payroll"> | string | null
+  projectId?: Prisma.StringNullableFilter<"Payroll"> | string | null
   createdById?: Prisma.StringNullableFilter<"Payroll"> | string | null
   approvedById?: Prisma.StringNullableFilter<"Payroll"> | string | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Payroll"> | Date | string | null
@@ -445,6 +457,7 @@ export type PayrollWhereUniqueInput = Prisma.AtLeast<{
   createdByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   approvedByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   expenseAccount?: Prisma.XOR<Prisma.AccountNullableScalarRelationFilter, Prisma.AccountWhereInput> | null
+  project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   items?: Prisma.PayrollItemListRelationFilter
 }, "id" | "year_month_deletedAt">
 
@@ -464,6 +477,7 @@ export type PayrollOrderByWithAggregationInput = {
   totalGrossSalary?: Prisma.SortOrder
   totalNetSalary?: Prisma.SortOrder
   expenseAccountCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedById?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -497,6 +511,7 @@ export type PayrollScalarWhereWithAggregatesInput = {
   totalGrossSalary?: Prisma.DecimalWithAggregatesFilter<"Payroll"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalWithAggregatesFilter<"Payroll"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.StringNullableWithAggregatesFilter<"Payroll"> | string | null
+  projectId?: Prisma.StringNullableWithAggregatesFilter<"Payroll"> | string | null
   createdById?: Prisma.StringNullableWithAggregatesFilter<"Payroll"> | string | null
   approvedById?: Prisma.StringNullableWithAggregatesFilter<"Payroll"> | string | null
   approvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Payroll"> | Date | string | null
@@ -529,6 +544,7 @@ export type PayrollCreateInput = {
   createdByUser?: Prisma.UserCreateNestedOneWithoutCreatedPayrollsInput
   approvedByUser?: Prisma.UserCreateNestedOneWithoutApprovedPayrollsInput
   expenseAccount?: Prisma.AccountCreateNestedOneWithoutPayrollsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutPayrollsInput
   items?: Prisma.PayrollItemCreateNestedManyWithoutPayrollInput
 }
 
@@ -548,6 +564,7 @@ export type PayrollUncheckedCreateInput = {
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: string | null
+  projectId?: string | null
   createdById?: string | null
   approvedById?: string | null
   approvedAt?: Date | string | null
@@ -581,6 +598,7 @@ export type PayrollUpdateInput = {
   createdByUser?: Prisma.UserUpdateOneWithoutCreatedPayrollsNestedInput
   approvedByUser?: Prisma.UserUpdateOneWithoutApprovedPayrollsNestedInput
   expenseAccount?: Prisma.AccountUpdateOneWithoutPayrollsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutPayrollsNestedInput
   items?: Prisma.PayrollItemUpdateManyWithoutPayrollNestedInput
 }
 
@@ -600,6 +618,7 @@ export type PayrollUncheckedUpdateInput = {
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -626,6 +645,7 @@ export type PayrollCreateManyInput = {
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: string | null
+  projectId?: string | null
   createdById?: string | null
   approvedById?: string | null
   approvedAt?: Date | string | null
@@ -673,6 +693,7 @@ export type PayrollUncheckedUpdateManyInput = {
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -714,6 +735,7 @@ export type PayrollCountOrderByAggregateInput = {
   totalGrossSalary?: Prisma.SortOrder
   totalNetSalary?: Prisma.SortOrder
   expenseAccountCode?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   approvedById?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
@@ -750,6 +772,7 @@ export type PayrollMaxOrderByAggregateInput = {
   totalGrossSalary?: Prisma.SortOrder
   totalNetSalary?: Prisma.SortOrder
   expenseAccountCode?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   approvedById?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
@@ -775,6 +798,7 @@ export type PayrollMinOrderByAggregateInput = {
   totalGrossSalary?: Prisma.SortOrder
   totalNetSalary?: Prisma.SortOrder
   expenseAccountCode?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   approvedById?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
@@ -884,6 +908,48 @@ export type PayrollUncheckedUpdateManyWithoutApprovedByUserNestedInput = {
   deleteMany?: Prisma.PayrollScalarWhereInput | Prisma.PayrollScalarWhereInput[]
 }
 
+export type PayrollCreateNestedManyWithoutProjectInput = {
+  create?: Prisma.XOR<Prisma.PayrollCreateWithoutProjectInput, Prisma.PayrollUncheckedCreateWithoutProjectInput> | Prisma.PayrollCreateWithoutProjectInput[] | Prisma.PayrollUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.PayrollCreateOrConnectWithoutProjectInput | Prisma.PayrollCreateOrConnectWithoutProjectInput[]
+  createMany?: Prisma.PayrollCreateManyProjectInputEnvelope
+  connect?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+}
+
+export type PayrollUncheckedCreateNestedManyWithoutProjectInput = {
+  create?: Prisma.XOR<Prisma.PayrollCreateWithoutProjectInput, Prisma.PayrollUncheckedCreateWithoutProjectInput> | Prisma.PayrollCreateWithoutProjectInput[] | Prisma.PayrollUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.PayrollCreateOrConnectWithoutProjectInput | Prisma.PayrollCreateOrConnectWithoutProjectInput[]
+  createMany?: Prisma.PayrollCreateManyProjectInputEnvelope
+  connect?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+}
+
+export type PayrollUpdateManyWithoutProjectNestedInput = {
+  create?: Prisma.XOR<Prisma.PayrollCreateWithoutProjectInput, Prisma.PayrollUncheckedCreateWithoutProjectInput> | Prisma.PayrollCreateWithoutProjectInput[] | Prisma.PayrollUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.PayrollCreateOrConnectWithoutProjectInput | Prisma.PayrollCreateOrConnectWithoutProjectInput[]
+  upsert?: Prisma.PayrollUpsertWithWhereUniqueWithoutProjectInput | Prisma.PayrollUpsertWithWhereUniqueWithoutProjectInput[]
+  createMany?: Prisma.PayrollCreateManyProjectInputEnvelope
+  set?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+  disconnect?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+  delete?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+  connect?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+  update?: Prisma.PayrollUpdateWithWhereUniqueWithoutProjectInput | Prisma.PayrollUpdateWithWhereUniqueWithoutProjectInput[]
+  updateMany?: Prisma.PayrollUpdateManyWithWhereWithoutProjectInput | Prisma.PayrollUpdateManyWithWhereWithoutProjectInput[]
+  deleteMany?: Prisma.PayrollScalarWhereInput | Prisma.PayrollScalarWhereInput[]
+}
+
+export type PayrollUncheckedUpdateManyWithoutProjectNestedInput = {
+  create?: Prisma.XOR<Prisma.PayrollCreateWithoutProjectInput, Prisma.PayrollUncheckedCreateWithoutProjectInput> | Prisma.PayrollCreateWithoutProjectInput[] | Prisma.PayrollUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.PayrollCreateOrConnectWithoutProjectInput | Prisma.PayrollCreateOrConnectWithoutProjectInput[]
+  upsert?: Prisma.PayrollUpsertWithWhereUniqueWithoutProjectInput | Prisma.PayrollUpsertWithWhereUniqueWithoutProjectInput[]
+  createMany?: Prisma.PayrollCreateManyProjectInputEnvelope
+  set?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+  disconnect?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+  delete?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+  connect?: Prisma.PayrollWhereUniqueInput | Prisma.PayrollWhereUniqueInput[]
+  update?: Prisma.PayrollUpdateWithWhereUniqueWithoutProjectInput | Prisma.PayrollUpdateWithWhereUniqueWithoutProjectInput[]
+  updateMany?: Prisma.PayrollUpdateManyWithWhereWithoutProjectInput | Prisma.PayrollUpdateManyWithWhereWithoutProjectInput[]
+  deleteMany?: Prisma.PayrollScalarWhereInput | Prisma.PayrollScalarWhereInput[]
+}
+
 export type PayrollCreateNestedManyWithoutExpenseAccountInput = {
   create?: Prisma.XOR<Prisma.PayrollCreateWithoutExpenseAccountInput, Prisma.PayrollUncheckedCreateWithoutExpenseAccountInput> | Prisma.PayrollCreateWithoutExpenseAccountInput[] | Prisma.PayrollUncheckedCreateWithoutExpenseAccountInput[]
   connectOrCreate?: Prisma.PayrollCreateOrConnectWithoutExpenseAccountInput | Prisma.PayrollCreateOrConnectWithoutExpenseAccountInput[]
@@ -966,6 +1032,7 @@ export type PayrollCreateWithoutCreatedByUserInput = {
   deletedAt?: Date | string | null
   approvedByUser?: Prisma.UserCreateNestedOneWithoutApprovedPayrollsInput
   expenseAccount?: Prisma.AccountCreateNestedOneWithoutPayrollsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutPayrollsInput
   items?: Prisma.PayrollItemCreateNestedManyWithoutPayrollInput
 }
 
@@ -985,6 +1052,7 @@ export type PayrollUncheckedCreateWithoutCreatedByUserInput = {
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: string | null
+  projectId?: string | null
   approvedById?: string | null
   approvedAt?: Date | string | null
   paidAt?: Date | string | null
@@ -1026,6 +1094,7 @@ export type PayrollCreateWithoutApprovedByUserInput = {
   deletedAt?: Date | string | null
   createdByUser?: Prisma.UserCreateNestedOneWithoutCreatedPayrollsInput
   expenseAccount?: Prisma.AccountCreateNestedOneWithoutPayrollsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutPayrollsInput
   items?: Prisma.PayrollItemCreateNestedManyWithoutPayrollInput
 }
 
@@ -1045,6 +1114,7 @@ export type PayrollUncheckedCreateWithoutApprovedByUserInput = {
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: string | null
+  projectId?: string | null
   createdById?: string | null
   approvedAt?: Date | string | null
   paidAt?: Date | string | null
@@ -1099,6 +1169,7 @@ export type PayrollScalarWhereInput = {
   totalGrossSalary?: Prisma.DecimalFilter<"Payroll"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFilter<"Payroll"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.StringNullableFilter<"Payroll"> | string | null
+  projectId?: Prisma.StringNullableFilter<"Payroll"> | string | null
   createdById?: Prisma.StringNullableFilter<"Payroll"> | string | null
   approvedById?: Prisma.StringNullableFilter<"Payroll"> | string | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Payroll"> | Date | string | null
@@ -1124,6 +1195,84 @@ export type PayrollUpdateManyWithWhereWithoutApprovedByUserInput = {
   data: Prisma.XOR<Prisma.PayrollUpdateManyMutationInput, Prisma.PayrollUncheckedUpdateManyWithoutApprovedByUserInput>
 }
 
+export type PayrollCreateWithoutProjectInput = {
+  id?: string
+  name: string
+  year: number
+  month: number
+  payPeriod?: string | null
+  paymentDate?: Date | string | null
+  status?: $Enums.PayrollStatus
+  rejectionReason?: string | null
+  totalBaseSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalBonuses?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalTax?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  approvedAt?: Date | string | null
+  paidAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  createdByUser?: Prisma.UserCreateNestedOneWithoutCreatedPayrollsInput
+  approvedByUser?: Prisma.UserCreateNestedOneWithoutApprovedPayrollsInput
+  expenseAccount?: Prisma.AccountCreateNestedOneWithoutPayrollsInput
+  items?: Prisma.PayrollItemCreateNestedManyWithoutPayrollInput
+}
+
+export type PayrollUncheckedCreateWithoutProjectInput = {
+  id?: string
+  name: string
+  year: number
+  month: number
+  payPeriod?: string | null
+  paymentDate?: Date | string | null
+  status?: $Enums.PayrollStatus
+  rejectionReason?: string | null
+  totalBaseSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalBonuses?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalTax?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  expenseAccountCode?: string | null
+  createdById?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  paidAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  items?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutPayrollInput
+}
+
+export type PayrollCreateOrConnectWithoutProjectInput = {
+  where: Prisma.PayrollWhereUniqueInput
+  create: Prisma.XOR<Prisma.PayrollCreateWithoutProjectInput, Prisma.PayrollUncheckedCreateWithoutProjectInput>
+}
+
+export type PayrollCreateManyProjectInputEnvelope = {
+  data: Prisma.PayrollCreateManyProjectInput | Prisma.PayrollCreateManyProjectInput[]
+  skipDuplicates?: boolean
+}
+
+export type PayrollUpsertWithWhereUniqueWithoutProjectInput = {
+  where: Prisma.PayrollWhereUniqueInput
+  update: Prisma.XOR<Prisma.PayrollUpdateWithoutProjectInput, Prisma.PayrollUncheckedUpdateWithoutProjectInput>
+  create: Prisma.XOR<Prisma.PayrollCreateWithoutProjectInput, Prisma.PayrollUncheckedCreateWithoutProjectInput>
+}
+
+export type PayrollUpdateWithWhereUniqueWithoutProjectInput = {
+  where: Prisma.PayrollWhereUniqueInput
+  data: Prisma.XOR<Prisma.PayrollUpdateWithoutProjectInput, Prisma.PayrollUncheckedUpdateWithoutProjectInput>
+}
+
+export type PayrollUpdateManyWithWhereWithoutProjectInput = {
+  where: Prisma.PayrollScalarWhereInput
+  data: Prisma.XOR<Prisma.PayrollUpdateManyMutationInput, Prisma.PayrollUncheckedUpdateManyWithoutProjectInput>
+}
+
 export type PayrollCreateWithoutExpenseAccountInput = {
   id?: string
   name: string
@@ -1146,6 +1295,7 @@ export type PayrollCreateWithoutExpenseAccountInput = {
   deletedAt?: Date | string | null
   createdByUser?: Prisma.UserCreateNestedOneWithoutCreatedPayrollsInput
   approvedByUser?: Prisma.UserCreateNestedOneWithoutApprovedPayrollsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutPayrollsInput
   items?: Prisma.PayrollItemCreateNestedManyWithoutPayrollInput
 }
 
@@ -1164,6 +1314,7 @@ export type PayrollUncheckedCreateWithoutExpenseAccountInput = {
   totalTax?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  projectId?: string | null
   createdById?: string | null
   approvedById?: string | null
   approvedAt?: Date | string | null
@@ -1223,6 +1374,7 @@ export type PayrollCreateWithoutItemsInput = {
   createdByUser?: Prisma.UserCreateNestedOneWithoutCreatedPayrollsInput
   approvedByUser?: Prisma.UserCreateNestedOneWithoutApprovedPayrollsInput
   expenseAccount?: Prisma.AccountCreateNestedOneWithoutPayrollsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutPayrollsInput
 }
 
 export type PayrollUncheckedCreateWithoutItemsInput = {
@@ -1241,6 +1393,7 @@ export type PayrollUncheckedCreateWithoutItemsInput = {
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: string | null
+  projectId?: string | null
   createdById?: string | null
   approvedById?: string | null
   approvedAt?: Date | string | null
@@ -1289,6 +1442,7 @@ export type PayrollUpdateWithoutItemsInput = {
   createdByUser?: Prisma.UserUpdateOneWithoutCreatedPayrollsNestedInput
   approvedByUser?: Prisma.UserUpdateOneWithoutApprovedPayrollsNestedInput
   expenseAccount?: Prisma.AccountUpdateOneWithoutPayrollsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutPayrollsNestedInput
 }
 
 export type PayrollUncheckedUpdateWithoutItemsInput = {
@@ -1307,6 +1461,7 @@ export type PayrollUncheckedUpdateWithoutItemsInput = {
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1332,6 +1487,7 @@ export type PayrollCreateManyCreatedByUserInput = {
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: string | null
+  projectId?: string | null
   approvedById?: string | null
   approvedAt?: Date | string | null
   paidAt?: Date | string | null
@@ -1356,6 +1512,7 @@ export type PayrollCreateManyApprovedByUserInput = {
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: string | null
+  projectId?: string | null
   createdById?: string | null
   approvedAt?: Date | string | null
   paidAt?: Date | string | null
@@ -1386,6 +1543,7 @@ export type PayrollUpdateWithoutCreatedByUserInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedByUser?: Prisma.UserUpdateOneWithoutApprovedPayrollsNestedInput
   expenseAccount?: Prisma.AccountUpdateOneWithoutPayrollsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutPayrollsNestedInput
   items?: Prisma.PayrollItemUpdateManyWithoutPayrollNestedInput
 }
 
@@ -1405,6 +1563,7 @@ export type PayrollUncheckedUpdateWithoutCreatedByUserInput = {
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1430,6 +1589,7 @@ export type PayrollUncheckedUpdateManyWithoutCreatedByUserInput = {
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1460,6 +1620,7 @@ export type PayrollUpdateWithoutApprovedByUserInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdByUser?: Prisma.UserUpdateOneWithoutCreatedPayrollsNestedInput
   expenseAccount?: Prisma.AccountUpdateOneWithoutPayrollsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutPayrollsNestedInput
   items?: Prisma.PayrollItemUpdateManyWithoutPayrollNestedInput
 }
 
@@ -1479,6 +1640,7 @@ export type PayrollUncheckedUpdateWithoutApprovedByUserInput = {
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1504,7 +1666,110 @@ export type PayrollUncheckedUpdateManyWithoutApprovedByUserInput = {
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type PayrollCreateManyProjectInput = {
+  id?: string
+  name: string
+  year: number
+  month: number
+  payPeriod?: string | null
+  paymentDate?: Date | string | null
+  status?: $Enums.PayrollStatus
+  rejectionReason?: string | null
+  totalBaseSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalBonuses?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalTax?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  expenseAccountCode?: string | null
+  createdById?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  paidAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type PayrollUpdateWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  payPeriod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumPayrollStatusFieldUpdateOperationsInput | $Enums.PayrollStatus
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totalBaseSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalBonuses?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalTax?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdByUser?: Prisma.UserUpdateOneWithoutCreatedPayrollsNestedInput
+  approvedByUser?: Prisma.UserUpdateOneWithoutApprovedPayrollsNestedInput
+  expenseAccount?: Prisma.AccountUpdateOneWithoutPayrollsNestedInput
+  items?: Prisma.PayrollItemUpdateManyWithoutPayrollNestedInput
+}
+
+export type PayrollUncheckedUpdateWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  payPeriod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumPayrollStatusFieldUpdateOperationsInput | $Enums.PayrollStatus
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totalBaseSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalBonuses?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalTax?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  items?: Prisma.PayrollItemUncheckedUpdateManyWithoutPayrollNestedInput
+}
+
+export type PayrollUncheckedUpdateManyWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  payPeriod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumPayrollStatusFieldUpdateOperationsInput | $Enums.PayrollStatus
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totalBaseSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalBonuses?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalTax?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expenseAccountCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1527,6 +1792,7 @@ export type PayrollCreateManyExpenseAccountInput = {
   totalTax?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalGrossSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  projectId?: string | null
   createdById?: string | null
   approvedById?: string | null
   approvedAt?: Date | string | null
@@ -1558,6 +1824,7 @@ export type PayrollUpdateWithoutExpenseAccountInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdByUser?: Prisma.UserUpdateOneWithoutCreatedPayrollsNestedInput
   approvedByUser?: Prisma.UserUpdateOneWithoutApprovedPayrollsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutPayrollsNestedInput
   items?: Prisma.PayrollItemUpdateManyWithoutPayrollNestedInput
 }
 
@@ -1576,6 +1843,7 @@ export type PayrollUncheckedUpdateWithoutExpenseAccountInput = {
   totalTax?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1601,6 +1869,7 @@ export type PayrollUncheckedUpdateManyWithoutExpenseAccountInput = {
   totalTax?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalGrossSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalNetSalary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1657,6 +1926,7 @@ export type PayrollSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   totalGrossSalary?: boolean
   totalNetSalary?: boolean
   expenseAccountCode?: boolean
+  projectId?: boolean
   createdById?: boolean
   approvedById?: boolean
   approvedAt?: boolean
@@ -1667,6 +1937,7 @@ export type PayrollSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdByUser?: boolean | Prisma.Payroll$createdByUserArgs<ExtArgs>
   approvedByUser?: boolean | Prisma.Payroll$approvedByUserArgs<ExtArgs>
   expenseAccount?: boolean | Prisma.Payroll$expenseAccountArgs<ExtArgs>
+  project?: boolean | Prisma.Payroll$projectArgs<ExtArgs>
   items?: boolean | Prisma.Payroll$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.PayrollCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payroll"]>
@@ -1687,6 +1958,7 @@ export type PayrollSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   totalGrossSalary?: boolean
   totalNetSalary?: boolean
   expenseAccountCode?: boolean
+  projectId?: boolean
   createdById?: boolean
   approvedById?: boolean
   approvedAt?: boolean
@@ -1697,6 +1969,7 @@ export type PayrollSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdByUser?: boolean | Prisma.Payroll$createdByUserArgs<ExtArgs>
   approvedByUser?: boolean | Prisma.Payroll$approvedByUserArgs<ExtArgs>
   expenseAccount?: boolean | Prisma.Payroll$expenseAccountArgs<ExtArgs>
+  project?: boolean | Prisma.Payroll$projectArgs<ExtArgs>
 }, ExtArgs["result"]["payroll"]>
 
 export type PayrollSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1715,6 +1988,7 @@ export type PayrollSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   totalGrossSalary?: boolean
   totalNetSalary?: boolean
   expenseAccountCode?: boolean
+  projectId?: boolean
   createdById?: boolean
   approvedById?: boolean
   approvedAt?: boolean
@@ -1725,6 +1999,7 @@ export type PayrollSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdByUser?: boolean | Prisma.Payroll$createdByUserArgs<ExtArgs>
   approvedByUser?: boolean | Prisma.Payroll$approvedByUserArgs<ExtArgs>
   expenseAccount?: boolean | Prisma.Payroll$expenseAccountArgs<ExtArgs>
+  project?: boolean | Prisma.Payroll$projectArgs<ExtArgs>
 }, ExtArgs["result"]["payroll"]>
 
 export type PayrollSelectScalar = {
@@ -1743,6 +2018,7 @@ export type PayrollSelectScalar = {
   totalGrossSalary?: boolean
   totalNetSalary?: boolean
   expenseAccountCode?: boolean
+  projectId?: boolean
   createdById?: boolean
   approvedById?: boolean
   approvedAt?: boolean
@@ -1752,11 +2028,12 @@ export type PayrollSelectScalar = {
   deletedAt?: boolean
 }
 
-export type PayrollOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "year" | "month" | "payPeriod" | "paymentDate" | "status" | "rejectionReason" | "totalBaseSalary" | "totalBonuses" | "totalDeductions" | "totalTax" | "totalGrossSalary" | "totalNetSalary" | "expenseAccountCode" | "createdById" | "approvedById" | "approvedAt" | "paidAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["payroll"]>
+export type PayrollOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "year" | "month" | "payPeriod" | "paymentDate" | "status" | "rejectionReason" | "totalBaseSalary" | "totalBonuses" | "totalDeductions" | "totalTax" | "totalGrossSalary" | "totalNetSalary" | "expenseAccountCode" | "projectId" | "createdById" | "approvedById" | "approvedAt" | "paidAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["payroll"]>
 export type PayrollInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdByUser?: boolean | Prisma.Payroll$createdByUserArgs<ExtArgs>
   approvedByUser?: boolean | Prisma.Payroll$approvedByUserArgs<ExtArgs>
   expenseAccount?: boolean | Prisma.Payroll$expenseAccountArgs<ExtArgs>
+  project?: boolean | Prisma.Payroll$projectArgs<ExtArgs>
   items?: boolean | Prisma.Payroll$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.PayrollCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1764,11 +2041,13 @@ export type PayrollIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   createdByUser?: boolean | Prisma.Payroll$createdByUserArgs<ExtArgs>
   approvedByUser?: boolean | Prisma.Payroll$approvedByUserArgs<ExtArgs>
   expenseAccount?: boolean | Prisma.Payroll$expenseAccountArgs<ExtArgs>
+  project?: boolean | Prisma.Payroll$projectArgs<ExtArgs>
 }
 export type PayrollIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdByUser?: boolean | Prisma.Payroll$createdByUserArgs<ExtArgs>
   approvedByUser?: boolean | Prisma.Payroll$approvedByUserArgs<ExtArgs>
   expenseAccount?: boolean | Prisma.Payroll$expenseAccountArgs<ExtArgs>
+  project?: boolean | Prisma.Payroll$projectArgs<ExtArgs>
 }
 
 export type $PayrollPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1777,6 +2056,7 @@ export type $PayrollPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     createdByUser: Prisma.$UserPayload<ExtArgs> | null
     approvedByUser: Prisma.$UserPayload<ExtArgs> | null
     expenseAccount: Prisma.$AccountPayload<ExtArgs> | null
+    project: Prisma.$ProjectPayload<ExtArgs> | null
     items: Prisma.$PayrollItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1795,6 +2075,7 @@ export type $PayrollPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     totalGrossSalary: runtime.Decimal
     totalNetSalary: runtime.Decimal
     expenseAccountCode: string | null
+    projectId: string | null
     createdById: string | null
     approvedById: string | null
     approvedAt: Date | null
@@ -2199,6 +2480,7 @@ export interface Prisma__PayrollClient<T, Null = never, ExtArgs extends runtime.
   createdByUser<T extends Prisma.Payroll$createdByUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payroll$createdByUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   approvedByUser<T extends Prisma.Payroll$approvedByUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payroll$approvedByUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   expenseAccount<T extends Prisma.Payroll$expenseAccountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payroll$expenseAccountArgs<ExtArgs>>): Prisma.Prisma__AccountClient<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  project<T extends Prisma.Payroll$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payroll$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.Payroll$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payroll$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2244,6 +2526,7 @@ export interface PayrollFieldRefs {
   readonly totalGrossSalary: Prisma.FieldRef<"Payroll", 'Decimal'>
   readonly totalNetSalary: Prisma.FieldRef<"Payroll", 'Decimal'>
   readonly expenseAccountCode: Prisma.FieldRef<"Payroll", 'String'>
+  readonly projectId: Prisma.FieldRef<"Payroll", 'String'>
   readonly createdById: Prisma.FieldRef<"Payroll", 'String'>
   readonly approvedById: Prisma.FieldRef<"Payroll", 'String'>
   readonly approvedAt: Prisma.FieldRef<"Payroll", 'DateTime'>
@@ -2706,6 +2989,25 @@ export type Payroll$expenseAccountArgs<ExtArgs extends runtime.Types.Extensions.
    */
   include?: Prisma.AccountInclude<ExtArgs> | null
   where?: Prisma.AccountWhereInput
+}
+
+/**
+ * Payroll.project
+ */
+export type Payroll$projectArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Project
+   */
+  select?: Prisma.ProjectSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Project
+   */
+  omit?: Prisma.ProjectOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectInclude<ExtArgs> | null
+  where?: Prisma.ProjectWhereInput
 }
 
 /**

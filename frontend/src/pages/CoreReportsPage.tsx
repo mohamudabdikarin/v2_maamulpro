@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { EmptyState, ErrorAlert, LoadingState, PageHeader, StatGrid, formatReference, formatTableValue, humanize, money, visibleTableColumns } from '../components/maamulpro/PageKit';
+import { ReportBrandFooter, ReportBrandHeader, ReportPrintSheet, ReportPrintStyles, useCompanyBrand } from '../components/maamulpro/ReportBrand';
 import { api, apiBlob } from '../lib/api';
 
 type ReportWorkspace = 'core' | 'payroll';
@@ -21,6 +22,7 @@ type Props = { basePath?: string; workspace?: ReportWorkspace; initialReportId?:
 const moneyKey = (key: string) => /(income|expense|profit|balance|budget|salary|deduction|cost|total|paid|net|amount|value|revenue)/i.test(key);
 
 const CoreReportsPage = ({ basePath = '/app/financials/reports', workspace = 'core', initialReportId }: Props) => {
+    const brand = useCompanyBrand();
     const [reports, setReports] = useState<RegistryItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -105,7 +107,7 @@ const CoreReportsPage = ({ basePath = '/app/financials/reports', workspace = 'co
         : row.payrollId ? `/app/payroll?record=${row.payrollId}` : null;
 
     const dateFilters = (
-        <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
             <label className="text-xs font-semibold uppercase tracking-wide text-white-dark">
                 From
                 <input className="form-input mt-1" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -128,65 +130,83 @@ const CoreReportsPage = ({ basePath = '/app/financials/reports', workspace = 'co
         </div>
     );
 
+    const periodLabel = [startDate, endDate].filter(Boolean).length
+        ? `${startDate || '…'} – ${endDate || '…'}`
+        : 'All dates';
+
     const renderResult = () => {
         if (!result) return null;
         const rows = result.rows || [];
         return (
             <div className="mt-6 space-y-5">
-                {summaryItems.length > 0 && <StatGrid items={summaryItems.slice(0, 4)} />}
-                {result.comparison && <div className="panel"><h3 className="mb-3 font-bold">Period comparison</h3><StatGrid items={Object.entries(result.comparison.summaryDelta).slice(0, 4).map(([key, value]) => ({ label: `${humanize(key)} change`, value: `${value > 0 ? '+' : ''}${moneyKey(key) ? money(value) : value}` }))} /></div>}
-                <div className="panel overflow-hidden p-0">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white-light px-5 py-4 dark:border-[#191e3a]">
-                        <div>
-                            <h2 className="text-lg font-bold">{result.report.title}</h2>
-                            <p className="text-sm text-white-dark">{rows.length} rows · {new Date(result.generatedAt).toLocaleString()}</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2"><button type="button" className="btn btn-outline-primary" disabled={Boolean(runningId)} onClick={() => run(result.report.id)}>Run again</button><button type="button" className="btn btn-outline-secondary" onClick={() => download('csv')}>CSV</button><button type="button" className="btn btn-outline-secondary" onClick={() => download('xls')}>Excel</button><button type="button" className="btn btn-outline-secondary" onClick={() => download('pdf')}>PDF</button></div>
+                <div className="print:hidden flex flex-wrap items-center justify-between gap-3">
+                    {summaryItems.length > 0 && <div className="flex-1"><StatGrid items={summaryItems.slice(0, 4)} /></div>}
+                    <button type="button" className="btn btn-primary" onClick={() => window.print()}>Print</button>
+                </div>
+                {result.comparison && <div className="print:hidden panel"><h3 className="mb-3 font-bold">Period comparison</h3><StatGrid items={Object.entries(result.comparison.summaryDelta).slice(0, 4).map(([key, value]) => ({ label: `${humanize(key)} change`, value: `${value > 0 ? '+' : ''}${moneyKey(key) ? money(value) : value}` }))} /></div>}
+                <ReportPrintSheet wide>
+                    <ReportBrandHeader
+                        brand={brand}
+                        title={result.report.title}
+                        subtitle={`${rows.length} rows · ${periodLabel}`}
+                        meta={new Date(result.generatedAt).toLocaleString()}
+                    />
+                    <div className="print:hidden mb-4 flex flex-wrap gap-2">
+                        <button type="button" className="btn btn-outline-primary" disabled={Boolean(runningId)} onClick={() => run(result.report.id)}>Run again</button>
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => download('csv')}>CSV</button>
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => download('xls')}>Excel</button>
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => download('pdf')}>PDF</button>
                     </div>
                     {!rows.length ? (
                         <EmptyState title="No results" description="Nothing matched the selected date range." />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="table-hover w-full">
-                                <thead><tr>{columns.map((column) => <th key={column}>{humanize(column)}</th>)}{rows.some(rowTarget) && <th>Record</th>}</tr></thead>
+                            <table className="table-hover w-full text-[12px]">
+                                <thead><tr>{columns.map((column) => <th key={column}>{humanize(column)}</th>)}{rows.some(rowTarget) && <th className="print:hidden">Record</th>}</tr></thead>
                                 <tbody>{rows.slice(0, 200).map((row, index) => (
                                     <tr key={row.id || index}>{columns.map((column) => {
                                         const value = row[column];
                                         return <td key={column} className={moneyKey(column) && typeof value === 'number' ? 'text-right font-semibold' : ''}>{column === 'reference' ? formatReference(value, row.transactionId) : formatTableValue(column, value)}</td>;
-                                    })}{rows.some(rowTarget) && <td>{rowTarget(row) ? <Link className="font-semibold text-primary hover:underline" to={rowTarget(row)!}>Open</Link> : '—'}</td>}</tr>
+                                    })}{rows.some(rowTarget) && <td className="print:hidden">{rowTarget(row) ? <Link className="font-semibold text-primary hover:underline" to={rowTarget(row)!}>Open</Link> : '—'}</td>}</tr>
                                 ))}</tbody>
                             </table>
                         </div>
                     )}
-                </div>
+                    <ReportBrandFooter brand={brand} />
+                </ReportPrintSheet>
             </div>
         );
     };
 
     return (
         <AppShell>
-            <PageHeader eyebrow={eyebrow} title={title} description="Run company-wide financial or payroll reports with optional date ranges." />
+            <ReportPrintStyles />
+            <div className="print:hidden">
+                <PageHeader eyebrow={eyebrow} title={title} description="Run company-wide financial or payroll reports with optional date ranges." />
+            </div>
             {dateFilters}
-            {error && <ErrorAlert message={error} onRetry={loadRegistry} />}
+            {error && <div className="print:hidden"><ErrorAlert message={error} onRetry={loadRegistry} /></div>}
             {loading ? <div className="panel"><LoadingState /></div> : (
                 <>
-                    {!reports.length ? (
-                        <div className="panel"><EmptyState title="No reports available" description={`No ${workspace === 'core' ? 'financial' : 'payroll'} reports are configured for this workspace.`} /></div>
-                    ) : (
-                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                            {reports.map((report) => (
-                                <div key={report.id} className="panel flex flex-col justify-between gap-4 p-5 transition hover:-translate-y-1 hover:border-primary">
-                                    <div>
-                                        <h3 className="font-bold text-secondary dark:text-white">{report.title}</h3>
-                                        <p className="mt-1 text-sm text-white-dark">{humanize(report.workspace)} report · {report.supportsDateRange ? 'date-range enabled' : 'instant'}</p>
+                    <div className="print:hidden">
+                        {!reports.length ? (
+                            <div className="panel"><EmptyState title="No reports available" description={`No ${workspace === 'core' ? 'financial' : 'payroll'} reports are configured for this workspace.`} /></div>
+                        ) : (
+                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                {reports.map((report) => (
+                                    <div key={report.id} className="panel flex flex-col justify-between gap-4 p-5 transition hover:-translate-y-1 hover:border-primary">
+                                        <div>
+                                            <h3 className="font-bold text-secondary dark:text-white">{report.title}</h3>
+                                            <p className="mt-1 text-sm text-white-dark">{humanize(report.workspace)} report · {report.supportsDateRange ? 'date-range enabled' : 'instant'}</p>
+                                        </div>
+                                        <button type="button" className="btn btn-primary" disabled={Boolean(runningId)} onClick={() => run(report.id)}>
+                                            {runningId === report.id ? 'Running…' : 'Run report'}
+                                        </button>
                                     </div>
-                                    <button type="button" className="btn btn-primary" disabled={Boolean(runningId)} onClick={() => run(report.id)}>
-                                        {runningId === report.id ? 'Running…' : 'Run report'}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     {renderResult()}
                 </>
             )}

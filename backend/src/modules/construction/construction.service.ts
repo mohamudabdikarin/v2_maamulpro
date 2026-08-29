@@ -23,10 +23,11 @@ export class ConstructionService {
     private readonly accounting: AccountingService,
   ) {}
 
-  private async safePost(fn: () => Promise<unknown>) {
-    try { await fn(); } catch (err) {
+  private async safePost<T>(fn: () => Promise<T>): Promise<T | null> {
+    try { return await fn(); } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(`Journal post skipped: ${message}`);
+      return null;
     }
   }
 
@@ -207,6 +208,7 @@ export class ConstructionService {
       data: {
         title: data.title,
         description: data.description,
+        contractorName: data.contractorName,
         projectId: data.projectId,
         originalBudget: data.originalBudget,
         startDate: data.startDate ? new Date(data.startDate) : null,
@@ -247,6 +249,7 @@ export class ConstructionService {
         projectId: data.projectId,
         title: data.title,
         description: data.description,
+        contractorName: data.contractorName,
         originalBudget: data.originalBudget,
         status: data.status as any,
         startDate: data.startDate,
@@ -332,6 +335,7 @@ export class ConstructionService {
     data: ContractPaymentDto,
   ) {
     return tenantDb.$transaction(async (tx: any) => {
+      const paymentDate = data.date ? new Date(data.date) : new Date();
       // Lock the contract row first so concurrent payments serialize: the
       // waiting transaction re-reads the latest totalPaid and cannot exceed
       // the remaining adjusted budget.
@@ -348,10 +352,17 @@ export class ConstructionService {
       if (!['ACTIVE', 'COMPLETED'].includes(contract.status)) {
         throw new BadRequestException('Payments can only be recorded for active or completed contracts');
       }
-      const assigned = await tx.workforceContractWorker.findFirst({
-        where: { contractId, staffId: data.staffId, removedAt: null },
-      });
-      if (!assigned) throw new BadRequestException('Worker is not actively assigned to this contract');
+      if (Boolean(data.staffId) === Boolean(data.payeeName)) {
+        throw new BadRequestException('Provide either an assigned staff member or an external payee name');
+      }
+      if (data.staffId) {
+        const assigned = await tx.workforceContractWorker.findFirst({
+          where: { contractId, staffId: data.staffId, removedAt: null },
+        });
+        if (!assigned) throw new BadRequestException('Worker is not actively assigned to this contract');
+      } else if (!contract.contractorName || contract.contractorName !== data.payeeName) {
+        throw new BadRequestException('External payee must match the contractor named on the contract');
+      }
       const adjustedBudget = contract.budgetAdjustments.reduce(
         (total: number, row: any) => total + Number(row.amount),
         Number(contract.originalBudget),
@@ -362,9 +373,10 @@ export class ConstructionService {
       const payment = await tx.workforceContractPayment.create({
         data: {
           contractId,
-          staffId: data.staffId,
+          staffId: data.staffId || null,
+          payeeName: data.payeeName || null,
           amount: data.amount,
-          date: data.date || new Date(),
+          date: paymentDate,
           description: data.description,
           recordedById: userId,
           notes: data.notes,
@@ -374,26 +386,30 @@ export class ConstructionService {
         where: { id: contractId },
         data: { totalPaid: { increment: data.amount }, version: { increment: 1 } },
       });
-      const category = await this.findOrCreateCategory(tx, 'Labor Expense');
-      await tx.workerLedgerEntry.create({
+      const isExternal = !data.staffId;
+      const paymentReference = `${isExternal ? 'subpayment' : 'wfpayment'}:${payment.id}`;
+      const category = await this.findOrCreateCategory(tx, isExternal ? 'Subcontractor Expense' : 'Labor Expense');
+      if (data.staffId) {
+        await tx.workerLedgerEntry.create({
+          data: {
+            userId,
+            staffId: data.staffId,
+            projectId: contract.projectId,
+            type: 'EXPENSE',
+            amount: data.amount,
+            description: data.description,
+            date: paymentDate,
+          },
+        });
+      }
+      const cashbook = await tx.transaction.create({
         data: {
-          userId,
-          staffId: data.staffId,
-          projectId: contract.projectId,
-          type: 'EXPENSE',
-          amount: data.amount,
-          description: data.description,
-          date: data.date || new Date(),
-        },
-      });
-      await tx.transaction.create({
-        data: {
-          referenceId: `wfpayment:${payment.id}`,
+          referenceId: paymentReference,
           type: 'EXPENSE',
           status: 'CLEARED',
           amount: data.amount,
           description: data.description,
-          date: data.date || new Date(),
+          date: paymentDate,
           categoryId: category.id,
           userId,
           projectId: contract.projectId,
@@ -402,19 +418,24 @@ export class ConstructionService {
       });
       // Workforce contract payments are a labor expense funded from
       // cash — same posting shape as payroll.
-      await this.safePost(() =>
-        this.accounting.postFinancialEvent(tx, {
+      const post = () => this.accounting.postFinancialEvent(tx, {
           tx, tenantId: 'system', userId,
-          sourceType: 'WORKFORCE_PAYMENT',
+          sourceType: isExternal ? 'SUBCONTRACTOR_PAYMENT' : 'WORKFORCE_PAYMENT',
           sourceId: payment.id,
-          sourceRef: `wfpayment ${payment.id}`,
-          date: data.date || new Date(),
+          sourceRef: paymentReference,
+          date: paymentDate,
           memo: data.description,
-          drKey: 'PAYROLL_EXPENSE',
-          crKey: 'PAYROLL_CASH',
+          drKey: isExternal ? 'TRANSACTION_EXPENSE_ACCOUNT' : 'PAYROLL_EXPENSE',
+          crKey: isExternal ? 'TRANSACTION_EXPENSE_CASH' : 'PAYROLL_CASH',
           amount: Number(data.amount),
-        }),
-      );
+        });
+      const batch: any = isExternal ? await post() : await this.safePost(post);
+      if (batch) {
+        await tx.transaction.update({
+          where: { id: cashbook.id },
+          data: { journalBatchId: batch.id, postingStatus: 'POSTED' },
+        });
+      }
       return payment;
     });
   }
@@ -735,13 +756,27 @@ export class ConstructionService {
 
   async createInventoryMovement(tenantDb: any, userId: string, data: InventoryMovementDto) {
     return tenantDb.$transaction(async (tx: any) => {
+      if (data.sourceRef) {
+        const existing = await tx.constructionInventoryTransaction.findUnique({
+          where: { sourceRef: data.sourceRef },
+          include: { material: true, project: true, user: true, supplier: true },
+        });
+        if (existing) return existing;
+      }
       const material = await tx.constructionMaterial.findFirst({ where: { id: data.materialId, deletedAt: null } });
       if (!material) throw new NotFoundException('Material not found');
+      if (data.supplierId) {
+        const supplier = await tx.supplier.findFirst({ where: { id: data.supplierId, deletedAt: null } });
+        if (!supplier) throw new NotFoundException('Supplier not found');
+      }
       if (data.type === 'USAGE' && !data.projectId) {
         throw new BadRequestException('A project is required for material usage');
       }
       if (data.type === 'TRANSFER') {
         throw new BadRequestException('Warehouse transfers are not supported yet; use RESTOCK / USAGE / ADJUSTMENT');
+      }
+      if (data.totalCost != null && (data.type !== 'RESTOCK' || !data.projectId)) {
+        throw new BadRequestException('A costed procurement must be a project RESTOCK movement');
       }
       const currentQuantity = Number(material.quantity);
       const qty = Number(data.quantity);
@@ -749,10 +784,15 @@ export class ConstructionService {
       const delta = data.type === 'USAGE' ? -Math.abs(qty) : data.type === 'ADJUSTMENT' ? qty : Math.abs(qty);
       const nextQuantity = currentQuantity + delta;
       if (nextQuantity < 0) throw new BadRequestException('Insufficient stock for this movement');
+      const statedUnitCost = data.unitCost == null ? Number(material.unitCost) : Number(data.unitCost);
+      const nextUnitCost = data.type === 'RESTOCK' && nextQuantity > 0
+        ? ((currentQuantity * Number(material.unitCost)) + Number(data.totalCost ?? (Math.abs(qty) * statedUnitCost))) / nextQuantity
+        : Number(material.unitCost);
       const updated = await tx.constructionMaterial.updateMany({
         where: { id: material.id, version: material.version, deletedAt: null },
         data: {
           quantity: nextQuantity,
+          unitCost: nextUnitCost,
           warehouse: data.warehouse || material.warehouse,
           version: { increment: 1 },
         },
@@ -765,12 +805,51 @@ export class ConstructionService {
           type: data.type as any,
           quantity: Math.abs(qty),
           userId,
+          supplierId: data.supplierId || null,
+          paymentMethod: data.paymentMethod || null,
+          unitCost: data.unitCost ?? null,
+          totalCost: data.totalCost ?? null,
+          sourceRef: data.sourceRef || null,
           notes: data.notes,
           warehouse: data.warehouse,
-          date: new Date(),
+          date: data.date ? new Date(data.date) : new Date(),
         },
-        include: { material: true, project: true, user: true },
+        include: { material: true, project: true, user: true, supplier: true },
       });
+      if (data.type === 'RESTOCK' && data.projectId && Number(data.totalCost || 0) > 0) {
+        const referenceId = `construction-procurement:${data.sourceRef || movement.id}`;
+        const category = await this.findOrCreateCategory(tx, 'Construction Materials');
+        const description = data.notes || `Construction material purchase: ${material.name}`;
+        const cashbook = await tx.transaction.create({
+          data: {
+            referenceId,
+            type: 'EXPENSE',
+            status: 'CLEARED',
+            amount: data.totalCost,
+            description,
+            date: movement.date,
+            categoryId: category.id,
+            userId,
+            projectId: data.projectId,
+            notes: [data.paymentMethod ? `Payment method: ${data.paymentMethod}` : null, data.sourceRef ? `Source: ${data.sourceRef}` : null].filter(Boolean).join('; ') || null,
+          },
+        });
+        const batch = await this.accounting.postFinancialEvent(tx, {
+          tx, tenantId: 'system', userId,
+          sourceType: 'CONSTRUCTION_PROCUREMENT',
+          sourceId: movement.id,
+          sourceRef: referenceId,
+          date: movement.date,
+          memo: description,
+          drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
+          crKey: 'TRANSACTION_EXPENSE_CASH',
+          amount: Number(data.totalCost),
+        });
+        await tx.transaction.update({
+          where: { id: cashbook.id },
+          data: { journalBatchId: batch.id, postingStatus: 'POSTED' },
+        });
+      }
       // Job costing for USAGE is tracked via constructionInventoryTransaction
       // (reports). Do not post CLEARED cashbook expense here — purchases
       // already expense at RECEIVED, and double-posting would inflate P&L.
@@ -820,9 +899,9 @@ export class ConstructionService {
         version: { increment: 1 },
       },
     });
-    await this.safePost(async () => {
+    const batch: any = await this.safePost(async () => {
       await this.accounting.retractPriorForSource(tx, 'DAILY_EXPENSE', expense.id);
-      await this.accounting.postFinancialEvent(tx, {
+      return this.accounting.postFinancialEvent(tx, {
         tx, tenantId: 'system', userId,
         sourceType: 'DAILY_EXPENSE',
         sourceId: expense.id,
@@ -834,6 +913,9 @@ export class ConstructionService {
         amount: Number(expense.amount),
       });
     });
+    if (batch) {
+      await tx.transaction.update({ where: { id: result.id }, data: { journalBatchId: batch.id, postingStatus: 'POSTED' } });
+    }
     return result;
   }
 
@@ -868,10 +950,10 @@ export class ConstructionService {
         version: { increment: 1 },
       },
     });
-    await this.safePost(async () => {
+    const batch: any = await this.safePost(async () => {
       await this.accounting.retractPriorForSource(tx, 'WORKER_LEDGER', entry.id);
       const isExpense = entry.type === 'EXPENSE';
-      await this.accounting.postFinancialEvent(tx, {
+      return this.accounting.postFinancialEvent(tx, {
         tx, tenantId: 'system', userId,
         sourceType: 'WORKER_LEDGER',
         sourceId: entry.id,
@@ -883,6 +965,9 @@ export class ConstructionService {
         amount: Number(entry.amount),
       });
     });
+    if (batch) {
+      await tx.transaction.update({ where: { id: result.id }, data: { journalBatchId: batch.id, postingStatus: 'POSTED' } });
+    }
     return result;
   }
 

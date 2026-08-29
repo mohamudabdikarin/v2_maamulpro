@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 23;
+export const CURRENT_TENANT_SCHEMA_VERSION = 24;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -91,6 +91,11 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `ALTER TYPE "Department" ADD VALUE IF NOT EXISTS 'MATERIAL_MANAGEMENT'`,
   `ALTER TYPE "InventoryTransactionType" ADD VALUE IF NOT EXISTS 'ADJUSTMENT'`,
   `ALTER TYPE "InventoryTransactionType" ADD VALUE IF NOT EXISTS 'TRANSFER'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'TRUCK_LOAD'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'LOT'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'SQUARE_METER'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'SET'`,
+  `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'BUCKET'`,
 
   `DO $$ BEGIN
     CREATE TYPE "RentalPaymentStatus" AS ENUM ('PAID','UNPAID','LATE','PARTIAL');
@@ -1621,6 +1626,33 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_project_id_idx" ON "construction_inventory_transactions"("project_id")`,
   `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_date_idx" ON "construction_inventory_transactions"("date")`,
   `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_type_project_id_date_idx" ON "construction_inventory_transactions"("type", "project_id", "date")`,
+
+  // ── Construction workbook import support (v24) ───────────────
+  `ALTER TABLE "workforce_contracts" ADD COLUMN IF NOT EXISTS "contractor_name" TEXT`,
+  `ALTER TABLE "workforce_contract_payments" ALTER COLUMN "staff_id" DROP NOT NULL`,
+  `ALTER TABLE "workforce_contract_payments" ADD COLUMN IF NOT EXISTS "payee_name" TEXT`,
+  `ALTER TABLE "workforce_contract_payments" DROP CONSTRAINT IF EXISTS "workforce_contract_payments_staff_id_fkey"`,
+  `ALTER TABLE "workforce_contract_payments" ADD CONSTRAINT "workforce_contract_payments_staff_id_fkey"
+    FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE SET NULL`,
+
+  `ALTER TABLE "payrolls" ADD COLUMN IF NOT EXISTS "project_id" TEXT`,
+  `DO $$ BEGIN
+    ALTER TABLE "payrolls" ADD CONSTRAINT "payrolls_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+  `CREATE INDEX IF NOT EXISTS "payrolls_project_id_idx" ON "payrolls"("project_id")`,
+
+  `ALTER TABLE "construction_inventory_transactions" ADD COLUMN IF NOT EXISTS "supplier_id" TEXT`,
+  `ALTER TABLE "construction_inventory_transactions" ADD COLUMN IF NOT EXISTS "payment_method" TEXT`,
+  `ALTER TABLE "construction_inventory_transactions" ADD COLUMN IF NOT EXISTS "unit_cost" DECIMAL(12,2)`,
+  `ALTER TABLE "construction_inventory_transactions" ADD COLUMN IF NOT EXISTS "total_cost" DECIMAL(12,2)`,
+  `ALTER TABLE "construction_inventory_transactions" ADD COLUMN IF NOT EXISTS "source_ref" TEXT`,
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD CONSTRAINT "construction_inventory_transactions_supplier_id_fkey"
+      FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "construction_inventory_transactions_source_ref_key" ON "construction_inventory_transactions"("source_ref")`,
+  `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_supplier_id_idx" ON "construction_inventory_transactions"("supplier_id")`,
 ];
 
 /**

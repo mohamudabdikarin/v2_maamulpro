@@ -28,10 +28,14 @@ export type AggregateConstructionInventoryTransaction = {
 
 export type ConstructionInventoryTransactionAvgAggregateOutputType = {
   quantity: runtime.Decimal | null
+  unitCost: runtime.Decimal | null
+  totalCost: runtime.Decimal | null
 }
 
 export type ConstructionInventoryTransactionSumAggregateOutputType = {
   quantity: runtime.Decimal | null
+  unitCost: runtime.Decimal | null
+  totalCost: runtime.Decimal | null
 }
 
 export type ConstructionInventoryTransactionMinAggregateOutputType = {
@@ -42,6 +46,11 @@ export type ConstructionInventoryTransactionMinAggregateOutputType = {
   quantity: runtime.Decimal | null
   date: Date | null
   userId: string | null
+  supplierId: string | null
+  paymentMethod: string | null
+  unitCost: runtime.Decimal | null
+  totalCost: runtime.Decimal | null
+  sourceRef: string | null
   notes: string | null
   warehouse: string | null
   createdAt: Date | null
@@ -57,6 +66,11 @@ export type ConstructionInventoryTransactionMaxAggregateOutputType = {
   quantity: runtime.Decimal | null
   date: Date | null
   userId: string | null
+  supplierId: string | null
+  paymentMethod: string | null
+  unitCost: runtime.Decimal | null
+  totalCost: runtime.Decimal | null
+  sourceRef: string | null
   notes: string | null
   warehouse: string | null
   createdAt: Date | null
@@ -72,6 +86,11 @@ export type ConstructionInventoryTransactionCountAggregateOutputType = {
   quantity: number
   date: number
   userId: number
+  supplierId: number
+  paymentMethod: number
+  unitCost: number
+  totalCost: number
+  sourceRef: number
   notes: number
   warehouse: number
   createdAt: number
@@ -83,10 +102,14 @@ export type ConstructionInventoryTransactionCountAggregateOutputType = {
 
 export type ConstructionInventoryTransactionAvgAggregateInputType = {
   quantity?: true
+  unitCost?: true
+  totalCost?: true
 }
 
 export type ConstructionInventoryTransactionSumAggregateInputType = {
   quantity?: true
+  unitCost?: true
+  totalCost?: true
 }
 
 export type ConstructionInventoryTransactionMinAggregateInputType = {
@@ -97,6 +120,11 @@ export type ConstructionInventoryTransactionMinAggregateInputType = {
   quantity?: true
   date?: true
   userId?: true
+  supplierId?: true
+  paymentMethod?: true
+  unitCost?: true
+  totalCost?: true
+  sourceRef?: true
   notes?: true
   warehouse?: true
   createdAt?: true
@@ -112,6 +140,11 @@ export type ConstructionInventoryTransactionMaxAggregateInputType = {
   quantity?: true
   date?: true
   userId?: true
+  supplierId?: true
+  paymentMethod?: true
+  unitCost?: true
+  totalCost?: true
+  sourceRef?: true
   notes?: true
   warehouse?: true
   createdAt?: true
@@ -127,6 +160,11 @@ export type ConstructionInventoryTransactionCountAggregateInputType = {
   quantity?: true
   date?: true
   userId?: true
+  supplierId?: true
+  paymentMethod?: true
+  unitCost?: true
+  totalCost?: true
+  sourceRef?: true
   notes?: true
   warehouse?: true
   createdAt?: true
@@ -229,6 +267,11 @@ export type ConstructionInventoryTransactionGroupByOutputType = {
   quantity: runtime.Decimal
   date: Date
   userId: string
+  supplierId: string | null
+  paymentMethod: string | null
+  unitCost: runtime.Decimal | null
+  totalCost: runtime.Decimal | null
+  sourceRef: string | null
   notes: string | null
   warehouse: string | null
   createdAt: Date
@@ -267,6 +310,11 @@ export type ConstructionInventoryTransactionWhereInput = {
   quantity?: Prisma.DecimalFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFilter<"ConstructionInventoryTransaction"> | Date | string
   userId?: Prisma.StringFilter<"ConstructionInventoryTransaction"> | string
+  supplierId?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
+  paymentMethod?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
+  unitCost?: Prisma.DecimalNullableFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.DecimalNullableFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
   notes?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
   warehouse?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ConstructionInventoryTransaction"> | Date | string
@@ -275,6 +323,7 @@ export type ConstructionInventoryTransactionWhereInput = {
   material?: Prisma.XOR<Prisma.ConstructionMaterialScalarRelationFilter, Prisma.ConstructionMaterialWhereInput>
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  supplier?: Prisma.XOR<Prisma.SupplierNullableScalarRelationFilter, Prisma.SupplierWhereInput> | null
 }
 
 export type ConstructionInventoryTransactionOrderByWithRelationInput = {
@@ -285,6 +334,11 @@ export type ConstructionInventoryTransactionOrderByWithRelationInput = {
   quantity?: Prisma.SortOrder
   date?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
+  unitCost?: Prisma.SortOrderInput | Prisma.SortOrder
+  totalCost?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceRef?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   warehouse?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -293,10 +347,12 @@ export type ConstructionInventoryTransactionOrderByWithRelationInput = {
   material?: Prisma.ConstructionMaterialOrderByWithRelationInput
   project?: Prisma.ProjectOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
+  supplier?: Prisma.SupplierOrderByWithRelationInput
 }
 
 export type ConstructionInventoryTransactionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  sourceRef?: string
   AND?: Prisma.ConstructionInventoryTransactionWhereInput | Prisma.ConstructionInventoryTransactionWhereInput[]
   OR?: Prisma.ConstructionInventoryTransactionWhereInput[]
   NOT?: Prisma.ConstructionInventoryTransactionWhereInput | Prisma.ConstructionInventoryTransactionWhereInput[]
@@ -306,6 +362,10 @@ export type ConstructionInventoryTransactionWhereUniqueInput = Prisma.AtLeast<{
   quantity?: Prisma.DecimalFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFilter<"ConstructionInventoryTransaction"> | Date | string
   userId?: Prisma.StringFilter<"ConstructionInventoryTransaction"> | string
+  supplierId?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
+  paymentMethod?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
+  unitCost?: Prisma.DecimalNullableFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.DecimalNullableFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   notes?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
   warehouse?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ConstructionInventoryTransaction"> | Date | string
@@ -314,7 +374,8 @@ export type ConstructionInventoryTransactionWhereUniqueInput = Prisma.AtLeast<{
   material?: Prisma.XOR<Prisma.ConstructionMaterialScalarRelationFilter, Prisma.ConstructionMaterialWhereInput>
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id">
+  supplier?: Prisma.XOR<Prisma.SupplierNullableScalarRelationFilter, Prisma.SupplierWhereInput> | null
+}, "id" | "sourceRef">
 
 export type ConstructionInventoryTransactionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -324,6 +385,11 @@ export type ConstructionInventoryTransactionOrderByWithAggregationInput = {
   quantity?: Prisma.SortOrder
   date?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
+  unitCost?: Prisma.SortOrderInput | Prisma.SortOrder
+  totalCost?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceRef?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   warehouse?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -347,6 +413,11 @@ export type ConstructionInventoryTransactionScalarWhereWithAggregatesInput = {
   quantity?: Prisma.DecimalWithAggregatesFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeWithAggregatesFilter<"ConstructionInventoryTransaction"> | Date | string
   userId?: Prisma.StringWithAggregatesFilter<"ConstructionInventoryTransaction"> | string
+  supplierId?: Prisma.StringNullableWithAggregatesFilter<"ConstructionInventoryTransaction"> | string | null
+  paymentMethod?: Prisma.StringNullableWithAggregatesFilter<"ConstructionInventoryTransaction"> | string | null
+  unitCost?: Prisma.DecimalNullableWithAggregatesFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.DecimalNullableWithAggregatesFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.StringNullableWithAggregatesFilter<"ConstructionInventoryTransaction"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"ConstructionInventoryTransaction"> | string | null
   warehouse?: Prisma.StringNullableWithAggregatesFilter<"ConstructionInventoryTransaction"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ConstructionInventoryTransaction"> | Date | string
@@ -359,6 +430,10 @@ export type ConstructionInventoryTransactionCreateInput = {
   type: $Enums.InventoryTransactionType
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -367,6 +442,7 @@ export type ConstructionInventoryTransactionCreateInput = {
   material: Prisma.ConstructionMaterialCreateNestedOneWithoutTransactionsInput
   project?: Prisma.ProjectCreateNestedOneWithoutConstructionInventoryTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutConstructionInventoryTransactionsInput
+  supplier?: Prisma.SupplierCreateNestedOneWithoutConstructionInventoryTransactionsInput
 }
 
 export type ConstructionInventoryTransactionUncheckedCreateInput = {
@@ -377,6 +453,11 @@ export type ConstructionInventoryTransactionUncheckedCreateInput = {
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
   userId: string
+  supplierId?: string | null
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -389,6 +470,10 @@ export type ConstructionInventoryTransactionUpdateInput = {
   type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -397,6 +482,7 @@ export type ConstructionInventoryTransactionUpdateInput = {
   material?: Prisma.ConstructionMaterialUpdateOneRequiredWithoutTransactionsNestedInput
   project?: Prisma.ProjectUpdateOneWithoutConstructionInventoryTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutConstructionInventoryTransactionsNestedInput
+  supplier?: Prisma.SupplierUpdateOneWithoutConstructionInventoryTransactionsNestedInput
 }
 
 export type ConstructionInventoryTransactionUncheckedUpdateInput = {
@@ -407,6 +493,11 @@ export type ConstructionInventoryTransactionUncheckedUpdateInput = {
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -422,6 +513,11 @@ export type ConstructionInventoryTransactionCreateManyInput = {
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
   userId: string
+  supplierId?: string | null
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -434,6 +530,10 @@ export type ConstructionInventoryTransactionUpdateManyMutationInput = {
   type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -449,6 +549,11 @@ export type ConstructionInventoryTransactionUncheckedUpdateManyInput = {
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -474,6 +579,11 @@ export type ConstructionInventoryTransactionCountOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   date?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  unitCost?: Prisma.SortOrder
+  totalCost?: Prisma.SortOrder
+  sourceRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   warehouse?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -483,6 +593,8 @@ export type ConstructionInventoryTransactionCountOrderByAggregateInput = {
 
 export type ConstructionInventoryTransactionAvgOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
+  unitCost?: Prisma.SortOrder
+  totalCost?: Prisma.SortOrder
 }
 
 export type ConstructionInventoryTransactionMaxOrderByAggregateInput = {
@@ -493,6 +605,11 @@ export type ConstructionInventoryTransactionMaxOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   date?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  unitCost?: Prisma.SortOrder
+  totalCost?: Prisma.SortOrder
+  sourceRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   warehouse?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -508,6 +625,11 @@ export type ConstructionInventoryTransactionMinOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   date?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  unitCost?: Prisma.SortOrder
+  totalCost?: Prisma.SortOrder
+  sourceRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   warehouse?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -517,6 +639,8 @@ export type ConstructionInventoryTransactionMinOrderByAggregateInput = {
 
 export type ConstructionInventoryTransactionSumOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
+  unitCost?: Prisma.SortOrder
+  totalCost?: Prisma.SortOrder
 }
 
 export type ConstructionInventoryTransactionCreateNestedManyWithoutUserInput = {
@@ -645,11 +769,57 @@ export type ConstructionInventoryTransactionUncheckedUpdateManyWithoutMaterialNe
   deleteMany?: Prisma.ConstructionInventoryTransactionScalarWhereInput | Prisma.ConstructionInventoryTransactionScalarWhereInput[]
 }
 
+export type ConstructionInventoryTransactionCreateNestedManyWithoutSupplierInput = {
+  create?: Prisma.XOR<Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput, Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput> | Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput[] | Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput[]
+  connectOrCreate?: Prisma.ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput | Prisma.ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput[]
+  createMany?: Prisma.ConstructionInventoryTransactionCreateManySupplierInputEnvelope
+  connect?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+}
+
+export type ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutSupplierInput = {
+  create?: Prisma.XOR<Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput, Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput> | Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput[] | Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput[]
+  connectOrCreate?: Prisma.ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput | Prisma.ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput[]
+  createMany?: Prisma.ConstructionInventoryTransactionCreateManySupplierInputEnvelope
+  connect?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+}
+
+export type ConstructionInventoryTransactionUpdateManyWithoutSupplierNestedInput = {
+  create?: Prisma.XOR<Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput, Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput> | Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput[] | Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput[]
+  connectOrCreate?: Prisma.ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput | Prisma.ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput[]
+  upsert?: Prisma.ConstructionInventoryTransactionUpsertWithWhereUniqueWithoutSupplierInput | Prisma.ConstructionInventoryTransactionUpsertWithWhereUniqueWithoutSupplierInput[]
+  createMany?: Prisma.ConstructionInventoryTransactionCreateManySupplierInputEnvelope
+  set?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+  disconnect?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+  delete?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+  connect?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+  update?: Prisma.ConstructionInventoryTransactionUpdateWithWhereUniqueWithoutSupplierInput | Prisma.ConstructionInventoryTransactionUpdateWithWhereUniqueWithoutSupplierInput[]
+  updateMany?: Prisma.ConstructionInventoryTransactionUpdateManyWithWhereWithoutSupplierInput | Prisma.ConstructionInventoryTransactionUpdateManyWithWhereWithoutSupplierInput[]
+  deleteMany?: Prisma.ConstructionInventoryTransactionScalarWhereInput | Prisma.ConstructionInventoryTransactionScalarWhereInput[]
+}
+
+export type ConstructionInventoryTransactionUncheckedUpdateManyWithoutSupplierNestedInput = {
+  create?: Prisma.XOR<Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput, Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput> | Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput[] | Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput[]
+  connectOrCreate?: Prisma.ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput | Prisma.ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput[]
+  upsert?: Prisma.ConstructionInventoryTransactionUpsertWithWhereUniqueWithoutSupplierInput | Prisma.ConstructionInventoryTransactionUpsertWithWhereUniqueWithoutSupplierInput[]
+  createMany?: Prisma.ConstructionInventoryTransactionCreateManySupplierInputEnvelope
+  set?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+  disconnect?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+  delete?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+  connect?: Prisma.ConstructionInventoryTransactionWhereUniqueInput | Prisma.ConstructionInventoryTransactionWhereUniqueInput[]
+  update?: Prisma.ConstructionInventoryTransactionUpdateWithWhereUniqueWithoutSupplierInput | Prisma.ConstructionInventoryTransactionUpdateWithWhereUniqueWithoutSupplierInput[]
+  updateMany?: Prisma.ConstructionInventoryTransactionUpdateManyWithWhereWithoutSupplierInput | Prisma.ConstructionInventoryTransactionUpdateManyWithWhereWithoutSupplierInput[]
+  deleteMany?: Prisma.ConstructionInventoryTransactionScalarWhereInput | Prisma.ConstructionInventoryTransactionScalarWhereInput[]
+}
+
 export type ConstructionInventoryTransactionCreateWithoutUserInput = {
   id?: string
   type: $Enums.InventoryTransactionType
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -657,6 +827,7 @@ export type ConstructionInventoryTransactionCreateWithoutUserInput = {
   deletedAt?: Date | string | null
   material: Prisma.ConstructionMaterialCreateNestedOneWithoutTransactionsInput
   project?: Prisma.ProjectCreateNestedOneWithoutConstructionInventoryTransactionsInput
+  supplier?: Prisma.SupplierCreateNestedOneWithoutConstructionInventoryTransactionsInput
 }
 
 export type ConstructionInventoryTransactionUncheckedCreateWithoutUserInput = {
@@ -666,6 +837,11 @@ export type ConstructionInventoryTransactionUncheckedCreateWithoutUserInput = {
   type: $Enums.InventoryTransactionType
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
+  supplierId?: string | null
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -710,6 +886,11 @@ export type ConstructionInventoryTransactionScalarWhereInput = {
   quantity?: Prisma.DecimalFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFilter<"ConstructionInventoryTransaction"> | Date | string
   userId?: Prisma.StringFilter<"ConstructionInventoryTransaction"> | string
+  supplierId?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
+  paymentMethod?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
+  unitCost?: Prisma.DecimalNullableFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.DecimalNullableFilter<"ConstructionInventoryTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
   notes?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
   warehouse?: Prisma.StringNullableFilter<"ConstructionInventoryTransaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ConstructionInventoryTransaction"> | Date | string
@@ -722,6 +903,10 @@ export type ConstructionInventoryTransactionCreateWithoutProjectInput = {
   type: $Enums.InventoryTransactionType
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -729,6 +914,7 @@ export type ConstructionInventoryTransactionCreateWithoutProjectInput = {
   deletedAt?: Date | string | null
   material: Prisma.ConstructionMaterialCreateNestedOneWithoutTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutConstructionInventoryTransactionsInput
+  supplier?: Prisma.SupplierCreateNestedOneWithoutConstructionInventoryTransactionsInput
 }
 
 export type ConstructionInventoryTransactionUncheckedCreateWithoutProjectInput = {
@@ -738,6 +924,11 @@ export type ConstructionInventoryTransactionUncheckedCreateWithoutProjectInput =
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
   userId: string
+  supplierId?: string | null
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -776,6 +967,10 @@ export type ConstructionInventoryTransactionCreateWithoutMaterialInput = {
   type: $Enums.InventoryTransactionType
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -783,6 +978,7 @@ export type ConstructionInventoryTransactionCreateWithoutMaterialInput = {
   deletedAt?: Date | string | null
   project?: Prisma.ProjectCreateNestedOneWithoutConstructionInventoryTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutConstructionInventoryTransactionsInput
+  supplier?: Prisma.SupplierCreateNestedOneWithoutConstructionInventoryTransactionsInput
 }
 
 export type ConstructionInventoryTransactionUncheckedCreateWithoutMaterialInput = {
@@ -792,6 +988,11 @@ export type ConstructionInventoryTransactionUncheckedCreateWithoutMaterialInput 
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
   userId: string
+  supplierId?: string | null
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -825,6 +1026,70 @@ export type ConstructionInventoryTransactionUpdateManyWithWhereWithoutMaterialIn
   data: Prisma.XOR<Prisma.ConstructionInventoryTransactionUpdateManyMutationInput, Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutMaterialInput>
 }
 
+export type ConstructionInventoryTransactionCreateWithoutSupplierInput = {
+  id?: string
+  type: $Enums.InventoryTransactionType
+  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
+  notes?: string | null
+  warehouse?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  material: Prisma.ConstructionMaterialCreateNestedOneWithoutTransactionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutConstructionInventoryTransactionsInput
+  user: Prisma.UserCreateNestedOneWithoutConstructionInventoryTransactionsInput
+}
+
+export type ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput = {
+  id?: string
+  materialId: string
+  projectId?: string | null
+  type: $Enums.InventoryTransactionType
+  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  userId: string
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
+  notes?: string | null
+  warehouse?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type ConstructionInventoryTransactionCreateOrConnectWithoutSupplierInput = {
+  where: Prisma.ConstructionInventoryTransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput, Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput>
+}
+
+export type ConstructionInventoryTransactionCreateManySupplierInputEnvelope = {
+  data: Prisma.ConstructionInventoryTransactionCreateManySupplierInput | Prisma.ConstructionInventoryTransactionCreateManySupplierInput[]
+  skipDuplicates?: boolean
+}
+
+export type ConstructionInventoryTransactionUpsertWithWhereUniqueWithoutSupplierInput = {
+  where: Prisma.ConstructionInventoryTransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.ConstructionInventoryTransactionUpdateWithoutSupplierInput, Prisma.ConstructionInventoryTransactionUncheckedUpdateWithoutSupplierInput>
+  create: Prisma.XOR<Prisma.ConstructionInventoryTransactionCreateWithoutSupplierInput, Prisma.ConstructionInventoryTransactionUncheckedCreateWithoutSupplierInput>
+}
+
+export type ConstructionInventoryTransactionUpdateWithWhereUniqueWithoutSupplierInput = {
+  where: Prisma.ConstructionInventoryTransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.ConstructionInventoryTransactionUpdateWithoutSupplierInput, Prisma.ConstructionInventoryTransactionUncheckedUpdateWithoutSupplierInput>
+}
+
+export type ConstructionInventoryTransactionUpdateManyWithWhereWithoutSupplierInput = {
+  where: Prisma.ConstructionInventoryTransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.ConstructionInventoryTransactionUpdateManyMutationInput, Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutSupplierInput>
+}
+
 export type ConstructionInventoryTransactionCreateManyUserInput = {
   id?: string
   materialId: string
@@ -832,6 +1097,11 @@ export type ConstructionInventoryTransactionCreateManyUserInput = {
   type: $Enums.InventoryTransactionType
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
+  supplierId?: string | null
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -844,6 +1114,10 @@ export type ConstructionInventoryTransactionUpdateWithoutUserInput = {
   type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -851,6 +1125,7 @@ export type ConstructionInventoryTransactionUpdateWithoutUserInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   material?: Prisma.ConstructionMaterialUpdateOneRequiredWithoutTransactionsNestedInput
   project?: Prisma.ProjectUpdateOneWithoutConstructionInventoryTransactionsNestedInput
+  supplier?: Prisma.SupplierUpdateOneWithoutConstructionInventoryTransactionsNestedInput
 }
 
 export type ConstructionInventoryTransactionUncheckedUpdateWithoutUserInput = {
@@ -860,6 +1135,11 @@ export type ConstructionInventoryTransactionUncheckedUpdateWithoutUserInput = {
   type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -874,6 +1154,11 @@ export type ConstructionInventoryTransactionUncheckedUpdateManyWithoutUserInput 
   type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -888,6 +1173,11 @@ export type ConstructionInventoryTransactionCreateManyProjectInput = {
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
   userId: string
+  supplierId?: string | null
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -900,6 +1190,10 @@ export type ConstructionInventoryTransactionUpdateWithoutProjectInput = {
   type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -907,6 +1201,7 @@ export type ConstructionInventoryTransactionUpdateWithoutProjectInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   material?: Prisma.ConstructionMaterialUpdateOneRequiredWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutConstructionInventoryTransactionsNestedInput
+  supplier?: Prisma.SupplierUpdateOneWithoutConstructionInventoryTransactionsNestedInput
 }
 
 export type ConstructionInventoryTransactionUncheckedUpdateWithoutProjectInput = {
@@ -916,6 +1211,11 @@ export type ConstructionInventoryTransactionUncheckedUpdateWithoutProjectInput =
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -930,6 +1230,11 @@ export type ConstructionInventoryTransactionUncheckedUpdateManyWithoutProjectInp
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -944,6 +1249,11 @@ export type ConstructionInventoryTransactionCreateManyMaterialInput = {
   quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
   userId: string
+  supplierId?: string | null
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
   notes?: string | null
   warehouse?: string | null
   createdAt?: Date | string
@@ -956,6 +1266,10 @@ export type ConstructionInventoryTransactionUpdateWithoutMaterialInput = {
   type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -963,6 +1277,7 @@ export type ConstructionInventoryTransactionUpdateWithoutMaterialInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   project?: Prisma.ProjectUpdateOneWithoutConstructionInventoryTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutConstructionInventoryTransactionsNestedInput
+  supplier?: Prisma.SupplierUpdateOneWithoutConstructionInventoryTransactionsNestedInput
 }
 
 export type ConstructionInventoryTransactionUncheckedUpdateWithoutMaterialInput = {
@@ -972,6 +1287,11 @@ export type ConstructionInventoryTransactionUncheckedUpdateWithoutMaterialInput 
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -986,6 +1306,87 @@ export type ConstructionInventoryTransactionUncheckedUpdateManyWithoutMaterialIn
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type ConstructionInventoryTransactionCreateManySupplierInput = {
+  id?: string
+  materialId: string
+  projectId?: string | null
+  type: $Enums.InventoryTransactionType
+  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  userId: string
+  paymentMethod?: string | null
+  unitCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: string | null
+  notes?: string | null
+  warehouse?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type ConstructionInventoryTransactionUpdateWithoutSupplierInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  material?: Prisma.ConstructionMaterialUpdateOneRequiredWithoutTransactionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutConstructionInventoryTransactionsNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutConstructionInventoryTransactionsNestedInput
+}
+
+export type ConstructionInventoryTransactionUncheckedUpdateWithoutSupplierInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  materialId?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type ConstructionInventoryTransactionUncheckedUpdateManyWithoutSupplierInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  materialId?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumInventoryTransactionTypeFieldUpdateOperationsInput | $Enums.InventoryTransactionType
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unitCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  totalCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  sourceRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warehouse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1003,6 +1404,11 @@ export type ConstructionInventoryTransactionSelect<ExtArgs extends runtime.Types
   quantity?: boolean
   date?: boolean
   userId?: boolean
+  supplierId?: boolean
+  paymentMethod?: boolean
+  unitCost?: boolean
+  totalCost?: boolean
+  sourceRef?: boolean
   notes?: boolean
   warehouse?: boolean
   createdAt?: boolean
@@ -1011,6 +1417,7 @@ export type ConstructionInventoryTransactionSelect<ExtArgs extends runtime.Types
   material?: boolean | Prisma.ConstructionMaterialDefaultArgs<ExtArgs>
   project?: boolean | Prisma.ConstructionInventoryTransaction$projectArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.ConstructionInventoryTransaction$supplierArgs<ExtArgs>
 }, ExtArgs["result"]["constructionInventoryTransaction"]>
 
 export type ConstructionInventoryTransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1021,6 +1428,11 @@ export type ConstructionInventoryTransactionSelectCreateManyAndReturn<ExtArgs ex
   quantity?: boolean
   date?: boolean
   userId?: boolean
+  supplierId?: boolean
+  paymentMethod?: boolean
+  unitCost?: boolean
+  totalCost?: boolean
+  sourceRef?: boolean
   notes?: boolean
   warehouse?: boolean
   createdAt?: boolean
@@ -1029,6 +1441,7 @@ export type ConstructionInventoryTransactionSelectCreateManyAndReturn<ExtArgs ex
   material?: boolean | Prisma.ConstructionMaterialDefaultArgs<ExtArgs>
   project?: boolean | Prisma.ConstructionInventoryTransaction$projectArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.ConstructionInventoryTransaction$supplierArgs<ExtArgs>
 }, ExtArgs["result"]["constructionInventoryTransaction"]>
 
 export type ConstructionInventoryTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1039,6 +1452,11 @@ export type ConstructionInventoryTransactionSelectUpdateManyAndReturn<ExtArgs ex
   quantity?: boolean
   date?: boolean
   userId?: boolean
+  supplierId?: boolean
+  paymentMethod?: boolean
+  unitCost?: boolean
+  totalCost?: boolean
+  sourceRef?: boolean
   notes?: boolean
   warehouse?: boolean
   createdAt?: boolean
@@ -1047,6 +1465,7 @@ export type ConstructionInventoryTransactionSelectUpdateManyAndReturn<ExtArgs ex
   material?: boolean | Prisma.ConstructionMaterialDefaultArgs<ExtArgs>
   project?: boolean | Prisma.ConstructionInventoryTransaction$projectArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.ConstructionInventoryTransaction$supplierArgs<ExtArgs>
 }, ExtArgs["result"]["constructionInventoryTransaction"]>
 
 export type ConstructionInventoryTransactionSelectScalar = {
@@ -1057,6 +1476,11 @@ export type ConstructionInventoryTransactionSelectScalar = {
   quantity?: boolean
   date?: boolean
   userId?: boolean
+  supplierId?: boolean
+  paymentMethod?: boolean
+  unitCost?: boolean
+  totalCost?: boolean
+  sourceRef?: boolean
   notes?: boolean
   warehouse?: boolean
   createdAt?: boolean
@@ -1064,21 +1488,24 @@ export type ConstructionInventoryTransactionSelectScalar = {
   deletedAt?: boolean
 }
 
-export type ConstructionInventoryTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "materialId" | "projectId" | "type" | "quantity" | "date" | "userId" | "notes" | "warehouse" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["constructionInventoryTransaction"]>
+export type ConstructionInventoryTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "materialId" | "projectId" | "type" | "quantity" | "date" | "userId" | "supplierId" | "paymentMethod" | "unitCost" | "totalCost" | "sourceRef" | "notes" | "warehouse" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["constructionInventoryTransaction"]>
 export type ConstructionInventoryTransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   material?: boolean | Prisma.ConstructionMaterialDefaultArgs<ExtArgs>
   project?: boolean | Prisma.ConstructionInventoryTransaction$projectArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.ConstructionInventoryTransaction$supplierArgs<ExtArgs>
 }
 export type ConstructionInventoryTransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   material?: boolean | Prisma.ConstructionMaterialDefaultArgs<ExtArgs>
   project?: boolean | Prisma.ConstructionInventoryTransaction$projectArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.ConstructionInventoryTransaction$supplierArgs<ExtArgs>
 }
 export type ConstructionInventoryTransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   material?: boolean | Prisma.ConstructionMaterialDefaultArgs<ExtArgs>
   project?: boolean | Prisma.ConstructionInventoryTransaction$projectArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.ConstructionInventoryTransaction$supplierArgs<ExtArgs>
 }
 
 export type $ConstructionInventoryTransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1087,6 +1514,7 @@ export type $ConstructionInventoryTransactionPayload<ExtArgs extends runtime.Typ
     material: Prisma.$ConstructionMaterialPayload<ExtArgs>
     project: Prisma.$ProjectPayload<ExtArgs> | null
     user: Prisma.$UserPayload<ExtArgs>
+    supplier: Prisma.$SupplierPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1096,6 +1524,11 @@ export type $ConstructionInventoryTransactionPayload<ExtArgs extends runtime.Typ
     quantity: runtime.Decimal
     date: Date
     userId: string
+    supplierId: string | null
+    paymentMethod: string | null
+    unitCost: runtime.Decimal | null
+    totalCost: runtime.Decimal | null
+    sourceRef: string | null
     notes: string | null
     warehouse: string | null
     createdAt: Date
@@ -1498,6 +1931,7 @@ export interface Prisma__ConstructionInventoryTransactionClient<T, Null = never,
   material<T extends Prisma.ConstructionMaterialDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ConstructionMaterialDefaultArgs<ExtArgs>>): Prisma.Prisma__ConstructionMaterialClient<runtime.Types.Result.GetResult<Prisma.$ConstructionMaterialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   project<T extends Prisma.ConstructionInventoryTransaction$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ConstructionInventoryTransaction$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  supplier<T extends Prisma.ConstructionInventoryTransaction$supplierArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ConstructionInventoryTransaction$supplierArgs<ExtArgs>>): Prisma.Prisma__SupplierClient<runtime.Types.Result.GetResult<Prisma.$SupplierPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1534,6 +1968,11 @@ export interface ConstructionInventoryTransactionFieldRefs {
   readonly quantity: Prisma.FieldRef<"ConstructionInventoryTransaction", 'Decimal'>
   readonly date: Prisma.FieldRef<"ConstructionInventoryTransaction", 'DateTime'>
   readonly userId: Prisma.FieldRef<"ConstructionInventoryTransaction", 'String'>
+  readonly supplierId: Prisma.FieldRef<"ConstructionInventoryTransaction", 'String'>
+  readonly paymentMethod: Prisma.FieldRef<"ConstructionInventoryTransaction", 'String'>
+  readonly unitCost: Prisma.FieldRef<"ConstructionInventoryTransaction", 'Decimal'>
+  readonly totalCost: Prisma.FieldRef<"ConstructionInventoryTransaction", 'Decimal'>
+  readonly sourceRef: Prisma.FieldRef<"ConstructionInventoryTransaction", 'String'>
   readonly notes: Prisma.FieldRef<"ConstructionInventoryTransaction", 'String'>
   readonly warehouse: Prisma.FieldRef<"ConstructionInventoryTransaction", 'String'>
   readonly createdAt: Prisma.FieldRef<"ConstructionInventoryTransaction", 'DateTime'>
@@ -1956,6 +2395,25 @@ export type ConstructionInventoryTransaction$projectArgs<ExtArgs extends runtime
    */
   include?: Prisma.ProjectInclude<ExtArgs> | null
   where?: Prisma.ProjectWhereInput
+}
+
+/**
+ * ConstructionInventoryTransaction.supplier
+ */
+export type ConstructionInventoryTransaction$supplierArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Supplier
+   */
+  select?: Prisma.SupplierSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Supplier
+   */
+  omit?: Prisma.SupplierOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SupplierInclude<ExtArgs> | null
+  where?: Prisma.SupplierWhereInput
 }
 
 /**

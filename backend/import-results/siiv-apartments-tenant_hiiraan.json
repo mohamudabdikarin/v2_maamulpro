@@ -1,0 +1,816 @@
+{
+  "mode": "execute",
+  "databaseName": "tenant_hiiraan",
+  "sourcePath": "C:\\Users\\Mohamud Abdikarim\\Desktop\\v2_maamulpro\\Siiv_Apartments_MaamulPro_Test_Data.xlsx",
+  "error": "Connection terminated unexpectedly",
+  "events": [
+    {
+      "at": "2026-08-23T05:05:13.937Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-001: Qty x Unit Price is 3510.50, stated Total is 3506.89; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.939Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-002: Qty x Unit Price is 3670.80, stated Total is 3669.50; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.940Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-003: Qty x Unit Price is 1274.00, stated Total is 1274.13; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.940Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-004: Qty x Unit Price is 1155.28, stated Total is 1155.21; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.949Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-005: Qty x Unit Price is 1755.00, stated Total is 1735.24; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.950Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-006: Qty x Unit Price is 2211.60, stated Total is 2213.35; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.952Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-008: Qty x Unit Price is 3753.00, stated Total is 3756.86; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.955Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-009: Qty x Unit Price is 3443.70, stated Total is 3445.25; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.960Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-012: Qty x Unit Price is 3252.60, stated Total is 3255.95; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.968Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-013: Qty x Unit Price is 2349.80, stated Total is 2347.31; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.970Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-014: Qty x Unit Price is 2155.20, stated Total is 2155.10; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.971Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-015: Qty x Unit Price is 1402.50, stated Total is 1402.76; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.971Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-016: Qty x Unit Price is 2954.00, stated Total is 2955.98; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.973Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-017: Qty x Unit Price is 2930.40, stated Total is 2931.23; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.982Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-018: Qty x Unit Price is 2068.20, stated Total is 2070.64; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.985Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Materials MAT-021: Qty x Unit Price is 1762.20, stated Total is 1761.94; both will be preserved and stated Total will drive finance"
+    },
+    {
+      "at": "2026-08-23T05:05:13.987Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Project Overview Actual Spent 177065.00 differs from detailed source total 177064.99 by 0.01"
+    },
+    {
+      "at": "2026-08-23T05:05:13.987Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Monthly Summary total 146864.99 differs from detailed source total 177064.99 by -30200.00"
+    },
+    {
+      "at": "2026-08-23T05:05:13.989Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Cash Ledger TXN-005 through TXN-024 are derived rollups or duplicate source details; they are verification-only and will not be inserted again"
+    },
+    {
+      "at": "2026-08-23T05:05:13.996Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Payroll payment dates are absent; month-end dates will be recorded as explicit import inferences"
+    },
+    {
+      "at": "2026-08-23T05:05:13.999Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "warning",
+      "message": "Most subcontractor milestone dates are absent; proportional contract dates will be recorded as explicit import inferences"
+    },
+    {
+      "at": "2026-08-23T05:05:13.999Z",
+      "stage": "validation",
+      "sheet": "Workbook",
+      "status": "verified",
+      "message": "All 11 sheets validated; SHA-256 9134818c89dc44c4f8c0ee6a9756caac8fff2d864bfea105c093319332d61ff1"
+    },
+    {
+      "at": "2026-08-23T05:05:21.695Z",
+      "stage": "preflight",
+      "sheet": "Application",
+      "status": "verified",
+      "message": "Target tenant_hiiraan is active, construction-enabled, and has the required owner and accounts"
+    },
+    {
+      "at": "2026-08-23T05:05:21.943Z",
+      "stage": "project",
+      "sheet": "Project Overview",
+      "sourceId": "PRJ-001",
+      "status": "skipped",
+      "message": "Existing source project reused"
+    },
+    {
+      "at": "2026-08-23T05:05:22.263Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Site Preparation & Foundation",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:22.568Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Ground Floor Structure",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:22.875Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Floors 1-3 Structure",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:23.183Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Floors 4-5 Structure",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:23.423Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Blockwork & Internal Walls",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:23.694Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Electrical First Fix",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:24.005Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Plumbing First Fix",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:24.309Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Doors & Windows",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:24.978Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Plastering & Finishing",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:25.332Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "Painting",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:25.588Z",
+      "stage": "project-tasks",
+      "sheet": "Progress",
+      "sourceId": "External Works",
+      "status": "skipped",
+      "message": "Existing source task reused"
+    },
+    {
+      "at": "2026-08-23T05:05:26.458Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-001",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:26.767Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-002",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:27.073Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-003",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:27.381Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-004",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:28.036Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-005",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:28.509Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-006",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:28.942Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-007",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:29.193Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-008",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:29.534Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-009",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:29.908Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-010",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:30.153Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-011",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:30.449Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-012",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:31.040Z",
+      "stage": "staff",
+      "sheet": "Staff",
+      "sourceId": "EMP-013",
+      "status": "skipped",
+      "message": "Existing source staff reused"
+    },
+    {
+      "at": "2026-08-23T05:05:32.715Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-001",
+      "status": "skipped",
+      "message": "Existing funding transaction reused"
+    },
+    {
+      "at": "2026-08-23T05:05:34.117Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-002",
+      "status": "skipped",
+      "message": "Existing funding transaction reused"
+    },
+    {
+      "at": "2026-08-23T05:05:35.175Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-003",
+      "status": "skipped",
+      "message": "Existing funding transaction reused"
+    },
+    {
+      "at": "2026-08-23T05:05:36.669Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-004",
+      "status": "skipped",
+      "message": "Existing funding transaction reused"
+    },
+    {
+      "at": "2026-08-23T05:05:36.669Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-005",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.669Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-006",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.669Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-007",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.669Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-008",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.669Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-009",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-010",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-011",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-012",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-013",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-014",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-015",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-016",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-017",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-018",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-019",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-020",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-021",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-022",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.670Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-023",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:36.671Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "TXN-024",
+      "status": "skipped",
+      "message": "Verification-only derived or duplicate row; source detail is imported through its owning workflow"
+    },
+    {
+      "at": "2026-08-23T05:05:37.209Z",
+      "stage": "funding",
+      "sheet": "Cash Ledger",
+      "sourceId": "OVERDRAFT",
+      "status": "skipped",
+      "message": "Existing source-derived overdraft journal reused"
+    },
+    {
+      "at": "2026-08-23T05:05:37.467Z",
+      "stage": "suppliers",
+      "sheet": "Materials",
+      "sourceId": "Hormuud Building Materials",
+      "status": "skipped",
+      "message": "Existing source supplier reused"
+    },
+    {
+      "at": "2026-08-23T05:05:37.722Z",
+      "stage": "suppliers",
+      "sheet": "Materials",
+      "sourceId": "Al-Furqaan Building Materials",
+      "status": "skipped",
+      "message": "Existing source supplier reused"
+    },
+    {
+      "at": "2026-08-23T05:05:38.031Z",
+      "stage": "suppliers",
+      "sheet": "Materials",
+      "sourceId": "Kaluun Trading & Supplies",
+      "status": "skipped",
+      "message": "Existing source supplier reused"
+    },
+    {
+      "at": "2026-08-23T05:05:38.337Z",
+      "stage": "suppliers",
+      "sheet": "Materials",
+      "sourceId": "Suuqa Bakaaraha Materials",
+      "status": "skipped",
+      "message": "Existing source supplier reused"
+    },
+    {
+      "at": "2026-08-23T05:05:38.578Z",
+      "stage": "suppliers",
+      "sheet": "Materials",
+      "sourceId": "Baraka Plumbing Supply",
+      "status": "skipped",
+      "message": "Existing source supplier reused"
+    },
+    {
+      "at": "2026-08-23T05:05:38.817Z",
+      "stage": "suppliers",
+      "sheet": "Materials",
+      "sourceId": "Al-Kawthar Electrical Supply",
+      "status": "skipped",
+      "message": "Existing source supplier reused"
+    },
+    {
+      "at": "2026-08-23T05:05:39.067Z",
+      "stage": "suppliers",
+      "sheet": "Materials",
+      "sourceId": "Al-Furqaan Windows & Glass",
+      "status": "skipped",
+      "message": "Existing source supplier reused"
+    },
+    {
+      "at": "2026-08-23T05:05:39.302Z",
+      "stage": "suppliers",
+      "sheet": "Materials",
+      "sourceId": "Iftin Paint & Decor",
+      "status": "skipped",
+      "message": "Existing source supplier reused"
+    },
+    {
+      "at": "2026-08-23T05:05:42.536Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-001",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:05:45.811Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-002",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:05:49.500Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-003",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:05:52.734Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-004",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:05:56.460Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-005",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:05:59.841Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-006",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:02.810Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-007",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:06.107Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-008",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:08.237Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-009",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:11.177Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-010",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:14.321Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-011",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:17.097Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-012",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:20.115Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-013",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:23.700Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-014",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:26.772Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-015",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:29.435Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-016",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:32.377Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-017",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:35.137Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-018",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:38.099Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-019",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:41.108Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-020",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:43.565Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-021",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-23T05:06:46.826Z",
+      "stage": "materials",
+      "sheet": "Materials",
+      "sourceId": "MAT-022",
+      "status": "skipped",
+      "message": "Existing procurement movement reused"
+    },
+    {
+      "at": "2026-08-25T03:05:34.002Z",
+      "stage": "fatal",
+      "sheet": "Import",
+      "status": "failed",
+      "message": "Connection terminated unexpectedly"
+    }
+  ]
+}

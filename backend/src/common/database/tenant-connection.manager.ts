@@ -36,7 +36,10 @@ export class TenantConnectionManager implements OnModuleDestroy {
     });
 
     const adapter = new PrismaPg(pool);
-    const client = new TenantPrismaClient({ adapter });
+    const client = new TenantPrismaClient({
+      adapter,
+      transactionOptions: { maxWait: 10_000, timeout: 30_000 },
+    });
 
     this.pools.set(connectionString, pool);
     this.clients.set(connectionString, client);

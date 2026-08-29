@@ -52,6 +52,10 @@ async function main() {
       transactions: await db.transaction.findMany({ where: { deletedAt: null }, select: { referenceId: true, type: true, status: true, amount: true, description: true } }),
       mappings: await db.accountMapping.findMany({ select: { key: true, accountCode: true }, orderBy: { key: 'asc' } }),
     };
+    const bankEntries = await db.journalEntry.aggregate({
+      where: { accountCode: '1120', date: { lt: new Date('2026-01-01T00:00:00.000Z') } },
+      _sum: { debit: true, credit: true },
+    });
     console.log(JSON.stringify({
       company: {
         id: match.company.id, name: match.company.name, subdomain: match.company.subdomain,
@@ -66,6 +70,7 @@ async function main() {
       counts,
       sourceMatches,
       existing,
+      openingBankBalance: Number(bankEntries._sum.debit || 0) - Number(bankEntries._sum.credit || 0),
     }, null, 2));
   } finally {
     await manager.onModuleDestroy();
