@@ -268,7 +268,7 @@ export class ReportsService {
       const projects = await db.project.findMany({ where: { deletedAt: null, ...(projectId ? { id: projectId } : {}) } });
       const transactions = await db.transaction.findMany({ where: { deletedAt: null, status: 'CLEARED', projectId: { in: projects.map((row: any) => row.id) }, ...(date ? { date } : {}) } });
       rows = projects.map((project: any) => {
-        const linked = transactions.filter((row: any) => row.projectId === project.id);
+        const linked = transactions.filter((row: any) => row.projectId === project.id && this.constructionTransactionCategory(row));
         const income = linked.filter((row: any) => row.type === 'INCOME').reduce((sum: number, row: any) => sum + Number(row.amount), 0);
         const expenses = linked.filter((row: any) => row.type === 'EXPENSE').reduce((sum: number, row: any) => sum + Number(row.amount), 0);
         return { projectId: project.id, project: project.name, budget: project.budget, income, expenses, profit: income - expenses };
@@ -398,6 +398,26 @@ export class ReportsService {
     return Number(row.quantity) * Number(row.material?.unitCost || 0);
   }
 
+  private constructionTransactionCategory(row: any): 'income' | 'manpower' | 'materials' | 'expenses' | null {
+    const reference = String(row.referenceId || '').toLowerCase();
+    if (reference.startsWith('purchase:') || reference.startsWith('sale:') || reference.startsWith('transport:')) {
+      return null;
+    }
+    if (row.type === 'INCOME') return 'income';
+    if (reference.startsWith('construction-procurement:')) return 'materials';
+    if (reference.startsWith('expense:')) return 'expenses';
+    if (['wfpayment:', 'ledger:', 'payroll-', 'subpayment:'].some((prefix) => reference.startsWith(prefix))) {
+      return 'manpower';
+    }
+    return null;
+  }
+
+  private constructionRollupLabel(row: any, category: 'manpower' | 'materials' | 'expenses') {
+    if (category === 'materials') return String(row.description || 'Construction Materials').replace(/ purchase(?:\s.*)?$/i, '').trim();
+    if (category === 'manpower' && String(row.referenceId || '').toLowerCase().startsWith('payroll-')) return 'Monthly Payroll';
+    return row.category?.name || (category === 'manpower' ? 'Labor' : 'Site Expenses');
+  }
+
   async listProjectReports(db: any) {
     const projects = await db.project.findMany({
       where: { deletedAt: null },
@@ -410,19 +430,14 @@ export class ReportsService {
     const projectIds = projects.map((p: any) => p.id);
     if (!projectIds.length) return [];
 
-    const expenses = await db.transaction.findMany({
-      where: {
-        deletedAt: null,
-        status: 'CLEARED',
-        type: 'EXPENSE',
-        projectId: { in: projectIds },
-      },
-      select: { projectId: true, amount: true },
+    const transactions = await db.transaction.findMany({
+      where: { deletedAt: null, status: 'CLEARED', type: 'EXPENSE', projectId: { in: projectIds } },
+      select: { projectId: true, referenceId: true, type: true, amount: true },
     });
 
     const spentByProject = new Map<string, number>();
-    for (const row of expenses) {
-      if (!row.projectId) continue;
+    for (const row of transactions) {
+      if (!row.projectId || !this.constructionTransactionCategory(row)) continue;
       spentByProject.set(row.projectId, (spentByProject.get(row.projectId) || 0) + Number(row.amount));
     }
 
@@ -452,76 +467,39 @@ export class ReportsService {
     const project = await this.getProjectOrThrow(db, projectId);
     const date = this.dateFilter(query.startDate, query.endDate);
 
-    const [incomeTxns, expenseTxns] = await Promise.all([
-      db.transaction.findMany({
-        where: {
-          deletedAt: null,
-          status: 'CLEARED',
-          type: 'INCOME',
-          projectId,
-          NOT: [
-            { referenceId: { startsWith: 'wfcontract:' } },
-            { referenceId: { startsWith: 'siiv:cash:' } },
-          ],
-          ...(date ? { date } : {}),
-        },
-        select: { amount: true, date: true, referenceId: true },
-      }),
-      db.transaction.findMany({
-        where: { deletedAt: null, status: 'CLEARED', type: 'EXPENSE', projectId, ...(date ? { date } : {}) },
-        include: { category: { select: { name: true } } },
-      }),
-    ]);
+    const transactions = await db.transaction.findMany({
+      where: { deletedAt: null, status: 'CLEARED', projectId, ...(date ? { date } : {}) },
+      include: { category: { select: { name: true } }, user: { select: { id: true, name: true, email: true } } },
+      orderBy: { date: 'asc' },
+    });
+    const scoped = transactions
+      .map((row: any) => ({ ...row, constructionCategory: this.constructionTransactionCategory(row) }))
+      .filter((row: any) => row.constructionCategory);
+    const incomeTxns = scoped.filter((row: any) => row.constructionCategory === 'income');
 
     const incomeAmount = incomeTxns.reduce((sum: number, row: any) => sum + Number(row.amount), 0);
 
-    const manpowerRows = expenseTxns.filter((row: any) =>
-      row.referenceId?.startsWith('wfpayment:') || row.referenceId?.startsWith('PAYROLL-'),
-    );
-    const materialRows = expenseTxns.filter((row: any) =>
-      row.referenceId?.startsWith('construction-procurement:'),
-    );
-    const expenseRows = expenseTxns.filter((row: any) =>
-      !manpowerRows.includes(row) && !materialRows.includes(row),
-    );
-
-    const mpRollup = new Map<string, number>();
-    for (const row of manpowerRows) {
-      const key = (row.description || row.category?.name || 'Labor').trim() || 'Labor';
-      mpRollup.set(key, (mpRollup.get(key) || 0) + Number(row.amount));
-    }
-    const manpowerLines = Array.from(mpRollup.entries())
-      .map(([label, amount]) => ({ code: '50100', label, amount, filterKey: label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-    const manpowerTotal = manpowerLines.reduce((s, l) => s + l.amount, 0);
-
-    const matRollup = new Map<string, { label: string; amount: number; materialId: string }>();
-    for (const row of materialRows) {
-      const materialId = row.referenceId;
-      const label = row.description || 'Material';
-      const prev = matRollup.get(materialId) || { label, amount: 0, materialId };
-      prev.amount += Number(row.amount);
-      matRollup.set(materialId, prev);
-    }
-    const materialLines = Array.from(matRollup.values())
-      .map((row) => ({ code: '50200', label: row.label, amount: row.amount, filterKey: row.materialId }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-    const materialsTotal = materialLines.reduce((s, l) => s + l.amount, 0);
-
-    const expRollup = new Map<string, number>();
-    for (const row of expenseRows) {
-      const key = (row.category?.name || 'OTHER').trim() || 'OTHER';
-      expRollup.set(key, (expRollup.get(key) || 0) + Number(row.amount));
-    }
-    const expenseLines = Array.from(expRollup.entries())
-      .map(([label, amount]) => ({ code: '50300', label, amount, filterKey: label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-    const expensesTotal = expenseLines.reduce((s, l) => s + l.amount, 0);
+    const buildLines = (category: 'manpower' | 'materials' | 'expenses', code: string) => {
+      const totals = new Map<string, number>();
+      for (const row of scoped.filter((item: any) => item.constructionCategory === category)) {
+        const label = this.constructionRollupLabel(row, category);
+        totals.set(label, (totals.get(label) || 0) + Number(row.amount));
+      }
+      return Array.from(totals.entries())
+        .map(([label, amount]) => ({ code, label, amount, filterKey: label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+    const manpowerLines = buildLines('manpower', '50100');
+    const materialLines = buildLines('materials', '50200');
+    const expenseLines = buildLines('expenses', '50300');
+    const manpowerTotal = manpowerLines.reduce((sum, row) => sum + row.amount, 0);
+    const materialsTotal = materialLines.reduce((sum, row) => sum + row.amount, 0);
+    const expensesTotal = expenseLines.reduce((sum, row) => sum + row.amount, 0);
 
     const totalExpense = manpowerTotal + materialsTotal + expensesTotal;
     const allDates = [
       ...incomeTxns.map((r: any) => r.date),
-      ...expenseTxns.map((r: any) => r.date),
+      ...scoped.filter((row: any) => row.constructionCategory !== 'income').map((row: any) => row.date),
     ].filter(Boolean).map((d: Date) => new Date(d).getTime());
 
     const manager = project.assignedStaff?.[0] ? this.staffName(project.assignedStaff[0]) : null;
@@ -563,123 +541,40 @@ export class ReportsService {
     const date = this.dateFilter(query.startDate, query.endDate);
     const filter = query.filter?.trim() || undefined;
 
-    if (cat === 'manpower') {
-      const rows = await db.workerLedgerEntry.findMany({
-        where: { projectId, type: 'EXPENSE', ...(date ? { date } : {}) },
-        include: {
-          staff: { select: { id: true, firstName: true, lastName: true, position: true, department: true } },
-          user: { select: { id: true, name: true, email: true } },
-        },
-        orderBy: { date: 'desc' },
-      });
-      const mapped = rows
-        .map((row: any) => {
-          const rollupKey = (row.description || row.type || 'Labor').trim() || 'Labor';
-          return {
-            id: row.id,
-            category: 'manpower' as const,
-            date: row.date,
-            amount: Number(row.amount),
-            description: row.description,
-            rollupKey,
-            type: row.type,
-            worker: this.staffName(row.staff) || row.user?.name || row.user?.email || '—',
-            role: row.staff?.position || row.staff?.department || '—',
-            enteredBy: row.user?.name || row.user?.email || this.staffName(row.staff) || '—',
-            staffId: row.staffId,
-            userId: row.userId,
-          };
-        })
-        .filter((row: any) => !filter || row.rollupKey === filter);
-      return {
-        project: { id: project.id, name: project.name },
-        category: cat,
-        label: 'Manpower',
-        filter: filter || null,
-        filterLabel: filter || null,
-        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
-        rows: mapped,
-      };
-    }
-
-    if (cat === 'materials') {
-      const rows = await db.constructionInventoryTransaction.findMany({
-        where: {
-          type: 'USAGE',
-          projectId,
-          deletedAt: null,
-          ...(date ? { date } : {}),
-          ...(filter ? { materialId: filter } : {}),
-        },
-        include: {
-          material: { select: { id: true, name: true, unitCost: true, unit: true, warehouse: true } },
-          user: { select: { id: true, name: true, email: true } },
-        },
-        orderBy: { date: 'desc' },
-      });
-      const mapped = rows.map((row: any) => {
-        const unitCost = Number(row.material?.unitCost || 0);
-        const quantity = Number(row.quantity);
-        return {
-          id: row.id,
-          category: 'materials' as const,
-          date: row.date,
-          amount: quantity * unitCost,
-          item: row.material?.name || 'Material',
-          materialId: row.materialId,
-          quantity,
-          unit: row.material?.unit || null,
-          unitCost,
-          warehouse: row.warehouse || row.material?.warehouse || null,
-          notes: row.notes || null,
-          status: 'USAGE',
-          enteredBy: row.user?.name || row.user?.email || '—',
-          usedBy: row.user?.name || row.user?.email || '—',
-          userId: row.userId,
-        };
-      });
-      return {
-        project: { id: project.id, name: project.name },
-        category: cat,
-        label: 'Materials',
-        filter: filter || null,
-        filterLabel: mapped[0]?.item || filter || null,
-        total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
-        rows: mapped,
-      };
-    }
-
-    const rows = await db.dailyOperationalExpense.findMany({
-      where: {
-        deletedAt: null,
-        projectId,
-        ...(date ? { date } : {}),
-        ...(filter ? { category: filter } : {}),
-      },
-      include: {
-        staff: { select: { id: true, firstName: true, lastName: true, position: true } },
-        recordedBy: { select: { id: true, name: true, email: true } },
-      },
+    const rows = await db.transaction.findMany({
+      where: { deletedAt: null, status: 'CLEARED', type: 'EXPENSE', projectId, ...(date ? { date } : {}) },
+      include: { category: { select: { name: true } }, user: { select: { id: true, name: true, email: true } } },
       orderBy: { date: 'desc' },
     });
-    const mapped = rows.map((row: any) => ({
-      id: row.id,
-      category: 'expenses' as const,
-      date: row.date,
-      amount: Number(row.amount),
-      description: row.description,
-      expenseCategory: row.category,
-      worker: this.staffName(row.staff) || '—',
-      role: row.staff?.position || '—',
-      enteredBy: row.recordedBy?.name || row.recordedBy?.email || '—',
-      recordedBy: row.recordedBy?.name || row.recordedBy?.email || '—',
-      staffId: row.staffId,
-      recordedByUserId: row.recordedByUserId,
-    }));
+    const mapped = rows
+      .filter((row: any) => this.constructionTransactionCategory(row) === cat)
+      .map((row: any) => {
+        const rollupKey = this.constructionRollupLabel(row, cat);
+        const enteredBy = row.user?.name || row.user?.email || 'System';
+        return {
+          id: row.id,
+          category: cat,
+          date: row.date,
+          amount: Number(row.amount),
+          description: row.description,
+          rollupKey,
+          item: cat === 'materials' ? rollupKey : undefined,
+          worker: cat === 'manpower' ? row.description : undefined,
+          expenseCategory: row.category?.name || rollupKey,
+          status: row.status,
+          type: row.type,
+          enteredBy,
+          usedBy: enteredBy,
+          recordedBy: enteredBy,
+          userId: row.userId,
+          notes: row.notes,
+        };
+      })
+      .filter((row: any) => !filter || row.rollupKey === filter);
     return {
       project: { id: project.id, name: project.name },
       category: cat,
-      label: 'Site Expenses',
+      label: cat === 'manpower' ? 'Manpower' : cat === 'materials' ? 'Materials' : 'Site Expenses',
       filter: filter || null,
       filterLabel: filter || null,
       total: mapped.reduce((s: number, r: any) => s + r.amount, 0),
